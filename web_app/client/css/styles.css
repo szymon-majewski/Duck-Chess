@@ -1,0 +1,58 @@
+header
+{
+    position: relative;
+    left: 100px;
+}
+
+button
+{
+    position: relative;
+}
+
+#Board
+{
+    position: relative;
+    float: left;
+    width: 560px;
+    height: 560px;
+    border: 2px solid black;
+}
+
+#SidePanel
+{
+    position: relative;
+    margin-left: 600px;
+    width: 150px;
+    height: 540px;
+    border: 2px solid black;
+    text-align: center;
+    padding-top: 20px;
+}
+
+.Square
+{
+    /*position: relative;*/
+    width: 70px;
+    height: 70px;
+    float: left;
+}
+
+.LightSquare 
+{
+    background-color: #6db9e8
+}
+
+.SelectedLightSquare 
+{
+    background-color: #4f93be
+}
+
+.DarkSquare 
+{
+    background-color: #2052a8
+}
+
+.SelectedDarkSquare
+{
+    background-color: #203d6d
+}
