@@ -1,7 +1,7 @@
 header
 {
     position: relative;
-    left: 100px;
+    left: 115px;
 }
 
 button
@@ -29,6 +29,60 @@ button
     padding-top: 20px;
 }
 
+#DuckSquare
+{
+    width: 70px;
+    height: 70px;
+    border: 2px solid black;
+    position: absolute; 
+    bottom: 20px;
+    left: 39px;
+}
+
+#RanksPanel
+{
+    position: relative;
+    height: 560px;
+    width: 15px;
+    float: left;
+    right: 20px;
+}
+
+#FilesPanel
+{
+    position: relative;
+    height: 15px;
+    width: 560px;
+    left: 15px;
+    top: 10px;
+}
+
+.RanksDiv
+{
+    position: relative;
+    height: 70px;
+    line-height: 70px;
+    text-align: center;
+}
+
+.FilesDiv
+{
+    position: relative;
+    width: 70px;
+    float: left;
+}
+
+.RanksFilesParagraph
+{
+    margin-left: auto;
+    margin-top: auto;
+    font-size: 30px;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: middle;
+}
+
+
 .Square
 {
     /*position: relative;*/
@@ -55,4 +109,14 @@ button
 .SelectedDarkSquare
 {
     background-color: #203d6d
+}
+
+.DuckSquare
+{
+    background-color: #ffffff;
+}
+
+.SelectedDuckSquare
+{
+    background-color: #e0e0e0;
 }

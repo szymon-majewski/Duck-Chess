@@ -12,11 +12,14 @@
             <h1>Duck Chess</h1>
         </header>
         <div style="position: relative; left: 100px; width: 750px; height: 560px;">
+            <div id="RanksPanel"></div>
             <div id="Board"></div>
             <div id="SidePanel">
-                <button type="button" id="NewGameButton">New Game</button>
-                <div id="DuckSquare" style="width: 70px; height: 70px; border: 2px solid black; position: absolute; bottom: 20px; left: 39px; "></div>
+                <button type="button" id="ResetBoardButton">Reset Board</button>
+                <button type="button" id="FindGameButton" style="top: 10px">Find Game</button>
+                <div id="DuckSquare" class="DuckSquare"></div>
             </div>
+            <div id="FilesPanel"></div>
         </div>
 
         <script src="../js/main.js"></script>

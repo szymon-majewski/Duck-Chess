@@ -2,6 +2,17 @@ SetupBoard();
 SetupSidePanel();
 SetStartingPosition();
 
+document.addEventListener('contextmenu', function(e)
+{
+    e.preventDefault();
+
+    if (moving)
+    {
+        DeselectSquare(srcDiv);
+        moving = false;
+    }
+})
+
 function SetupBoard()
 {
     let light = false;
@@ -23,12 +34,49 @@ function SetupBoard()
             light = !light;
         }
     }
+
+    document.getElementById("DuckSquare").addEventListener("click", OnClick, false);
+
+    let ranks = document.getElementById("RanksPanel");
+    let files = document.getElementById("FilesPanel");
+
+    for (let i = 0; i < 8; ++i)
+    {
+        const ranksParagraph = document.createElement("p");
+        const filesParagraph = document.createElement("p");
+        const ranksDiv = document.createElement("div");
+        const filesDiv = document.createElement("div");
+
+        ranksParagraph.classList.add('RanksFilesParagraph');
+        filesParagraph.classList.add('RanksFilesParagraph');
+        ranksDiv.classList.add('RanksDiv');
+        filesDiv.classList.add('FilesDiv');
+
+        ranksParagraph.innerHTML = i + 1;
+        filesParagraph.innerHTML = String.fromCharCode("A".charCodeAt(0) + i);
+
+        ranksDiv.appendChild(ranksParagraph);
+        filesDiv.appendChild(filesParagraph);
+
+        ranks.appendChild(ranksDiv);
+        files.appendChild(filesDiv);
+    }
 }
 
 function SetupSidePanel()
 {
-    document.getElementById("DuckSquare").addEventListener("click", OnClick, false);
-    //document.getElementById("NewGameButton").onclick = SetStartingPosition();
+    document.getElementById("ResetBoardButton").onclick = function()
+    {
+        if (moving)
+        {
+            DeselectSquare(srcDiv);
+            moving = false;
+        }
+
+        CleanBoard();
+        SetStartingPosition();
+    };
+    document.getElementById("FindGameButton").onclick = FindGame;
 }
 
 function SetStartingPosition()
@@ -63,8 +111,29 @@ function SetStartingPosition()
     {
         let img = document.createElement("img");
         img.src = path;
+
+        switch (path.charAt(7)) // when paths to images changes, this won't work
+        {
+            case 'b': { img.classList.add('black'); break; }
+            case 'w': { img.classList.add('white'); break; }
+            case 'd': { img.classList.add('duck'); break; }
+        }
+        
         document.getElementById(id).appendChild(img);
     }
+}
+
+function CleanBoard()
+{
+    for (let y = 0; y < 8; ++y)
+    {
+        for (let x = 0; x < 8; ++x)
+        {
+            document.getElementById(String.fromCharCode("A".charCodeAt(0) + x) + (y + 1)).innerHTML = "";
+        }
+    }
+
+    document.getElementById("DuckSquare").innerHTML = "";
 }
 
 let moving = false;
@@ -94,7 +163,18 @@ function OnClick(e)
         {
             let parentDiv = div.parentNode;
 
-            if (parentDiv != srcDiv)
+            // switching players pieces
+            if ((parentDiv.childNodes[0].classList.contains('white') && srcDiv.childNodes[0].classList.contains('white')) ||
+                (parentDiv.childNodes[0].classList.contains('black') && srcDiv.childNodes[0].classList.contains('black')))
+            {
+                DeselectSquare(srcDiv);
+                SelectSquare(parentDiv);
+                srcDiv = parentDiv;
+            }
+
+            // check if player wants to capture duck or wants to capture piece with duck
+            else if (!srcDiv.childNodes[0].classList.contains('duck') &&
+                !parentDiv.childNodes[0].classList.contains('duck'))
             {
                 parentDiv.innerHTML = "";
                 parentDiv.appendChild(srcDiv.childNodes[0]);
@@ -103,6 +183,8 @@ function OnClick(e)
                 SendMoveToServer(srcDiv.id, parentDiv.id);
 
                 moving = false;
+
+                //after first move disable ducksquare
             }
         }
         else
@@ -110,17 +192,27 @@ function OnClick(e)
             srcDiv = div.parentNode;
             moving = true;
 
-            if (srcDiv.classList.contains("LightSquare"))
-            {
-                srcDiv.classList.add("SelectedLightSquare");
-                srcDiv.classList.remove("LightSquare");
-            }
-            else if (srcDiv.classList.contains("DarkSquare"))
-            {
-                srcDiv.classList.add("SelectedDarkSquare");
-                srcDiv.classList.remove("DarkSquare");
-            }
+            SelectSquare(srcDiv);
         }     
+    }
+}
+
+function SelectSquare(square)
+{
+    if (square.classList.contains("LightSquare"))
+    {
+        square.classList.add("SelectedLightSquare");
+        square.classList.remove("LightSquare");
+    }
+    else if (square.classList.contains("DarkSquare"))
+    {
+        square.classList.add("SelectedDarkSquare");
+        square.classList.remove("DarkSquare");
+    }
+    else
+    {
+        square.classList.add("SelectedDuckSquare");
+        square.classList.remove("DuckSquare");
     }
 }
 
@@ -136,11 +228,16 @@ function DeselectSquare(square)
         square.classList.remove("SelectedDarkSquare");
         square.classList.add("DarkSquare");
     }
+    else
+    {
+        square.classList.remove("SelectedDuckSquare");
+        square.classList.add("DuckSquare");
+    }
 }
 
 function SendMoveToServer(srcSquare, destSquare)
 {
-    const data = { srcSquare, destSquare };
+    const data = { src: srcSquare, dest: destSquare };
     const options = 
     { 
         method: 'POST',
@@ -148,5 +245,10 @@ function SendMoveToServer(srcSquare, destSquare)
         body: JSON.stringify(data) 
     };
 
-    fetch('/api', options);
+    fetch('/move', options);
+}
+
+function FindGame()
+{
+    fetch('/findGame', { method: 'POST' });
 }
