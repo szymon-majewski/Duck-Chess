@@ -136,11 +136,19 @@ function CleanBoard()
     document.getElementById("DuckSquare").innerHTML = "";
 }
 
+let playersTurn = true;
+let playingOnline = false;
+
 let moving = false;
 let srcDiv;
 
 function OnClick(e)
 {
+    if (playingOnline && !playersTurn)
+    {
+        return;
+    }
+
     let div = e.target;
 
     if (div.tagName == "DIV")
@@ -245,10 +253,31 @@ function SendMoveToServer(srcSquare, destSquare)
         body: JSON.stringify(data) 
     };
 
-    fetch('/move', options);
+    fetch('/move', options)
+    .then((response) =>
+    {
+        return response.json();
+    })
+    .then((move) =>
+    {
+        const sourceDiv = document.getElementById(move.src);
+        const destinationDiv = document.getElementById(move.dest);
+
+        destinationDiv.innerHTML = "";
+        destinationDiv.appendChild(sourceDiv.childNodes[0]);
+        sourceDiv.innerHTML = "";
+    });
 }
 
 function FindGame()
 {
-    fetch('/findGame', { method: 'POST' });
+    fetch('/findGame', { method: 'POST' })
+    .then((response) =>
+    {
+        return response.json();
+    })
+    .then((response) =>
+    {
+        console.log(response.movesFirst);
+    });
 }
