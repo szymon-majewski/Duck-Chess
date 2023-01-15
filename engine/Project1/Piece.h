@@ -5,8 +5,9 @@
 class Piece
 {
 public:
+
 	// Piece types bit representations
-	enum Type : uint8_t
+	enum class Type : BitPiece
 	{
 		None = 0,		//00 000
 		Pawn = 1,		//00 001
@@ -19,7 +20,7 @@ public:
 	};
 
 	// Piece color bit representations
-	enum Color : uint8_t
+	enum class Color : BitPiece
 	{
 		White = 8,		//01 000
 		Black = 16,		//10 000
@@ -27,9 +28,11 @@ public:
 	};
 
 private:
+
 	BitPiece piece;
 
 public:
+
 	inline BitPiece GetPiece() { return piece; }
 	inline void SetPiece(const BitPiece bitPiece) { piece = bitPiece; }
 

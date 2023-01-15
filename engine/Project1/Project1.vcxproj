@@ -128,10 +128,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BoardPrinter.cpp" />
+    <ClCompile Include="ConsolePrinterHandler.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Engine.h" />
     <ClCompile Include="FenParser.cpp" />
     <ClCompile Include="Game.h" />
+    <ClCompile Include="GameInformationPrinter.cpp" />
     <ClCompile Include="Piece.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="StandardPositionEvaluator.cpp" />
@@ -140,8 +143,10 @@
   <ItemGroup>
     <ClInclude Include="Board.h" />
     <ClInclude Include="BoardPrinter.h" />
+    <ClInclude Include="ConsolePrinterHandler.h" />
     <ClInclude Include="Definitions.h" />
     <ClInclude Include="FenParser.h" />
+    <ClInclude Include="GameInformationPrinter.h" />
     <ClInclude Include="Piece.h" />
     <ClInclude Include="PositionEvaluator.h" />
   </ItemGroup>

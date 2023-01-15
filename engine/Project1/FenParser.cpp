@@ -24,7 +24,7 @@ void FenParser::ParseFen(const std::string& fen, Game& game) const
 
 			while (digit--)
 			{
-				game.board.pieces[y][x++].SetPiece(Piece::Type::None);
+				game.board.pieces[y][x++].SetPiece((BitPiece)Piece::Type::None);
 			}
 		}
 		else if (fen[i] == '/')
@@ -41,7 +41,7 @@ void FenParser::ParseFen(const std::string& fen, Game& game) const
 			}
 		}
 		// Low abstracition
-		else if (isalpha(fen[i]) || fen[i] == '@')
+		else if (isalpha(fen[i]) || fen[i] == Piece::FindPieceSymbol((BitPiece)Piece::Type::Duck))
 		{
 			try
 			{
@@ -65,8 +65,30 @@ void FenParser::ParseFen(const std::string& fen, Game& game) const
 	// TODO: Read metadata
 
 	std::string metadata = fen.substr(i + 2);
+	std::string* tokens = SplitFenMetadata(metadata);
+
+	// Player to move
+	game.playerToMove = tokens[0] == "w" ? PlayerColor::White : PlayerColor::Black;
+
+	// Castling rights
+	game.castlingRights = ParseCastilngRights(tokens[1]);
+
+	// En Passant target
+	game.enPassantTarget = SquareIdToSquare(tokens[2]);
+
+	// Halfmove clock
+	game.plyClock = stoi(tokens[3]);
+
+	// Fullmoves
+	game.fullMovesCount = stoi(tokens[4]);
+
+	delete[] tokens;
+}
+
+std::string* FenParser::SplitFenMetadata(std::string& metadata) const
+{
+	std::string* tokens = new std::string[METADATA_COUNT];
 	size_t position = 0;
-	std::string tokens[METADATA_COUNT];
 	int dataIndex = 0;
 
 	while ((position = metadata.find(" ")) != std::string::npos)
@@ -76,31 +98,42 @@ void FenParser::ParseFen(const std::string& fen, Game& game) const
 	}
 	tokens[dataIndex] = metadata;
 
-	// Who is to move
-	game.playerToMove = tokens[0] == "w" ? White : Black;
+	return tokens;
+}
 
-	// Castling rights
-	game.castlingRights = None;
-
-	for (int c = 0; c < tokens[1].length(); ++c)
+Square FenParser::SquareIdToSquare(std::string squareId) const
+{
+	if (squareId[0] == '-')
 	{
-		switch (tokens[1][c])
+		return Square::None;
+	}
+	else
+	{
+		squareId[0] = toupper(squareId[0]);
+		return (Square)((squareId[0] - 'A') * Board::WIDTH + squareId[1] - '0');
+	}
+}
+
+CastlingRights FenParser::ParseCastilngRights(std::string castlingRightsString) const
+{
+	CastlingRights resultCastlingRights = CastlingRights::None;
+
+	if (castlingRightsString == "-")
+	{
+		return resultCastlingRights;
+	}
+
+	for (int c = 0; c < castlingRightsString.length(); ++c)
+	{
+		switch (castlingRightsString[c])
 		{
-		case 'k': { game.castlingRights = (CastlingRights)(game.castlingRights | CastlingRights::BlackKingside); break; }
-		case 'K': { game.castlingRights = (CastlingRights)(game.castlingRights | CastlingRights::WhiteKingside); break; }
-		case 'q': { game.castlingRights = (CastlingRights)(game.castlingRights | CastlingRights::BlackQueenside); break; }
-		case 'Q': { game.castlingRights = (CastlingRights)(game.castlingRights | CastlingRights::WhiteQueenside); break; }
+		case 'k': { resultCastlingRights = (CastlingRights)((uint8_t)resultCastlingRights | (uint8_t)CastlingRights::BlackKingside); break; }
+		case 'K': { resultCastlingRights = (CastlingRights)((uint8_t)resultCastlingRights | (uint8_t)CastlingRights::WhiteKingside); break; }
+		case 'q': { resultCastlingRights = (CastlingRights)((uint8_t)resultCastlingRights | (uint8_t)CastlingRights::BlackQueenside); break; }
+		case 'Q': { resultCastlingRights = (CastlingRights)((uint8_t)resultCastlingRights | (uint8_t)CastlingRights::WhiteQueenside); break; }
 		default: { throw std::invalid_argument("Provided FEN had invalid castling rights"); }
 		}
 	}
 
-	// En Passant target
-	toupper(tokens[2][0]);
-	game.enPassantTarget = (Square)(tokens[2][0] - 'A' + tokens[2][1] - '0');
-
-	// HalfmoveClock
-	game.plyClock = stoi(tokens[3]);
-
-	// Fullmoves
-	game.fullMovesCount = stoi(tokens[4]);
+	return resultCastlingRights;
 }

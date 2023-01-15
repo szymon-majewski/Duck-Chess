@@ -5,5 +5,6 @@
 class StandardPositionEvaluator : public PositionEvaluator
 {
 public:
+
 	double Evaluate(const Game& game);
 };

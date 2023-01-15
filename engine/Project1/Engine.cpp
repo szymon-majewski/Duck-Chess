@@ -6,6 +6,7 @@ Engine* Engine::instance = nullptr;
 Engine::Engine()
 {
 	boardPrinter = new BoardPrinter();
+	gameInformationPrinter = new GameInformationPrinter();
 	evaluator = new StandardPositionEvaluator();
 }
 
@@ -22,12 +23,14 @@ Engine* Engine::GetInstance()
 Engine::~Engine()
 {
 	delete instance->boardPrinter;
+	delete instance->gameInformationPrinter;
 	delete instance->game;
 }
 
 void Engine::Print()
 {
 	boardPrinter->PrintBoard(game->board.pieces);
+	gameInformationPrinter->PrintGameInformation(*game);
 }
 
 Game* Engine::GetGame()

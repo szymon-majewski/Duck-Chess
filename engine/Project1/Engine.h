@@ -3,18 +3,22 @@
 #include "Game.h"
 #include "PositionEvaluator.h"
 #include "BoardPrinter.h"
+#include "GameInformationPrinter.h"
 
 class Engine
 {
 private:
+
 	static Engine* instance;
 	Engine();
 
 	Game* game;
 	PositionEvaluator* evaluator;
 	BoardPrinter* boardPrinter;
+	GameInformationPrinter* gameInformationPrinter;
 
 public:
+
 	static Engine* GetInstance();
 	~Engine();
 

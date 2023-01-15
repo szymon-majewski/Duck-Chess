@@ -13,18 +13,18 @@ char Piece::FindPieceSymbol(BitPiece piece)
 
 const std::unordered_map<char, BitPiece> Piece::PIECES_SYMBOLS_MAP =
 {
-	{ 'p', Piece::Type::Pawn | Piece::Color::Black },
-	{ 'P', Piece::Type::Pawn | Piece::Color::White },
-	{ 'n', Piece::Type::Knight | Piece::Color::Black },
-	{ 'N', Piece::Type::Knight | Piece::Color::White },
-	{ 'b', Piece::Type::Bishop | Piece::Color::Black },
-	{ 'B', Piece::Type::Bishop | Piece::Color::White },
-	{ 'r', Piece::Type::Rook | Piece::Color::Black },
-	{ 'R', Piece::Type::Rook | Piece::Color::White },
-	{ 'q', Piece::Type::Queen | Piece::Color::Black },
-	{ 'Q', Piece::Type::Queen | Piece::Color::White },
-	{ 'k', Piece::Type::King | Piece::Color::Black },
-	{ 'K', Piece::Type::King | Piece::Color::White },
-	{ '@', Piece::Type::Duck | Piece::Color::Both },
-	{ ' ', Piece::Type::None }
+	{ 'p', (uint8_t)Piece::Type::Pawn | (uint8_t)Piece::Color::Black },
+	{ 'P', (uint8_t)Piece::Type::Pawn | (uint8_t)Piece::Color::White },
+	{ 'n', (uint8_t)Piece::Type::Knight | (uint8_t)Piece::Color::Black },
+	{ 'N', (uint8_t)Piece::Type::Knight | (uint8_t)Piece::Color::White },
+	{ 'b', (uint8_t)Piece::Type::Bishop | (uint8_t)Piece::Color::Black },
+	{ 'B', (uint8_t)Piece::Type::Bishop | (uint8_t)Piece::Color::White },
+	{ 'r', (uint8_t)Piece::Type::Rook | (uint8_t)Piece::Color::Black },
+	{ 'R', (uint8_t)Piece::Type::Rook | (uint8_t)Piece::Color::White },
+	{ 'q', (uint8_t)Piece::Type::Queen | (uint8_t)Piece::Color::Black },
+	{ 'Q', (uint8_t)Piece::Type::Queen | (uint8_t)Piece::Color::White },
+	{ 'k', (uint8_t)Piece::Type::King | (uint8_t)Piece::Color::Black },
+	{ 'K', (uint8_t)Piece::Type::King | (uint8_t)Piece::Color::White },
+	{ 'D', (uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both },
+	{ ' ', (uint8_t)Piece::Type::None }
 };
