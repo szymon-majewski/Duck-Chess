@@ -136,6 +136,7 @@
     <ClCompile Include="Game.h" />
     <ClCompile Include="GameInformationPrinter.cpp" />
     <ClCompile Include="Piece.cpp" />
+    <ClCompile Include="PositionEvaluator.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="StandardPositionEvaluator.cpp" />
     <ClCompile Include="StandardPositionEvaluator.h" />

@@ -20,4 +20,5 @@ private:
 
 	friend class FenParser;
 	friend class Engine;
+	friend class StandardPositionEvaluator;
 };

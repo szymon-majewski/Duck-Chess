@@ -62,8 +62,6 @@ void FenParser::ParseFen(const std::string& fen, Game& game) const
 		}
 	}
 
-	// TODO: Read metadata
-
 	std::string metadata = fen.substr(i + 2);
 	std::string* tokens = SplitFenMetadata(metadata);
 

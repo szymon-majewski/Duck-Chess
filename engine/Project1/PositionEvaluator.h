@@ -4,7 +4,14 @@
 
 class PositionEvaluator
 {
+protected:
+
+	Game* game;
+
 public:
 
-	virtual double Evaluate(const Game& game) = 0;
+	static std::unordered_map <Piece::Type, double> piecesMaterial;
+
+	PositionEvaluator(Game* game);
+	virtual double Evaluate() = 0;
 };

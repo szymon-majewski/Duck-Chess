@@ -5,10 +5,10 @@ void ConsolePrinterHandler::SetSuccessor(ConsolePrinterHandler* successor)
 	this->successor = successor;
 }
 
-void ConsolePrinterHandler::Handle()
+void ConsolePrinterHandler::Handle(Request request)
 {
 	if (successor)
 	{
-		successor->Handle();
+		successor->Handle(request);
 	}
 }

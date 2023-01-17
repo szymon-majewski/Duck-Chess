@@ -5,9 +5,15 @@
 
 class GameInformationPrinter : public ConsolePrinterHandler
 {
+private:
+
+	Game* game;
+
 public:
 
-	void PrintGameInformation(const Game& game) const;
+	GameInformationPrinter(Game* game);
+	virtual void Print() const;
+	virtual void Handle(Request request) override;
 
 private:
 

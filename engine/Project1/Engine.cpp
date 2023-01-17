@@ -3,12 +3,7 @@
 
 Engine* Engine::instance = nullptr;
 
-Engine::Engine()
-{
-	boardPrinter = new BoardPrinter();
-	gameInformationPrinter = new GameInformationPrinter();
-	evaluator = new StandardPositionEvaluator();
-}
+Engine::Engine() {}
 
 Engine* Engine::GetInstance()
 {
@@ -29,8 +24,7 @@ Engine::~Engine()
 
 void Engine::Print()
 {
-	boardPrinter->PrintBoard(game->board.pieces);
-	gameInformationPrinter->PrintGameInformation(*game);
+	boardPrinter->Handle(consolePrinterRequest);
 }
 
 Game* Engine::GetGame()
@@ -40,5 +34,21 @@ Game* Engine::GetGame()
 
 void Engine::SetGame(Game* game)
 {
+	delete this->game;
+	delete boardPrinter;
+	delete gameInformationPrinter;
+	delete evaluator;
+
 	this->game = game;
+
+	boardPrinter = new BoardPrinter(&game->board);
+	gameInformationPrinter = new GameInformationPrinter(game);
+	boardPrinter->SetSuccessor(gameInformationPrinter);
+
+	// Setting what info is going to be displayed in console
+	consolePrinterRequest = (ConsolePrinterHandler::Request)(
+		(uint8_t)ConsolePrinterHandler::Request::Board |
+		(uint8_t)ConsolePrinterHandler::Request::GameInformation);
+
+	evaluator = new StandardPositionEvaluator(game);
 }

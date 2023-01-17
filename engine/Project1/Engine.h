@@ -16,6 +16,7 @@ private:
 	PositionEvaluator* evaluator;
 	BoardPrinter* boardPrinter;
 	GameInformationPrinter* gameInformationPrinter;
+	ConsolePrinterHandler::Request consolePrinterRequest;
 
 public:
 

@@ -6,9 +6,15 @@
 
 class BoardPrinter : public ConsolePrinterHandler
 {
+private:
+
+	Board* board;
+
 public:
 
-	void PrintBoard(Piece board[Board::HEIGHT][Board::WIDTH]) const;
+	BoardPrinter(Board* board);
+	virtual void Print() const;
+	virtual void Handle(Request request) override;
 
 private:
 

@@ -15,7 +15,12 @@ std::string BoardPrinter::InitVerticalLine()
 
 std::string BoardPrinter::verticalLine = BoardPrinter::InitVerticalLine();
 
-void BoardPrinter::PrintBoard(Piece board[Board::HEIGHT][Board::WIDTH]) const
+BoardPrinter::BoardPrinter(Board* board)
+{
+	this->board = board;
+}
+
+void BoardPrinter::Print() const
 {
 	for (int y = 0; y < Board::HEIGHT; ++y)
 	{
@@ -24,7 +29,7 @@ void BoardPrinter::PrintBoard(Piece board[Board::HEIGHT][Board::WIDTH]) const
 
 		for (int x = 0; x < Board::WIDTH; ++x)
 		{
-			std::cout << "| " << Piece::FindPieceSymbol(board[y][x].GetPiece()) << ' ';
+			std::cout << "| " << Piece::FindPieceSymbol(board->pieces[y][x].GetPiece()) << ' ';
 		}
 
 		std::cout << '|' << std::endl;
@@ -39,4 +44,14 @@ void BoardPrinter::PrintBoard(Piece board[Board::HEIGHT][Board::WIDTH]) const
 	}
 
 	std::cout << std::endl << std::endl;
+}
+
+void BoardPrinter::Handle(Request request)
+{
+	if ((Request)((uint8_t)request & (uint8_t)Request::Board) != Request::None)
+	{
+		Print();
+	}
+
+	ConsolePrinterHandler::Handle(request);
 }
