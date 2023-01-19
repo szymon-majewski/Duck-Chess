@@ -21,8 +21,8 @@ double StandardPositionEvaluator::Evaluate()
 		for (int x = 0; x < Board::WIDTH; ++x)
 		{
 			// Duck because it has all 1 bits, Color::Both for the same reason
-			result += piecesMaterial[(Piece::Type)((uint8_t)game->board.pieces[y][x].GetPiece() & (uint8_t)Piece::Type::Duck)] * 
-				((Piece::Color)((uint8_t)game->board.pieces[y][x].GetPiece() & (uint8_t)Piece::Color::Both) == Piece::Color::White ? 1 : -1);
+			result += piecesMaterial[(Piece::Type)((uint8_t)game->board.pieces[y][x].GetBitPiece() & (uint8_t)Piece::Type::Duck)] * 
+				((Piece::Color)((uint8_t)game->board.pieces[y][x].GetBitPiece() & (uint8_t)Piece::Color::Both) == Piece::Color::White ? 1 : -1);
 		}
 	}
 

@@ -76,6 +76,7 @@ function SetupSidePanel()
         CleanBoard();
         SetStartingPosition();
     };
+
     document.getElementById("FindGameButton").onclick = FindGame;
 }
 
@@ -253,20 +254,20 @@ function SendMoveToServer(srcSquare, destSquare)
         body: JSON.stringify(data) 
     };
 
-    fetch('/move', options)
-    .then((response) =>
-    {
-        return response.json();
-    })
-    .then((move) =>
-    {
-        const sourceDiv = document.getElementById(move.src);
-        const destinationDiv = document.getElementById(move.dest);
+    fetch('/move', options);
+    // .then((response) =>
+    // {
+    //     return response.json();
+    // })
+    // .then((move) =>
+    // {
+    //     const sourceDiv = document.getElementById(move.src);
+    //     const destinationDiv = document.getElementById(move.dest);
 
-        destinationDiv.innerHTML = "";
-        destinationDiv.appendChild(sourceDiv.childNodes[0]);
-        sourceDiv.innerHTML = "";
-    });
+    //     destinationDiv.innerHTML = "";
+    //     destinationDiv.appendChild(sourceDiv.childNodes[0]);
+    //     sourceDiv.innerHTML = "";
+    // });
 }
 
 function FindGame()
@@ -280,4 +281,6 @@ function FindGame()
     {
         console.log(response.movesFirst);
     });
+
+    document.getElementById("FindGameButton").disabled = true;
 }

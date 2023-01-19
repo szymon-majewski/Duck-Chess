@@ -6,10 +6,11 @@ class Game
 {
 private:
 
-	Board board;
+	
 
 public:
 
+	Board board;
 	PlayerColor playerToMove;
 	CastlingRights castlingRights;
 	Square enPassantTarget;

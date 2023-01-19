@@ -18,19 +18,16 @@ app.post('/findGame', (request, response) =>
     let clientAddress = request.socket.remoteAddress;
     console.log(clientAddress + " wants to play!");
 
-    if (!playersList.includes(clientAddress))
-    {
-        playersList.push(clientAddress)
+    playersList.push(clientAddress)
 
-        if (playersList.length == 2)
-        { 
-            response.json({ movesFirst: false });
-            SetupGame();
-        }
-        else
-        {
-            response.json({ movesFirst: true });
-        }
+    if (playersList.length == 2)
+    { 
+        response.json({ movesFirst: false });
+        SetupGame();
+    }
+    else
+    {
+        response.json({ movesFirst: true });
     }
 })
 

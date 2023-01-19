@@ -22,14 +22,14 @@ BoardPrinter::BoardPrinter(Board* board)
 
 void BoardPrinter::Print() const
 {
-	for (int y = 0; y < Board::HEIGHT; ++y)
+	for (int y = Board::HEIGHT - 1; y >= 0; --y)
 	{
 		std::cout << "  " << verticalLine << std::endl;
-		std::cout << (char)('H' - y) << ' ';
+		std::cout << y + 1 << ' ';
 
 		for (int x = 0; x < Board::WIDTH; ++x)
 		{
-			std::cout << "| " << Piece::FindPieceSymbol(board->pieces[y][x].GetPiece()) << ' ';
+			std::cout << "| " << Piece::FindPieceSymbol(board->pieces[y][x].GetBitPiece()) << ' ';
 		}
 
 		std::cout << '|' << std::endl;
@@ -38,9 +38,9 @@ void BoardPrinter::Print() const
 	std::cout << "  " << verticalLine << std::endl;
 	std::cout << " ";
 	
-	for (int x = 1; x <= Board::WIDTH; ++x)
+	for (int x = 0; x < Board::WIDTH; ++x)
 	{
-		std::cout << "   " << x;
+		std::cout << "   " << (char)('A' + x);
 	}
 
 	std::cout << std::endl << std::endl;

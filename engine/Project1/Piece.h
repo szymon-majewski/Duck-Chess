@@ -33,8 +33,11 @@ private:
 
 public:
 
-	inline BitPiece GetPiece() { return piece; }
-	inline void SetPiece(const BitPiece bitPiece) { piece = bitPiece; }
+	inline const BitPiece& GetBitPiece() const { return piece; }
+	inline void SetBitPiece(const BitPiece bitPiece) { piece = bitPiece; }
+
+	Piece::Type PieceType() const;
+	Piece::Color PieceColor() const;
 
 	const static std::unordered_map<char, BitPiece> PIECES_SYMBOLS_MAP;
 

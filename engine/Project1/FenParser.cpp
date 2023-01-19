@@ -24,7 +24,7 @@ void FenParser::ParseFen(const std::string& fen, Game& game) const
 
 			while (digit--)
 			{
-				game.board.pieces[y][x++].SetPiece((BitPiece)Piece::Type::None);
+				game.board.pieces[Board::WIDTH - y - 1][x++].SetBitPiece((BitPiece)Piece::Type::None);
 			}
 		}
 		else if (fen[i] == '/')
@@ -40,12 +40,12 @@ void FenParser::ParseFen(const std::string& fen, Game& game) const
 				throw std::invalid_argument("Provided FEN had a row, that wasn't fully filled.");
 			}
 		}
-		// Low abstracition
+
 		else if (isalpha(fen[i]) || fen[i] == Piece::FindPieceSymbol((BitPiece)Piece::Type::Duck))
 		{
 			try
 			{
-				game.board.pieces[y][x++].SetPiece(Piece::PIECES_SYMBOLS_MAP.at(fen[i]));
+				game.board.pieces[Board::WIDTH - y - 1][x++].SetBitPiece(Piece::PIECES_SYMBOLS_MAP.at(fen[i]));
 			}
 			catch (const std::out_of_range e)
 			{
@@ -108,7 +108,7 @@ Square FenParser::SquareIdToSquare(std::string squareId) const
 	else
 	{
 		squareId[0] = toupper(squareId[0]);
-		return (Square)((squareId[0] - 'A') * Board::WIDTH + squareId[1] - '0');
+		return (Square)((squareId[1] - '0' - 1) * Board::WIDTH + squareId[0] - 'A' + 1);
 	}
 }
 

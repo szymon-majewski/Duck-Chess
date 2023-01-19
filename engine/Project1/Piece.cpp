@@ -1,5 +1,15 @@
 #include "Piece.h"
 
+Piece::Type Piece::PieceType() const
+{
+	return (Piece::Type)(piece & (uint8_t)Piece::Type::Duck);
+}
+
+Piece::Color Piece::PieceColor() const
+{
+	return (Piece::Color)(piece & (uint8_t)Piece::Color::Both);
+}
+
 char Piece::FindPieceSymbol(BitPiece piece)
 {
 	for (auto& it : Piece::PIECES_SYMBOLS_MAP)
