@@ -1,6 +1,6 @@
 #include "FenParser.h"
 
-void FenParser::ParseFen(const std::string& fen, Game& game) const
+void FenParser::ParseFen(const std::string& fen, Position& position) const
 {
 	int squaresFilled = 0;
 	int squaresInCurrentRowFilled = 0;
@@ -24,7 +24,7 @@ void FenParser::ParseFen(const std::string& fen, Game& game) const
 
 			while (digit--)
 			{
-				game.board.pieces[Board::WIDTH - y - 1][x++].SetBitPiece((BitPiece)Piece::Type::None);
+				position.board.pieces[Board::WIDTH - y - 1][x++].SetBitPiece((BitPiece)Piece::Type::None);
 			}
 		}
 		else if (fen[i] == '/')
@@ -45,7 +45,7 @@ void FenParser::ParseFen(const std::string& fen, Game& game) const
 		{
 			try
 			{
-				game.board.pieces[Board::WIDTH - y - 1][x++].SetBitPiece(Piece::PIECES_SYMBOLS_MAP.at(fen[i]));
+				position.board.pieces[Board::WIDTH - y - 1][x++].SetBitPiece(Piece::PIECES_SYMBOLS_MAP.at(fen[i]));
 			}
 			catch (const std::out_of_range e)
 			{
@@ -66,19 +66,19 @@ void FenParser::ParseFen(const std::string& fen, Game& game) const
 	std::string* tokens = SplitFenMetadata(metadata);
 
 	// Player to move
-	game.playerToMove = tokens[0] == "w" ? PlayerColor::White : PlayerColor::Black;
+	position.playerToMove = tokens[0] == "w" ? PlayerColor::White : PlayerColor::Black;
 
 	// Castling rights
-	game.castlingRights = ParseCastilngRights(tokens[1]);
+	position.castlingRights = ParseCastilngRights(tokens[1]);
 
 	// En Passant target
-	game.enPassantTarget = SquareIdToSquare(tokens[2]);
+	position.enPassantTarget = SquareIdToSquare(tokens[2]);
 
 	// Halfmove clock
-	game.plyClock = stoi(tokens[3]);
+	position.plyClock = stoi(tokens[3]);
 
 	// Fullmoves
-	game.fullMovesCount = stoi(tokens[4]);
+	position.fullMovesCount = stoi(tokens[4]);
 
 	delete[] tokens;
 }

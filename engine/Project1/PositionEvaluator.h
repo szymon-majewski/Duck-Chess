@@ -1,17 +1,10 @@
 #pragma once
 
-#include "Game.h"
+#include "Position.h"
 
 class PositionEvaluator
 {
-protected:
-
-	Game* game;
-
 public:
 
-	static std::unordered_map <Piece::Type, double> piecesMaterial;
-
-	PositionEvaluator(Game* game);
-	virtual double Evaluate() = 0;
+	virtual double Evaluate(const Position& game) = 0;
 };

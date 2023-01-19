@@ -1,17 +1,17 @@
 #pragma once
 
-#include "Game.h"
+#include "Position.h"
 #include "ConsolePrinterHandler.h"
 
-class GameInformationPrinter : public ConsolePrinterHandler
+class PositionInformationPrinter : public ConsolePrinterHandler
 {
 private:
 
-	Game* game;
+	Position* position;
 
 public:
 
-	GameInformationPrinter(Game* game);
+	PositionInformationPrinter(Position* game);
 	virtual void Print() const;
 	virtual void Handle(Request request) override;
 

@@ -2,7 +2,7 @@
 
 #include "Board.h"
 
-class Game
+class Position
 {
 private:
 

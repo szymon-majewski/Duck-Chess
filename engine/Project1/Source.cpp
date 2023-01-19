@@ -23,12 +23,13 @@ std::string someFen = "rnbqkb1r/ppppp1PP/3pn3/8/8/8/PPPPPP2/RNBQKBNR w KQkq - 0 
 int main(int argc, char** argv)
 {
 	FenParser parser;
-	Engine::GetInstance()->SetGame(new Game());
+	Engine::GetInstance()->SetPosition(new Position());
 
-	parser.ParseFen(someFen, *Engine::GetInstance()->GetGame());
+	parser.ParseFen(someFen, *Engine::GetInstance()->GetPosition());
 	Engine::GetInstance()->Print();
 
-	std::unique_ptr<std::list<Move>> moves = Engine::GetInstance()->movesGenerator.GenerateLegalMoves(*Engine::GetInstance()->game);
+	std::unique_ptr<std::list<Move>> moves = Engine::GetInstance()->movesGenerator.GenerateLegalMoves(*Engine::GetInstance()->position);
+	double evaluation = Engine::GetInstance()->evaluator->Evaluate(*Engine::GetInstance()->position);
 
  	return 0;
 }

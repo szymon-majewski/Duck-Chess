@@ -134,8 +134,8 @@
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Engine.h" />
     <ClCompile Include="FenParser.cpp" />
-    <ClCompile Include="Game.h" />
-    <ClCompile Include="GameInformationPrinter.cpp" />
+    <ClCompile Include="Position.h" />
+    <ClCompile Include="PositionInformationPrinter.cpp" />
     <ClCompile Include="Move.cpp" />
     <ClCompile Include="MovesGenerator.cpp" />
     <ClCompile Include="Piece.cpp" />
@@ -150,7 +150,7 @@
     <ClInclude Include="ConsolePrinterHandler.h" />
     <ClInclude Include="Definitions.h" />
     <ClInclude Include="FenParser.h" />
-    <ClInclude Include="GameInformationPrinter.h" />
+    <ClInclude Include="PositionInformationPrinter.h" />
     <ClInclude Include="Move.h" />
     <ClInclude Include="MovesGenerator.h" />
     <ClInclude Include="Piece.h" />

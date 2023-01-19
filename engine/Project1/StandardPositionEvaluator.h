@@ -6,6 +6,6 @@ class StandardPositionEvaluator : public PositionEvaluator
 {
 public:
 
-	StandardPositionEvaluator(Game* game);
-	virtual double Evaluate();
+	static std::unordered_map <Piece::Type, double> piecesMaterial;
+	virtual double Evaluate(const Position& game);
 };

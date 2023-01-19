@@ -5,6 +5,7 @@
 class Board
 {
 public:
+
 	// Board dimensions
 	static const int WIDTH = 8;
 	static const int HEIGHT = 8;

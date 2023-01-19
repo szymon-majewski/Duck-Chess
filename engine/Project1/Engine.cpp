@@ -18,8 +18,8 @@ Engine* Engine::GetInstance()
 Engine::~Engine()
 {
 	delete instance->boardPrinter;
-	delete instance->gameInformationPrinter;
-	delete instance->game;
+	delete instance->positionInformationPrinter;
+	delete instance->position;
 }
 
 void Engine::Print()
@@ -27,28 +27,28 @@ void Engine::Print()
 	boardPrinter->Handle(consolePrinterRequest);
 }
 
-Game* Engine::GetGame()
+Position* Engine::GetPosition()
 {
-	return game;
+	return position;
 }
 
-void Engine::SetGame(Game* game)
+void Engine::SetPosition(Position* position)
 {
-	delete this->game;
+	delete this->position;
 	delete boardPrinter;
-	delete gameInformationPrinter;
+	delete positionInformationPrinter;
 	delete evaluator;
 
-	this->game = game;
+	this->position = position;
 
-	boardPrinter = new BoardPrinter(&game->board);
-	gameInformationPrinter = new GameInformationPrinter(game);
-	boardPrinter->SetSuccessor(gameInformationPrinter);
+	boardPrinter = new BoardPrinter(&position->board);
+	positionInformationPrinter = new PositionInformationPrinter(position);
+	boardPrinter->SetSuccessor(positionInformationPrinter);
 
 	// Setting what info is going to be displayed in console
 	consolePrinterRequest = (ConsolePrinterHandler::Request)(
 		(uint8_t)ConsolePrinterHandler::Request::Board |
 		(uint8_t)ConsolePrinterHandler::Request::GameInformation);
 
-	evaluator = new StandardPositionEvaluator(game);
+	evaluator = new StandardPositionEvaluator();
 }

@@ -5,7 +5,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include "Move.h"
-#include "Game.h"
+#include "Position.h"
 
 class MovesGenerator
 {
@@ -21,7 +21,7 @@ public:
 
 	MovesGenerator();
 
-	std::unique_ptr<std::list<Move>> GenerateLegalMoves(const Game& game);
+	std::unique_ptr<std::list<Move>> GenerateLegalMoves(const Position& game);
 
 	Square SquareIndicesToSquare(unsigned& y, unsigned& x);
 
