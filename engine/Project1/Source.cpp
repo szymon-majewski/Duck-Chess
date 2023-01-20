@@ -2,8 +2,6 @@
 #include <list>
 
 #include "Engine.h"
-#include "FenParser.h"
-#include "BoardPrinter.h"
 
 /*
 TODO: 
@@ -18,18 +16,21 @@ TODO:
 
 // Board pieces start from row 1 (so it goes bottom up)
 
+// Reverting moves - additional info is not enough to revert moves.
+// It's not enough info. If a piece is taken, there is no way to know what piece was that.
+// Possible solutions: 
+// Memento whole position, not a move.
+// Additional info for all kind of takes. That would be painful to code.
+
 std::string someFen = "rnbqkb1r/ppppp1PP/3pn3/8/8/8/PPPPPP2/RNBQKBNR w KQkq - 0 1";
 
 int main(int argc, char** argv)
 {
-	FenParser parser;
 	Engine::GetInstance()->SetPosition(new Position());
-
-	parser.ParseFen(someFen, *Engine::GetInstance()->GetPosition());
+	Engine::GetInstance()->fenParser.ParseFen(someFen, *Engine::GetInstance()->GetPosition());
 	Engine::GetInstance()->Print();
-
-	std::unique_ptr<std::list<Move>> moves = Engine::GetInstance()->movesGenerator.GenerateLegalMoves(*Engine::GetInstance()->position);
-	double evaluation = Engine::GetInstance()->evaluator->Evaluate(*Engine::GetInstance()->position);
+	Engine::GetInstance()->searchDepth = 5;
+	Engine::GetInstance()->MinMaxSearch(*Engine::GetInstance()->position, Engine::GetInstance()->searchDepth, Engine::GetInstance()->position->playerToMove, 0, 0);
 
  	return 0;
-}
+}   

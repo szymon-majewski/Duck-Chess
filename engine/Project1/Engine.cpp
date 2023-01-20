@@ -22,6 +22,19 @@ Engine::~Engine()
 	delete instance->position;
 }
 
+double Engine::MinMaxSearch(Position& position, unsigned depth, PlayerColor maximazingPlayer, int32_t alpha, int32_t beta)
+{
+	if (depth == 0)
+	{
+		return evaluator->Evaluate(position);
+	}
+
+	std::unique_ptr<std::list<Move>> moves = movesGenerator.GenerateLegalMoves(position);
+
+
+	double evaluation = Engine::GetInstance()->evaluator->Evaluate(*Engine::GetInstance()->position);
+}
+
 void Engine::Print()
 {
 	boardPrinter->Handle(consolePrinterRequest);
