@@ -6,6 +6,7 @@
 #include "PositionInformationPrinter.h"
 #include "MovesGenerator.h"
 #include "FenParser.h"
+#include "Session.h"
 
 class Engine
 {
@@ -14,7 +15,7 @@ private: /*DEBUG ->*/ public:
 	static Engine* instance;
 	Engine();
 
-	Position* position;
+	Session* session;
 	MovesGenerator movesGenerator;
 	PositionEvaluator* evaluator;
 	BoardPrinter* boardPrinter;
@@ -33,6 +34,6 @@ public:
 
 	void Print();
 
-	Position* GetPosition();
-	void SetPosition(Position* game);
+	Session* GetSession();
+	void SetSession(Session* session);
 };

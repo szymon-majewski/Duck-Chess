@@ -6,6 +6,7 @@
 class Session
 {
 private:
+	/*DEBUG*/ public:
 
 	PositionMemento positionMemento;
 	Position position;
@@ -16,4 +17,5 @@ public:
 
 	void MakeMove(const Move& move);
 	void UndoMove();
+
 };

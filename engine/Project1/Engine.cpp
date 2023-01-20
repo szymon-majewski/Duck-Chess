@@ -19,7 +19,6 @@ Engine::~Engine()
 {
 	delete instance->boardPrinter;
 	delete instance->positionInformationPrinter;
-	delete instance->position;
 }
 
 double Engine::MinMaxSearch(Position& position, unsigned depth, PlayerColor maximazingPlayer, int32_t alpha, int32_t beta)
@@ -32,7 +31,7 @@ double Engine::MinMaxSearch(Position& position, unsigned depth, PlayerColor maxi
 	std::unique_ptr<std::list<Move>> moves = movesGenerator.GenerateLegalMoves(position);
 
 
-	double evaluation = Engine::GetInstance()->evaluator->Evaluate(*Engine::GetInstance()->position);
+	double evaluation = Engine::GetInstance()->evaluator->Evaluate(Engine::GetInstance()->session->position);
 }
 
 void Engine::Print()
@@ -40,22 +39,22 @@ void Engine::Print()
 	boardPrinter->Handle(consolePrinterRequest);
 }
 
-Position* Engine::GetPosition()
+Session* Engine::GetSession()
 {
-	return position;
+	return session;
 }
 
-void Engine::SetPosition(Position* position)
+void Engine::SetSession(Session* session)
 {
-	delete this->position;
+	delete this->session;
 	delete boardPrinter;
 	delete positionInformationPrinter;
 	delete evaluator;
 
-	this->position = position;
+	this->session = session;
 
-	boardPrinter = new BoardPrinter(&position->board);
-	positionInformationPrinter = new PositionInformationPrinter(position);
+	boardPrinter = new BoardPrinter(&session->position.board);
+	positionInformationPrinter = new PositionInformationPrinter(&session->position);
 	boardPrinter->SetSuccessor(positionInformationPrinter);
 
 	// Setting what info is going to be displayed in console

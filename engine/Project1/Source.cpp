@@ -26,11 +26,11 @@ std::string someFen = "rnbqkb1r/ppppp1PP/3pn3/8/8/8/PPPPPP2/RNBQKBNR w KQkq - 0 
 
 int main(int argc, char** argv)
 {
-	Engine::GetInstance()->SetPosition(new Position());
-	Engine::GetInstance()->fenParser.ParseFen(someFen, *Engine::GetInstance()->GetPosition());
+	Engine::GetInstance()->SetSession(new Session(*(new Position())));
+	Engine::GetInstance()->fenParser.ParseFen(someFen, Engine::GetInstance()->GetSession()->position);
 	Engine::GetInstance()->Print();
 	Engine::GetInstance()->searchDepth = 5;
-	Engine::GetInstance()->MinMaxSearch(*Engine::GetInstance()->position, Engine::GetInstance()->searchDepth, Engine::GetInstance()->position->playerToMove, 0, 0);
+	Engine::GetInstance()->MinMaxSearch(Engine::GetInstance()->GetSession()->position, Engine::GetInstance()->searchDepth, Engine::GetInstance()->GetSession()->position.playerToMove, 0, 0);
 
  	return 0;
 }   
