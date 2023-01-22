@@ -130,6 +130,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BoardPrinter.cpp" />
+    <ClCompile Include="ColoringBoardPrinter.cpp" />
     <ClCompile Include="ConsolePrinterHandler.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Engine.h" />
@@ -146,10 +147,12 @@
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="StandardPositionEvaluator.cpp" />
     <ClCompile Include="StandardPositionEvaluator.h" />
+    <ClCompile Include="Tools.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Board.h" />
     <ClInclude Include="BoardPrinter.h" />
+    <ClInclude Include="ColoringBoardPrinter.h" />
     <ClInclude Include="ConsolePrinterHandler.h" />
     <ClInclude Include="Definitions.h" />
     <ClInclude Include="FenParser.h" />

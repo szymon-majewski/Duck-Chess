@@ -1,7 +1,11 @@
 #include "Engine.h"
 #include "StandardPositionEvaluator.h"
+#include "ColoringBoardPrinter.h"
 
 #include <iostream>
+
+extern std::string MoveStringFormat(const Move& move, Piece::Type movingPieceType, bool take);
+extern void SquareToBoardIndices(const Square& square, int& y, int& x);
 
 Engine* Engine::instance = nullptr;
 
@@ -47,25 +51,28 @@ int32_t Engine::MinMaxSearch(Position& position, unsigned depth, int32_t alpha, 
 			// Check if white won the game
 			if (session->winnerColor != PlayerColor::None)
 			{
-				///*DEBUG*/ Print();
-				//std::cout << currentEvaluation << std::endl;
-
 				session->UndoMove();
 
 				return POSITIVE_INFINITY_EVALUATION;
 			}
 
-			currentEvaluation = MinMaxSearch(session->position, depth - 1, 0, 0);
-
-			///*DEBUG*/ Print();
-			//std::cout << currentEvaluation << std::endl;
+			currentEvaluation = MinMaxSearch(session->position, depth - 1, alpha, beta);
+			session->UndoMove();
 
 			if (currentEvaluation > bestEvaluation)
 			{
 				bestEvaluation = currentEvaluation;
 			}
 
-			session->UndoMove();
+			if (alpha < currentEvaluation)
+			{
+				alpha = currentEvaluation;
+			}
+
+			if (beta <= alpha)
+			{
+				break;
+			}
 		}
 	}
 	// Black move
@@ -80,25 +87,28 @@ int32_t Engine::MinMaxSearch(Position& position, unsigned depth, int32_t alpha, 
 			// Check if black won the game
 			if (session->winnerColor != PlayerColor::None)
 			{
-				///*DEBUG*/ Print();
-				//std::cout << currentEvaluation << std::endl;
-
 				session->UndoMove();
 
 				return NEGATIVE_INFINITY_EVALUATION;
 			}
 
-			currentEvaluation = MinMaxSearch(session->position, depth - 1, 0, 0);
-
-			///*DEBUG*/ Print();
-			//std::cout << currentEvaluation << std::endl;
+			currentEvaluation = MinMaxSearch(session->position, depth - 1, alpha, beta);
+			session->UndoMove();
 
 			if (currentEvaluation < bestEvaluation)
 			{
 				bestEvaluation = currentEvaluation;
 			}
 
-			session->UndoMove();
+			if (beta > currentEvaluation)
+			{
+				beta = currentEvaluation;
+			}
+
+			if (beta <= alpha)
+			{
+				break;
+			}
 		}
 	}
 
@@ -125,6 +135,9 @@ void Engine::SetSession(Session* session)
 	this->session = session;
 
 	boardPrinter = new BoardPrinter(&session->position.board);
+	// Check coloring flag here
+	boardPrinter = new ColoringBoardPrinter((BoardPrinter*)boardPrinter);
+
 	positionInformationPrinter = new PositionInformationPrinter(&session->position);
 	boardPrinter->SetSuccessor(positionInformationPrinter);
 

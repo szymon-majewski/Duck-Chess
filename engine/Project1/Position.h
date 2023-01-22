@@ -20,9 +20,6 @@ public:
 
 private:
 
-	static void SquareToBoardIndices(const Square& square, int& y, int& x);
-	static Square BoardIndicesToSquare(int y, int x);
-
 	friend class FenParser;
 	friend class Engine;
 	friend class StandardPositionEvaluator;

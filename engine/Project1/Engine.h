@@ -18,8 +18,8 @@ private: /*DEBUG ->*/ public:
 	Session* session;
 	MovesGenerator movesGenerator;
 	PositionEvaluator* evaluator;
-	BoardPrinter* boardPrinter;
-	PositionInformationPrinter* positionInformationPrinter;
+	ConsolePrinterHandler* boardPrinter;
+	ConsolePrinterHandler* positionInformationPrinter;
 	ConsolePrinterHandler::Request consolePrinterRequest;
 	FenParser fenParser;
 

@@ -1,5 +1,8 @@
 #include "Position.h"
 
+extern void SquareToBoardIndices(const Square& square, int& y, int& x);
+extern Square BoardIndicesToSquare(int y, int x);
+
 PlayerColor Position::Update(const Move& move)
 {
 	int sourceY;
@@ -185,15 +188,4 @@ PlayerColor Position::Update(const Move& move)
 	}
 
 	return winnerColor;
-}
-
-void Position::SquareToBoardIndices(const Square& square, int& y, int& x)
-{
-	y = ((uint8_t)square - 1) / Board::WIDTH;
-	x = ((uint8_t)square - 1) % Board::WIDTH;
-}
-
-Square Position::BoardIndicesToSquare(int y, int x)
-{
-	return (Square)(y * Board::WIDTH + x + 1);
 }
