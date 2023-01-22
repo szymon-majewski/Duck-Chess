@@ -13,6 +13,8 @@ private:
 
 public:
 
+	PlayerColor winnerColor;
+
 	Session(const Position& position);
 
 	void MakeMove(const Move& move);

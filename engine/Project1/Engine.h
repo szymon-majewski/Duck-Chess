@@ -30,7 +30,7 @@ public:
 	static Engine* GetInstance();
 	~Engine();
 
-	double MinMaxSearch(Position& position, unsigned depth, PlayerColor maximazingPlayer, int32_t alpha, int32_t beta);
+	int32_t MinMaxSearch(Position& position, unsigned depth, int32_t alpha, int32_t beta);
 
 	void Print();
 

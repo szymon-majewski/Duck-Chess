@@ -1,6 +1,8 @@
 #include "Engine.h"
 #include "StandardPositionEvaluator.h"
 
+#include <iostream>
+
 Engine* Engine::instance = nullptr;
 
 Engine::Engine() {}
@@ -21,7 +23,7 @@ Engine::~Engine()
 	delete instance->positionInformationPrinter;
 }
 
-double Engine::MinMaxSearch(Position& position, unsigned depth, PlayerColor maximazingPlayer, int32_t alpha, int32_t beta)
+int32_t Engine::MinMaxSearch(Position& position, unsigned depth, int32_t alpha, int32_t beta)
 {
 	if (depth == 0)
 	{
@@ -30,8 +32,77 @@ double Engine::MinMaxSearch(Position& position, unsigned depth, PlayerColor maxi
 
 	std::unique_ptr<std::list<Move>> moves = movesGenerator.GenerateLegalMoves(position);
 
+	int32_t bestEvaluation;
+	int32_t currentEvaluation;
 
-	double evaluation = Engine::GetInstance()->evaluator->Evaluate(Engine::GetInstance()->session->position);
+	// White move
+	if (position.playerToMove == PlayerColor::White)
+	{
+		bestEvaluation = NEGATIVE_INFINITY_EVALUATION;
+
+		for (const Move& move : *moves)
+		{
+			session->MakeMove(move);
+
+			// Check if white won the game
+			if (session->winnerColor != PlayerColor::None)
+			{
+				///*DEBUG*/ Print();
+				//std::cout << currentEvaluation << std::endl;
+
+				session->UndoMove();
+
+				return POSITIVE_INFINITY_EVALUATION;
+			}
+
+			currentEvaluation = MinMaxSearch(session->position, depth - 1, 0, 0);
+
+			///*DEBUG*/ Print();
+			//std::cout << currentEvaluation << std::endl;
+
+			if (currentEvaluation > bestEvaluation)
+			{
+				bestEvaluation = currentEvaluation;
+			}
+
+			session->UndoMove();
+		}
+	}
+	// Black move
+	else
+	{
+		bestEvaluation = POSITIVE_INFINITY_EVALUATION;
+
+		for (const Move& move : *moves)
+		{
+			session->MakeMove(move);
+
+			// Check if black won the game
+			if (session->winnerColor != PlayerColor::None)
+			{
+				///*DEBUG*/ Print();
+				//std::cout << currentEvaluation << std::endl;
+
+				session->UndoMove();
+
+				return NEGATIVE_INFINITY_EVALUATION;
+			}
+
+			currentEvaluation = MinMaxSearch(session->position, depth - 1, 0, 0);
+
+			///*DEBUG*/ Print();
+			//std::cout << currentEvaluation << std::endl;
+
+			if (currentEvaluation < bestEvaluation)
+			{
+				bestEvaluation = currentEvaluation;
+			}
+
+			session->UndoMove();
+		}
+	}
+
+	return bestEvaluation;
 }
 
 void Engine::Print()

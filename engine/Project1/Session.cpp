@@ -1,14 +1,17 @@
 #include "Session.h"
 
-Session::Session(const Position& position) : position(position) {}
+Session::Session(const Position& position) :
+	position(position),
+	winnerColor(PlayerColor::None) {}
 
 void Session::MakeMove(const Move& move)
 {
 	positionMemento.SavePosition(position);
-	position.Udpdate(move);
+	winnerColor = position.Update(move);
 }
 
 void Session::UndoMove()
 {
 	position = positionMemento.RevertMove();
+	winnerColor = PlayerColor::None;
 }

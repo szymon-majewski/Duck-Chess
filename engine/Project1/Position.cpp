@@ -1,6 +1,6 @@
 #include "Position.h"
 
-void Position::Udpdate(const Move& move)
+PlayerColor Position::Update(const Move& move)
 {
 	int sourceY;
 	int sourceX;
@@ -14,6 +14,25 @@ void Position::Udpdate(const Move& move)
 	Piece::Type movingPieceType = board.pieces[sourceY][sourceX].PieceType();
 	Piece::Color movingPieceColor = board.pieces[sourceY][sourceX].PieceColor();
 
+	// Check if game is won by either player
+	PlayerColor winnerColor = PlayerColor::None;
+
+	if (board.pieces[targetY][targetX].PieceType() == Piece::Type::King)
+	{
+		winnerColor = (PlayerColor)movingPieceColor;
+	}
+
+	// Update some position data
+	enPassantTarget = Square::None;
+	if (movingPieceType == Piece::Type::Pawn || board.pieces[targetY][targetX].PieceType() != Piece::Type::None)
+	{
+		plyClock = 0;
+	}
+	else
+	{
+		++plyClock;
+	}
+
 	// Emptying source sqaure
 	board.pieces[sourceY][sourceX].SetBitPiece((BitPiece)Piece::Type::None);
 
@@ -23,6 +42,13 @@ void Position::Udpdate(const Move& move)
 		case Move::AdditionalInfo::None:
 		{
 			board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)movingPieceType | (uint8_t)movingPieceColor));
+			break;
+		}
+		case Move::AdditionalInfo::PawnDoubleForward:
+		{
+			board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)movingPieceType | (uint8_t)movingPieceColor));
+			enPassantTarget = movingPieceColor == Piece::Color::White ? BoardIndicesToSquare(targetY - 1, targetX) : BoardIndicesToSquare(targetY + 1, targetX);
+			break;
 		}
 		case Move::AdditionalInfo::PromotionToQueen:
 		{
@@ -149,10 +175,25 @@ void Position::Udpdate(const Move& move)
 			castlingRights = (CastlingRights)((uint8_t)castlingRights ^ (uint8_t)CastlingRights::BlackQueenside);
 		}
 	}
+
+	// Updating other information (apart from new en passant target - it's done earlier)
+	playerToMove = playerToMove == PlayerColor::White ? PlayerColor::Black : PlayerColor::White;
+
+	if (movingPieceColor == Piece::Color::Black)
+	{
+		++fullMovesCount;
+	}
+
+	return winnerColor;
 }
 
 void Position::SquareToBoardIndices(const Square& square, int& y, int& x)
 {
 	y = ((uint8_t)square - 1) / Board::WIDTH;
 	x = ((uint8_t)square - 1) % Board::WIDTH;
+}
+
+Square Position::BoardIndicesToSquare(int y, int x)
+{
+	return (Square)(y * Board::WIDTH + x + 1);
 }

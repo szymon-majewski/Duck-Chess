@@ -20,7 +20,7 @@ void PositionInformationPrinter::Print() const
 	PrintCastlingRightsInformation("White", whiteKingside, whiteQueenside);
 	PrintCastlingRightsInformation("Black", blackKingside, blackQueenside);
 
-	std::cout << "50 move rule status: " << position->plyClock / 2;
+	std::cout << "50 move rule status: " << position->plyClock / 2 << std::endl << std::endl;
 }
 
 void PositionInformationPrinter::Handle(Request request)

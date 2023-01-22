@@ -16,9 +16,10 @@ enum class CastlingRights : uint8_t
 	BlackQueenside = 1<<3
 };
 
-// These are the same values as pieces colors so they can be casted to one another
+// These are the same values as pieces colors so they can be casted to one another (not None)
 enum class PlayerColor
 {
+	None = 0,
 	White = 8,
 	Black = 16
 };
@@ -73,3 +74,6 @@ enum class Ranks : uint8_t
 	Rank7,
 	Rank8
 };
+
+const int32_t NEGATIVE_INFINITY_EVALUATION = INT32_MIN;
+const int32_t POSITIVE_INFINITY_EVALUATION = INT32_MAX;

@@ -1,6 +1,8 @@
 #include <memory>
 #include <list>
 
+/*DEBUG*/ #include <iostream>
+
 #include "Engine.h"
 
 /*
@@ -12,6 +14,8 @@ TODO:
 * GenerateLegalMoves pawn moves should be diversified for colours
 * squaresToEdgeCount make generate statically
 * Update engine pointers either to unique_ptr or make it local (should be fine that way)
+* What to do with these evaluations?
+* Implement alpha-beta pruning.
 */
 
 // Board pieces start from row 1 (so it goes bottom up)
@@ -30,7 +34,7 @@ int main(int argc, char** argv)
 	Engine::GetInstance()->fenParser.ParseFen(someFen, Engine::GetInstance()->GetSession()->position);
 	Engine::GetInstance()->Print();
 	Engine::GetInstance()->searchDepth = 5;
-	Engine::GetInstance()->MinMaxSearch(Engine::GetInstance()->GetSession()->position, Engine::GetInstance()->searchDepth, Engine::GetInstance()->GetSession()->position.playerToMove, 0, 0);
+	std::cout << Engine::GetInstance()->MinMaxSearch(Engine::GetInstance()->GetSession()->position, Engine::GetInstance()->searchDepth, 0, 0);
 
  	return 0;
 }   

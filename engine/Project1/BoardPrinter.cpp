@@ -1,4 +1,5 @@
 #include <iostream>
+#include <windows.h>
 #include "BoardPrinter.h"
 
 std::string BoardPrinter::InitVerticalLine()
@@ -22,6 +23,8 @@ BoardPrinter::BoardPrinter(Board* board)
 
 void BoardPrinter::Print() const
 {
+	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+
 	for (int y = Board::HEIGHT - 1; y >= 0; --y)
 	{
 		std::cout << "  " << verticalLine << std::endl;
@@ -29,7 +32,11 @@ void BoardPrinter::Print() const
 
 		for (int x = 0; x < Board::WIDTH; ++x)
 		{
-			std::cout << "| " << Piece::FindPieceSymbol(board->pieces[y][x].GetBitPiece()) << ' ';
+			std::cout << "| ";
+			SetConsoleTextAttribute(consoleHandle, board->pieces[y][x].PieceColor() == Piece::Color::White ? 11 : 4);
+			std::cout << Piece::FindPieceSymbol(board->pieces[y][x].GetBitPiece());
+			SetConsoleTextAttribute(consoleHandle, 15);
+			std::cout << ' ';
 		}
 
 		std::cout << '|' << std::endl;

@@ -17,7 +17,8 @@ public:
 		WhiteKingsideCastle,
 		WhiteQueensideCastle,
 		BlackKingsideCastle,
-		BlackQueensideCastle
+		BlackQueensideCastle,
+		PawnDoubleForward
 	};
 
 	Move(Square source, Square target, AdditionalInfo additionalInfo = AdditionalInfo::None);

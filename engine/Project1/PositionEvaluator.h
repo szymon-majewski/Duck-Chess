@@ -6,5 +6,5 @@ class PositionEvaluator
 {
 public:
 
-	virtual double Evaluate(const Position& game) = 0;
+	virtual int32_t Evaluate(const Position& game) = 0;
 };
