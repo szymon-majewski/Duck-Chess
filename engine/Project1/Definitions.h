@@ -6,6 +6,7 @@
 
 typedef uint64_t BitBoard;
 typedef uint8_t BitPiece;
+typedef int32_t Evaluation;
 
 enum class CastlingRights : uint8_t
 {

@@ -7,6 +7,10 @@
 #include "MovesGenerator.h"
 #include "FenParser.h"
 #include "Session.h"
+#include "EvaulationTree.h"
+
+extern std::string MoveStringFormat(const Move& move, Piece::Type movingPieceType, bool take);
+extern void SquareToBoardIndices(const Square& square, int& y, int& x);
 
 class Engine
 {
@@ -18,8 +22,10 @@ private: /*DEBUG ->*/ public:
 	Session* session;
 	MovesGenerator movesGenerator;
 	PositionEvaluator* evaluator;
+	EvaluationTree evaluationTree;
 	ConsolePrinterHandler* boardPrinter;
 	ConsolePrinterHandler* positionInformationPrinter;
+	ConsolePrinterHandler* firstConsolePrinter;
 	ConsolePrinterHandler::Request consolePrinterRequest;
 	FenParser fenParser;
 
@@ -30,9 +36,16 @@ public:
 	static Engine* GetInstance();
 	~Engine();
 
-	int32_t MinMaxSearch(Position& position, unsigned depth, int32_t alpha, int32_t beta);
+	Evaluation Search(Position& position, unsigned depth, Evaluation alpha, Evaluation beta);
+
+private:
+
+	Evaluation MinMaxSearch(Position& position, unsigned depth, Evaluation alpha, Evaluation beta, std::shared_ptr<EvaluationTree::Node> node);
+
+public:
 
 	void Print();
+	void PrintBestMoves(Evaluation bestEvaluation);
 
 	Session* GetSession();
 	void SetSession(Session* session);

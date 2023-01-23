@@ -134,6 +134,7 @@
     <ClCompile Include="ConsolePrinterHandler.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Engine.h" />
+    <ClCompile Include="EvaulationTree.cpp" />
     <ClCompile Include="FenParser.cpp" />
     <ClCompile Include="Position.cpp" />
     <ClCompile Include="Position.h" />
@@ -155,6 +156,7 @@
     <ClInclude Include="ColoringBoardPrinter.h" />
     <ClInclude Include="ConsolePrinterHandler.h" />
     <ClInclude Include="Definitions.h" />
+    <ClInclude Include="EvaulationTree.h" />
     <ClInclude Include="FenParser.h" />
     <ClInclude Include="PositionInformationPrinter.h" />
     <ClInclude Include="Move.h" />

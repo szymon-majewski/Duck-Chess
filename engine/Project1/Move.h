@@ -21,6 +21,7 @@ public:
 		PawnDoubleForward
 	};
 
+	Move();
 	Move(Square source, Square target, AdditionalInfo additionalInfo = AdditionalInfo::None);
 
 	Square sourceSquare;

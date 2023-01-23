@@ -20,15 +20,21 @@ std::unordered_map<Piece::Type, uint32_t> StandardPositionEvaluator::piecesMater
 	{ Piece::Type::None, 0 }
 };
 
-int32_t StandardPositionEvaluator::Evaluate(const Position& position)
+Evaluation StandardPositionEvaluator::Evaluate(const Position& position)
 {
-	int32_t result = 0;
+	Evaluation result = 0;
+	//bool seenKing = false;
 
 	for (int y = 0; y < Board::HEIGHT; ++y)
 	{
 		for (int x = 0; x < Board::WIDTH; ++x)
 		{
-			// Duck because it has all 1 bits, Color::Both for the same reason
+			//Piece::Type pieceType = position.board.pieces[y][x].PieceType();
+
+			/*if (pieceType == Piece::Type::King)
+			{
+
+			}*/
 			result += piecesMaterial[position.board.pieces[y][x].PieceType()] *
 				(position.board.pieces[y][x].PieceColor() == Piece::Color::White ? 1 : -1);
 		}

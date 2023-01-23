@@ -27,17 +27,18 @@ TODO:
 // Additional info for all kind of takes. That would be painful to code.
 
 std::string someFen = "rnbqkb1r/ppppp1PP/3pn3/8/8/8/PPPPPP2/RNBQKBNR w KQkq - 0 1";
-std::string mateInTwoFen = "rn2kb1r/p1p1p2p/b4pp1/8/4PP1P/4nNP1/P6R/2q1K3 w kq - 2 18";
+std::string mateInTwoFen = "rn2kb1r/p1p1p2p/b4pp1/8/4PP1P/4nNP1/P4K1R/2q5 b kq - 3 18";
 
 int main(int argc, char** argv)
 {
 	Engine::GetInstance()->SetSession(new Session(*(new Position())));
-	Engine::GetInstance()->fenParser.ParseFen(mateInTwoFen, Engine::GetInstance()->GetSession()->position);
-	Engine::GetInstance()->searchDepth = 4;
+	Engine::GetInstance()->fenParser.ParseFen(someFen, Engine::GetInstance()->GetSession()->position);
+	Engine::GetInstance()->searchDepth = 6;
 	Engine::GetInstance()->Print();
 
-	std::cout << std::endl;
-	std::cout << Engine::GetInstance()->MinMaxSearch(Engine::GetInstance()->GetSession()->position, Engine::GetInstance()->searchDepth, NEGATIVE_INFINITY_EVALUATION, POSITIVE_INFINITY_EVALUATION);
+	Evaluation eval = Engine::GetInstance()->Search(Engine::GetInstance()->GetSession()->position, Engine::GetInstance()->searchDepth, NEGATIVE_INFINITY_EVALUATION, POSITIVE_INFINITY_EVALUATION);
+	Engine::GetInstance()->PrintBestMoves(eval);
+	std::cout << "Evaluation: " << eval;
 
  	return 0;
-}   
+}

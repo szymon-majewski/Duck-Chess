@@ -1,11 +1,8 @@
+/*DEBUG*/ #include <iostream>
+
 #include "Engine.h"
 #include "StandardPositionEvaluator.h"
 #include "ColoringBoardPrinter.h"
-
-#include <iostream>
-
-extern std::string MoveStringFormat(const Move& move, Piece::Type movingPieceType, bool take);
-extern void SquareToBoardIndices(const Square& square, int& y, int& x);
 
 Engine* Engine::instance = nullptr;
 
@@ -27,7 +24,12 @@ Engine::~Engine()
 	delete instance->positionInformationPrinter;
 }
 
-int32_t Engine::MinMaxSearch(Position& position, unsigned depth, int32_t alpha, int32_t beta)
+Evaluation Engine::Search(Position& position, unsigned depth, Evaluation alpha, Evaluation beta)
+{
+	return MinMaxSearch(position, depth, alpha, beta, evaluationTree.root);
+}
+
+Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation alpha, Evaluation beta, std::shared_ptr<EvaluationTree::Node> node)
 {
 	if (depth == 0)
 	{
@@ -36,8 +38,8 @@ int32_t Engine::MinMaxSearch(Position& position, unsigned depth, int32_t alpha, 
 
 	std::unique_ptr<std::list<Move>> moves = movesGenerator.GenerateLegalMoves(position);
 
-	int32_t bestEvaluation;
-	int32_t currentEvaluation;
+	Evaluation bestEvaluation;
+	Evaluation currentEvaluation;
 
 	// White move
 	if (position.playerToMove == PlayerColor::White)
@@ -52,12 +54,18 @@ int32_t Engine::MinMaxSearch(Position& position, unsigned depth, int32_t alpha, 
 			if (session->winnerColor != PlayerColor::None)
 			{
 				session->UndoMove();
+				
+				evaluationTree.AddNode(POSITIVE_INFINITY_EVALUATION, move, node);
 
 				return POSITIVE_INFINITY_EVALUATION;
 			}
 
-			currentEvaluation = MinMaxSearch(session->position, depth - 1, alpha, beta);
+			std::shared_ptr<EvaluationTree::Node> childNode = evaluationTree.AddNode(0, move, node);
+
+			currentEvaluation = MinMaxSearch(session->position, depth - 1, alpha, beta, childNode);
 			session->UndoMove();
+
+			childNode->data.first = currentEvaluation;
 
 			if (currentEvaluation > bestEvaluation)
 			{
@@ -89,11 +97,17 @@ int32_t Engine::MinMaxSearch(Position& position, unsigned depth, int32_t alpha, 
 			{
 				session->UndoMove();
 
+				evaluationTree.AddNode(NEGATIVE_INFINITY_EVALUATION, move, node);
+
 				return NEGATIVE_INFINITY_EVALUATION;
 			}
 
-			currentEvaluation = MinMaxSearch(session->position, depth - 1, alpha, beta);
+			std::shared_ptr<EvaluationTree::Node> childNode = evaluationTree.AddNode(0, move, node);
+
+			currentEvaluation = MinMaxSearch(session->position, depth - 1, alpha, beta, childNode);
 			session->UndoMove();
+
+			childNode->data.first = currentEvaluation;
 
 			if (currentEvaluation < bestEvaluation)
 			{
@@ -112,12 +126,43 @@ int32_t Engine::MinMaxSearch(Position& position, unsigned depth, int32_t alpha, 
 		}
 	}
 
+	node->data.first = bestEvaluation;
+
 	return bestEvaluation;
 }
 
 void Engine::Print()
 {
-	boardPrinter->Handle(consolePrinterRequest);
+	firstConsolePrinter->Handle(consolePrinterRequest);
+}
+
+void Engine::PrintBestMoves(Evaluation bestEvaluation)
+{
+	std::shared_ptr<EvaluationTree::Node> currentNode = evaluationTree.root;
+
+	while (!currentNode->children.empty())
+	{
+		int srcX;
+		int srcY;
+		int targetX;
+		int targetY;
+
+		for (std::shared_ptr<EvaluationTree::Node>& child : currentNode->children)
+		{
+			if (child->data.first == bestEvaluation)
+			{
+				currentNode = child;
+				break;
+			}
+		}
+
+		SquareToBoardIndices(currentNode->data.second.sourceSquare, srcY, srcX);
+		SquareToBoardIndices(currentNode->data.second.targetSquare, targetY, targetX);
+		std::cout << MoveStringFormat(currentNode->data.second, session->position.board.pieces[srcY][srcX].PieceType(), session->position.board.pieces[targetY][targetX].PieceType() != Piece::Type::None) << std::endl << std::endl;
+
+		session->MakeMove(currentNode->data.second);
+		Print();
+	}
 }
 
 Session* Engine::GetSession()
@@ -140,6 +185,7 @@ void Engine::SetSession(Session* session)
 
 	positionInformationPrinter = new PositionInformationPrinter(&session->position);
 	boardPrinter->SetSuccessor(positionInformationPrinter);
+	firstConsolePrinter = boardPrinter;
 
 	// Setting what info is going to be displayed in console
 	consolePrinterRequest = (ConsolePrinterHandler::Request)(
