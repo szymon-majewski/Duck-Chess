@@ -41,7 +41,7 @@ void FenParser::ParseFen(const std::string& fen, Position& position) const
 			}
 		}
 
-		else if (isalpha(fen[i]) || fen[i] == Piece::FindPieceSymbol((BitPiece)Piece::Type::Duck))
+		else if (isalpha(fen[i]) || fen[i] == Piece::FindPieceSymbol((BitPiece)((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both)))
 		{
 			try
 			{

@@ -1,8 +1,8 @@
-/*DEBUG*/ #include <iostream>
-
 #include "Engine.h"
 #include "StandardPositionEvaluator.h"
 #include "ColoringBoardPrinter.h"
+#include "StandardBoardPrinter.h"
+#include "MovePrinter.h"
 
 Engine* Engine::instance = nullptr;
 
@@ -20,8 +20,11 @@ Engine* Engine::GetInstance()
 
 Engine::~Engine()
 {
-	delete instance->boardPrinter;
-	delete instance->positionInformationPrinter;
+	delete boardPrinter;
+	delete positionInformationPrinter;
+	delete movePrinter;
+	delete evaluator;
+	delete session;
 }
 
 Evaluation Engine::Search(Position& position, unsigned depth, Evaluation alpha, Evaluation beta)
@@ -36,7 +39,7 @@ Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation a
 		return evaluator->Evaluate(position);
 	}
 
-	std::unique_ptr<std::list<Move>> moves = movesGenerator.GenerateLegalMoves(position);
+	std::unique_ptr<std::list<FullMove>> moves = movesGenerator.GenerateLegalMoves(position);
 
 	Evaluation bestEvaluation;
 	Evaluation currentEvaluation;
@@ -46,7 +49,7 @@ Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation a
 	{
 		bestEvaluation = NEGATIVE_INFINITY_EVALUATION;
 
-		for (const Move& move : *moves)
+		for (const FullMove& move : *moves)
 		{
 			session->MakeMove(move);
 
@@ -88,7 +91,7 @@ Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation a
 	{
 		bestEvaluation = POSITIVE_INFINITY_EVALUATION;
 
-		for (const Move& move : *moves)
+		for (const FullMove& move : *moves)
 		{
 			session->MakeMove(move);
 
@@ -131,6 +134,11 @@ Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation a
 	return bestEvaluation;
 }
 
+void Engine::OrderMoves(std::unique_ptr<std::list<FullMove>>& moves)
+{
+
+}
+
 void Engine::Print()
 {
 	firstConsolePrinter->Handle(consolePrinterRequest);
@@ -142,11 +150,6 @@ void Engine::PrintBestMoves(Evaluation bestEvaluation)
 
 	while (!currentNode->children.empty())
 	{
-		int srcX;
-		int srcY;
-		int targetX;
-		int targetY;
-
 		for (std::shared_ptr<EvaluationTree::Node>& child : currentNode->children)
 		{
 			if (child->data.first == bestEvaluation)
@@ -156,11 +159,11 @@ void Engine::PrintBestMoves(Evaluation bestEvaluation)
 			}
 		}
 
-		SquareToBoardIndices(currentNode->data.second.sourceSquare, srcY, srcX);
-		SquareToBoardIndices(currentNode->data.second.targetSquare, targetY, targetX);
-		std::cout << MoveStringFormat(currentNode->data.second, session->position.board.pieces[srcY][srcX].PieceType(), session->position.board.pieces[targetY][targetX].PieceType() != Piece::Type::None) << std::endl << std::endl;
+		movePrinterMove = currentNode->data.second;
+		movePrinterBoard = session->position.board;
 
 		session->MakeMove(currentNode->data.second);
+
 		Print();
 	}
 }
@@ -175,22 +178,28 @@ void Engine::SetSession(Session* session)
 	delete this->session;
 	delete boardPrinter;
 	delete positionInformationPrinter;
+	delete movePrinter;
 	delete evaluator;
 
 	this->session = session;
 
-	boardPrinter = new BoardPrinter(&session->position.board);
+	boardPrinter = new StandardBoardPrinter(&session->position.board);
 	// Check coloring flag here
 	boardPrinter = new ColoringBoardPrinter((BoardPrinter*)boardPrinter);
 
 	positionInformationPrinter = new PositionInformationPrinter(&session->position);
+	movePrinter = new MovePrinter(&movePrinterMove, &movePrinterBoard);
+
+	// Setting printers order
+	movePrinter->SetSuccessor(boardPrinter);
 	boardPrinter->SetSuccessor(positionInformationPrinter);
-	firstConsolePrinter = boardPrinter;
+	firstConsolePrinter = movePrinter;
 
 	// Setting what info is going to be displayed in console
 	consolePrinterRequest = (ConsolePrinterHandler::Request)(
 		(uint8_t)ConsolePrinterHandler::Request::Board |
-		(uint8_t)ConsolePrinterHandler::Request::GameInformation);
+		(uint8_t)ConsolePrinterHandler::Request::PositionInformation |
+		(uint8_t)ConsolePrinterHandler::Request::Move);
 
 	evaluator = new StandardPositionEvaluator();
 }

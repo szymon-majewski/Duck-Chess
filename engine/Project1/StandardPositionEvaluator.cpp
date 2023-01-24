@@ -1,16 +1,6 @@
 #include "StandardPositionEvaluator.h"
 
-//std::unordered_map<Piece::Type, uint32_t> StandardPositionEvaluator::piecesMaterial =
-//{
-//	{ Piece::Type::Pawn, 100 },
-//	{ Piece::Type::Knight, 550 },
-//	{ Piece::Type::Bishop, 250 },
-//	{ Piece::Type::Rook, 350 },
-//	{ Piece::Type::Queen, 700 },
-//	{ Piece::Type::None, 0 }
-//};
-
-std::unordered_map<Piece::Type, uint32_t> StandardPositionEvaluator::piecesMaterial =
+std::unordered_map<Piece::Type, int32_t> StandardPositionEvaluator::piecesMaterial =
 {
 	{ Piece::Type::Pawn, 100 },
 	{ Piece::Type::Knight, 300 },
@@ -20,21 +10,44 @@ std::unordered_map<Piece::Type, uint32_t> StandardPositionEvaluator::piecesMater
 	{ Piece::Type::None, 0 }
 };
 
+std::unordered_map<StandardPositionEvaluator::TacticalFactors, int32_t> StandardPositionEvaluator::tacticalFactorsMaterial =
+{
+	{ StandardPositionEvaluator::TacticalFactors::KingLinedUpWithQueen, 350 }
+};
+
 Evaluation StandardPositionEvaluator::Evaluate(const Position& position)
 {
 	Evaluation result = 0;
-	//bool seenKing = false;
+	PlayerColor opponentColor = position.playerToMove == PlayerColor::White ? PlayerColor::Black : PlayerColor::White;
 
 	for (int y = 0; y < Board::HEIGHT; ++y)
 	{
 		for (int x = 0; x < Board::WIDTH; ++x)
 		{
-			//Piece::Type pieceType = position.board.pieces[y][x].PieceType();
+			Piece piece = position.board.pieces[y][x];
 
-			/*if (pieceType == Piece::Type::King)
+			// Check queen lineup with king
+			bool queenLinedUpWithKing = false;
+
+			if (piece.GetBitPiece() == (BitPiece)((uint8_t)Piece::Type::King | (uint8_t)opponentColor))
 			{
+				for (int innerX = 0; innerX < Board::WIDTH && !queenLinedUpWithKing; ++innerX)
+				{
+					if (position.board.pieces[y][innerX].GetBitPiece() == ((uint8_t)Piece::Type::Queen | (uint8_t)position.playerToMove))
+					{
+						result += tacticalFactorsMaterial[TacticalFactors::KingLinedUpWithQueen];
+					}
+				}
 
-			}*/
+				for (int innerY = 0; innerY < Board::HEIGHT && !queenLinedUpWithKing; ++innerY)
+				{
+					if (position.board.pieces[innerY][x].GetBitPiece() == ((uint8_t)Piece::Type::Queen | (uint8_t)position.playerToMove))
+					{
+						result += tacticalFactorsMaterial[TacticalFactors::KingLinedUpWithQueen];
+					}
+				}
+			}
+
 			result += piecesMaterial[position.board.pieces[y][x].PieceType()] *
 				(position.board.pieces[y][x].PieceColor() == Piece::Color::White ? 1 : -1);
 		}

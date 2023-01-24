@@ -35,6 +35,6 @@ const std::unordered_map<char, BitPiece> Piece::PIECES_SYMBOLS_MAP =
 	{ 'Q', (uint8_t)Piece::Type::Queen | (uint8_t)Piece::Color::White },
 	{ 'k', (uint8_t)Piece::Type::King | (uint8_t)Piece::Color::Black },
 	{ 'K', (uint8_t)Piece::Type::King | (uint8_t)Piece::Color::White },
-	{ 'D', (uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both },
+	{ '@', (uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both },
 	{ ' ', (uint8_t)Piece::Type::None }
 };

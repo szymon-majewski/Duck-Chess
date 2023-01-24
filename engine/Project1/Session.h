@@ -17,7 +17,6 @@ public:
 
 	Session(const Position& position);
 
-	void MakeMove(const Move& move);
+	void MakeMove(const FullMove& move);
 	void UndoMove();
-
 };

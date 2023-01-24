@@ -13,9 +13,9 @@ public:
 	enum class Request : uint8_t
 	{
 		None = 0,
-		StandardInformation = 1,
+		Move = 1,
 		Board = 1 << 1,
-		GameInformation = 1 << 2,
+		PositionInformation = 1 << 2,
 		Evaluation = 1 << 3
 	};
 

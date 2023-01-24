@@ -1,6 +1,9 @@
 #include "Move.h"
 
-Move::Move() {}
+Move::Move() :
+	sourceSquare(Square::None),
+	targetSquare(Square::None),
+	additionalInfo(AdditionalInfo::None) {}
 
 Move::Move(Square source, Square target, AdditionalInfo additionalInfo) :
 	sourceSquare(source),

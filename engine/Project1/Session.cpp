@@ -4,7 +4,7 @@ Session::Session(const Position& position) :
 	position(position),
 	winnerColor(PlayerColor::None) {}
 
-void Session::MakeMove(const Move& move)
+void Session::MakeMove(const FullMove& move)
 {
 	positionMemento.SavePosition(position);
 	winnerColor = position.Update(move);

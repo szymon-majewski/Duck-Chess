@@ -1,6 +1,6 @@
 #include <string>
 #include "Piece.h"
-#include "Move.h"
+#include "FullMove.h"
 #include "Board.h"
 
 std::string SquareStringFormat(const Square& square, bool lowerCase = false)
@@ -16,7 +16,7 @@ std::string SquareStringFormat(const Square& square, bool lowerCase = false)
 }
 
 // Update: multiple pieces of same type in same row/file
-std::string MoveStringFormat(const Move& move, Piece::Type movingPieceType, bool take)
+std::string MoveStringFormat(const FullMove& move, Piece::Type movingPieceType, bool take)
 {
 	std::string result;
 
@@ -35,6 +35,8 @@ std::string MoveStringFormat(const Move& move, Piece::Type movingPieceType, bool
 	}
 
 	result += SquareStringFormat(move.targetSquare, true);
+	result += Piece::FindPieceSymbol((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both);
+	result += SquareStringFormat(move.targetDuckSquare, true);
 
 	return result;
 }

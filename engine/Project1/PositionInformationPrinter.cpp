@@ -25,7 +25,7 @@ void PositionInformationPrinter::Print() const
 
 void PositionInformationPrinter::Handle(Request request)
 {
-	if ((Request)((uint8_t)request & (uint8_t)Request::GameInformation) != Request::None)
+	if ((Request)((uint8_t)request & (uint8_t)Request::PositionInformation) != Request::None)
 	{
 		Print();
 	}

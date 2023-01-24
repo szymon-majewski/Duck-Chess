@@ -5,23 +5,25 @@
 #include <unordered_set>
 #include <unordered_map>
 #include "Move.h"
+#include "FullMove.h"
 #include "Position.h"
 
 class MovesGenerator
 {
 private:
 
-	// Map for all player pieces apart from king
+	// Map for all player pieces
 	std::unordered_map<Piece::Type, std::unordered_set<Square>> playerPiecesSquares;
 	std::unordered_set<Square> opponentPiecesSquares;
 	std::unordered_set<Square> opponentPawnsSquares;
 	std::unordered_set<Square> emptySquares;
+	Square duckSquare;
 
 public:
 
 	MovesGenerator();
 
-	std::unique_ptr<std::list<Move>> GenerateLegalMoves(const Position& game);
+	std::unique_ptr<std::list<FullMove>> GenerateLegalMoves(const Position& game);
 
 	Square SquareIndicesToSquare(unsigned& y, unsigned& x);
 
@@ -33,7 +35,7 @@ private:
 
 	void AssignSquare(Piece const* piece, unsigned& y, unsigned& x, PlayerColor movingPlayerColor);
 	std::unique_ptr<std::list<Square>> GenerateAllSquaresKnightMovesTo(const Square& startingSquare);
-	void GenerateLongRangePieceMoves(const std::unique_ptr<std::list<Move>>& legalMoves, Piece::Type pieceType);
+	void GenerateLongRangePieceMoves(std::list<Move>& legalMoves, Piece::Type pieceType);
 
 	inline unsigned Min(unsigned x, unsigned y) { return x < y ? x : y; }
 };

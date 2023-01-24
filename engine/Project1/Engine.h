@@ -9,9 +9,6 @@
 #include "Session.h"
 #include "EvaulationTree.h"
 
-extern std::string MoveStringFormat(const Move& move, Piece::Type movingPieceType, bool take);
-extern void SquareToBoardIndices(const Square& square, int& y, int& x);
-
 class Engine
 {
 private: /*DEBUG ->*/ public:
@@ -23,6 +20,11 @@ private: /*DEBUG ->*/ public:
 	MovesGenerator movesGenerator;
 	PositionEvaluator* evaluator;
 	EvaluationTree evaluationTree;
+
+	ConsolePrinterHandler* movePrinter;
+	FullMove movePrinterMove;
+	Board movePrinterBoard;
+
 	ConsolePrinterHandler* boardPrinter;
 	ConsolePrinterHandler* positionInformationPrinter;
 	ConsolePrinterHandler* firstConsolePrinter;
@@ -41,6 +43,7 @@ public:
 private:
 
 	Evaluation MinMaxSearch(Position& position, unsigned depth, Evaluation alpha, Evaluation beta, std::shared_ptr<EvaluationTree::Node> node);
+	void OrderMoves(std::unique_ptr<std::list<FullMove>>& moves);
 
 public:
 

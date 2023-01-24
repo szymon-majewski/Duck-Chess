@@ -7,7 +7,7 @@ class PositionMemento
 {
 private:
 
-	std::stack<Position> movesHistory;
+	std::stack<Position> positionHistory;
 
 public:
 

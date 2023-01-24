@@ -120,6 +120,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -136,6 +137,9 @@
     <ClCompile Include="Engine.h" />
     <ClCompile Include="EvaulationTree.cpp" />
     <ClCompile Include="FenParser.cpp" />
+    <ClCompile Include="FullMove.cpp" />
+    <ClCompile Include="MaterialEvaluator.cpp" />
+    <ClCompile Include="MovePrinter.cpp" />
     <ClCompile Include="Position.cpp" />
     <ClCompile Include="Position.h" />
     <ClCompile Include="PositionInformationPrinter.cpp" />
@@ -146,6 +150,7 @@
     <ClCompile Include="PositionMemento.cpp" />
     <ClCompile Include="Session.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="StandardBoardPrinter.cpp" />
     <ClCompile Include="StandardPositionEvaluator.cpp" />
     <ClCompile Include="StandardPositionEvaluator.h" />
     <ClCompile Include="Tools.cpp" />
@@ -158,6 +163,9 @@
     <ClInclude Include="Definitions.h" />
     <ClInclude Include="EvaulationTree.h" />
     <ClInclude Include="FenParser.h" />
+    <ClInclude Include="FullMove.h" />
+    <ClInclude Include="MaterialEvaluator.h" />
+    <ClInclude Include="MovePrinter.h" />
     <ClInclude Include="PositionInformationPrinter.h" />
     <ClInclude Include="Move.h" />
     <ClInclude Include="MovesGenerator.h" />
@@ -165,6 +173,7 @@
     <ClInclude Include="PositionEvaluator.h" />
     <ClInclude Include="PositionMemento.h" />
     <ClInclude Include="Session.h" />
+    <ClInclude Include="StandardBoardPrinter.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

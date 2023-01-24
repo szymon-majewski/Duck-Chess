@@ -1,5 +1,6 @@
 #include <iostream>
 #include "ColoringBoardPrinter.h"
+#include "StandardBoardPrinter.h"
 
 ColoringBoardPrinter::ColoringBoardPrinter(BoardPrinter* boardPrinter) :
 	boardPrinter(boardPrinter)
@@ -11,7 +12,7 @@ void ColoringBoardPrinter::Print() const
 {
 	for (int y = Board::HEIGHT - 1; y >= 0; --y)
 	{
-		boardPrinter->PrintRowNumber(y + 1);
+		((StandardBoardPrinter*)boardPrinter)->PrintRowNumber(y + 1);
 
 		for (int x = 0; x < Board::WIDTH; ++x)
 		{
@@ -21,14 +22,32 @@ void ColoringBoardPrinter::Print() const
 		std::cout << '|' << std::endl;
 	}
 
-	boardPrinter->PrintFilesLetters();
+	((StandardBoardPrinter*)boardPrinter)->PrintFilesLetters();
 }
 
 void ColoringBoardPrinter::PrintPieceSymbol(int y, int x) const
 {
 	std::cout << "| ";
-	SetConsoleTextAttribute(consoleHandle, boardPrinter->board->pieces[y][x].PieceColor() == Piece::Color::White ? WHITE_PIECES_COLOR : BLACK_PIECES_COLOR);
-	std::cout << Piece::FindPieceSymbol(boardPrinter->board->pieces[y][x].GetBitPiece());
+	switch (((StandardBoardPrinter*)boardPrinter)->board->pieces[y][x].PieceColor())
+	{
+		case Piece::Color::Both:
+		{
+			SetConsoleTextAttribute(consoleHandle, DUCK_COLOR);
+			break;
+		}
+		case Piece::Color::White:
+		{
+			SetConsoleTextAttribute(consoleHandle, WHITE_PIECES_COLOR);
+			break;
+		}
+		case Piece::Color::Black:
+		{
+			SetConsoleTextAttribute(consoleHandle, BLACK_PIECES_COLOR);
+			break;
+		}
+	}
+
+	std::cout << Piece::FindPieceSymbol(((StandardBoardPrinter*)boardPrinter)->board->pieces[y][x].GetBitPiece());
 	SetConsoleTextAttribute(consoleHandle, CHESSBOARD_LINES_COLOR);
 	std::cout << ' ';
 }

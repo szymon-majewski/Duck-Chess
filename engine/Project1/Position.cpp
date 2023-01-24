@@ -3,7 +3,7 @@
 extern void SquareToBoardIndices(const Square& square, int& y, int& x);
 extern Square BoardIndicesToSquare(int y, int x);
 
-PlayerColor Position::Update(const Move& move)
+PlayerColor Position::Update(const FullMove& move)
 {
 	int sourceY;
 	int sourceX;
@@ -99,17 +99,17 @@ PlayerColor Position::Update(const Move& move)
 			int rookX;
 			int rookY;
 
-			SquareToBoardIndices(Square::H1, rookX, rookY);
+			SquareToBoardIndices(Square::H1, rookY, rookX);
 
-			board.pieces[rookX][rookY].SetBitPiece((BitPiece)Piece::Type::None);
+			board.pieces[rookY][rookX].SetBitPiece((BitPiece)Piece::Type::None);
 
-			SquareToBoardIndices(Square::F1, rookX, rookY);
+			SquareToBoardIndices(Square::F1, rookY, rookX);
 
 			// Moving king
 			board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::King | (uint8_t)movingPieceColor));
 
 			// Moving rook
-			board.pieces[rookX][rookY].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Pawn | (uint8_t)movingPieceColor));
+			board.pieces[rookY][rookX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Pawn | (uint8_t)movingPieceColor));
 
 			// Removing castling rights
 			castlingRights = (CastlingRights)((uint8_t)castlingRights ^ (uint8_t)CastlingRights::WhiteKingside);
@@ -120,17 +120,17 @@ PlayerColor Position::Update(const Move& move)
 			int rookX;
 			int rookY;
 
-			SquareToBoardIndices(Square::A1, rookX, rookY);
+			SquareToBoardIndices(Square::A1, rookY, rookX);
 
-			board.pieces[rookX][rookY].SetBitPiece((BitPiece)Piece::Type::None);
+			board.pieces[rookY][rookX].SetBitPiece((BitPiece)Piece::Type::None);
 
-			SquareToBoardIndices(Square::D1, rookX, rookY);
+			SquareToBoardIndices(Square::D1, rookY, rookX);
 
 			// Moving king
-			board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::King | (uint8_t)movingPieceColor));
+			board.pieces[targetY][rookX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::King | (uint8_t)movingPieceColor));
 
 			// Moving rook
-			board.pieces[rookX][rookY].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Pawn | (uint8_t)movingPieceColor));
+			board.pieces[rookY][rookX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Pawn | (uint8_t)movingPieceColor));
 
 			// Removing castling rights
 			castlingRights = (CastlingRights)((uint8_t)castlingRights ^ (uint8_t)CastlingRights::WhiteQueenside);
@@ -141,17 +141,17 @@ PlayerColor Position::Update(const Move& move)
 			int rookX;
 			int rookY;
 
-			SquareToBoardIndices(Square::H8, rookX, rookY);
+			SquareToBoardIndices(Square::H8, rookY, rookX);
 
-			board.pieces[rookX][rookY].SetBitPiece((BitPiece)Piece::Type::None);
+			board.pieces[rookY][rookX].SetBitPiece((BitPiece)Piece::Type::None);
 
-			SquareToBoardIndices(Square::F8, rookX, rookY);
+			SquareToBoardIndices(Square::F8, rookY, rookX);
 
 			// Moving king
 			board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::King | (uint8_t)movingPieceColor));
 
 			// Moving rook
-			board.pieces[rookX][rookY].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Pawn | (uint8_t)movingPieceColor));
+			board.pieces[rookY][rookX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Pawn | (uint8_t)movingPieceColor));
 
 			// Removing castling rights
 			castlingRights = (CastlingRights)((uint8_t)castlingRights ^ (uint8_t)CastlingRights::BlackKingside);
@@ -162,22 +162,29 @@ PlayerColor Position::Update(const Move& move)
 			int rookX;
 			int rookY;
 
-			SquareToBoardIndices(Square::A8, rookX, rookY);
+			SquareToBoardIndices(Square::A8, rookY, rookX);
 
-			board.pieces[rookX][rookY].SetBitPiece((BitPiece)Piece::Type::None);
+			board.pieces[rookY][rookX].SetBitPiece((BitPiece)Piece::Type::None);
 
-			SquareToBoardIndices(Square::D8, rookX, rookY);
+			SquareToBoardIndices(Square::D8, rookY, rookX);
 
 			// Moving king
 			board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::King | (uint8_t)movingPieceColor));
 
 			// Moving rook
-			board.pieces[rookX][rookY].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Pawn | (uint8_t)movingPieceColor));
+			board.pieces[rookY][rookX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Pawn | (uint8_t)movingPieceColor));
 
 			// Removing castling rights
 			castlingRights = (CastlingRights)((uint8_t)castlingRights ^ (uint8_t)CastlingRights::BlackQueenside);
 		}
 	}
+
+	// Move the duck
+	SquareToBoardIndices(move.sourceDuckSquare, sourceY, sourceX);
+	SquareToBoardIndices(move.targetDuckSquare, targetY, targetX);
+
+	board.pieces[sourceY][sourceX].SetBitPiece((BitPiece)Piece::Type::None);
+	board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both));
 
 	// Updating other information (apart from new en passant target - it's done earlier)
 	playerToMove = playerToMove == PlayerColor::White ? PlayerColor::Black : PlayerColor::White;

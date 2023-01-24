@@ -15,7 +15,7 @@ TODO:
 * GenerateLegalMoves pawn moves should be diversified for colours
 * squaresToEdgeCount make generate statically
 * Update engine pointers either to unique_ptr or make it local (should be fine that way)
-* Implement alpha-beta pruning.
+* Implement alpha-beta pruning. X
 */
 
 // Board pieces start from row 1 (so it goes bottom up)
@@ -28,12 +28,15 @@ TODO:
 
 std::string someFen = "rnbqkb1r/ppppp1PP/3pn3/8/8/8/PPPPPP2/RNBQKBNR w KQkq - 0 1";
 std::string mateInTwoFen = "rn2kb1r/p1p1p2p/b4pp1/8/4PP1P/4nNP1/P4K1R/2q5 b kq - 3 18";
+std::string simpleDuckFen = "3k4/5@2/8/8/2B5/8/8/5K2 w - - 0 1";
+std::string duckChessPuzzleFen = "8/5Q1p/7k/5@1p/4Bn2/6q1/6P1/7K w - - 0 1";
+std::string myGameFen = "r2qkb1r/1p1n1p2/p4npp/1Npp4/2@1b3/1P5P/PBPPQPP1/2KNRB1R w kq - 0 1";
 
 int main(int argc, char** argv)
 {
 	Engine::GetInstance()->SetSession(new Session(*(new Position())));
-	Engine::GetInstance()->fenParser.ParseFen(someFen, Engine::GetInstance()->GetSession()->position);
-	Engine::GetInstance()->searchDepth = 6;
+	Engine::GetInstance()->fenParser.ParseFen(myGameFen, Engine::GetInstance()->GetSession()->position);
+	Engine::GetInstance()->searchDepth = 3;
 	Engine::GetInstance()->Print();
 
 	Evaluation eval = Engine::GetInstance()->Search(Engine::GetInstance()->GetSession()->position, Engine::GetInstance()->searchDepth, NEGATIVE_INFINITY_EVALUATION, POSITIVE_INFINITY_EVALUATION);

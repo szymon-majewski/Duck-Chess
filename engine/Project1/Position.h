@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Board.h"
-#include "Move.h"
+#include "FullMove.h"
 
 class Position
 {
@@ -16,7 +16,7 @@ public:
 	int fullMovesCount;
 
 	// Returns winner color or PlayerColor::None if game isn'r resolved yet
-	PlayerColor Update(const Move& move);
+	PlayerColor Update(const FullMove& move);
 
 private:
 

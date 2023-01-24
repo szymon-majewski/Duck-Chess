@@ -2,14 +2,14 @@
 
 void PositionMemento::SavePosition(const Position& position)
 {
-	movesHistory.push(position);
+	positionHistory.push(position);
 }
 
 Position PositionMemento::RevertMove()
 {
-	Position restoredPosition = movesHistory.top();
+	Position restoredPosition = positionHistory.top();
 	
-	movesHistory.pop();
+	positionHistory.pop();
 
 	return restoredPosition;
 }
