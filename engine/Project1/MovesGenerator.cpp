@@ -307,9 +307,7 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 			{
 				for (const Square& emptySquare : emptySquares)
 				{
-					int rest = (uint8_t)emptySquare % Board::WIDTH;
-
-					if (emptySquare != legalPieceMove.targetSquare && rest >= 5)
+					if (emptySquare != legalPieceMove.targetSquare)
 					{
 						legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, emptySquare));
 					}

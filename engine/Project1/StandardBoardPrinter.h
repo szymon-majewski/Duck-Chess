@@ -8,16 +8,7 @@ public:
 
 	StandardBoardPrinter(Board* board);
 
-	virtual void Print() const;
-
 private:
 
-	static std::string verticalLine;
-	static std::string InitVerticalLine();
-
-	void PrintRowNumber(int y) const;
-	void PrintPieceSymbol(int y, int x) const;
-	void PrintFilesLetters() const;
-
-	friend class ColoringBoardPrinter;
+	virtual void PrintPieceSymbol(int y, int x) const override;
 };

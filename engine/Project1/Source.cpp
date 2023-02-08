@@ -7,6 +7,7 @@
 
 /*
 TODO: 
+* Change BoardPrinter decorator to template method
 * ColoringBoardPrinter attribute dynamic setting
 * Request bit flags dynamic setting
 * I think Evaluate function should recieve a specific position, not have a game pointer
@@ -16,6 +17,10 @@ TODO:
 * squaresToEdgeCount make generate statically
 * Update engine pointers either to unique_ptr or make it local (should be fine that way)
 * Implement alpha-beta pruning. X
+* Store evaluation in smaller type
+* Moves generator doesn't generate duck moves for castling and en passant
+* Use flyweight design pattern to minimize memory usage in evaluation tree (can it even be done?)
+* For now I memento whole position, but it's not acceptable for memory demand reason. Change it.
 */
 
 // Board pieces start from row 1 (so it goes bottom up)
@@ -26,8 +31,9 @@ TODO:
 // Memento whole position, not a move.
 // Additional info for all kind of takes. That would be painful to code.
 
-std::string someFen = "rnbqkb1r/ppppp1PP/3pn3/8/8/8/PPPPPP2/RNBQKBNR w KQkq - 0 1";
-std::string mateInTwoFen = "rn2kb1r/p1p1p2p/b4pp1/8/4PP1P/4nNP1/P4K1R/2q5 b kq - 3 18";
+
+//std::string someFen = "rnbqkb1r/ppppp1PP/3pn3/8/8/8/PPPPPP2/RNBQKBNR w KQkq - 0 1";
+//std::string mateInTwoFen = "rn2kb1r/p1p1p2p/b4pp1/8/4PP1P/4nNP1/P4K1R/2q5 b kq - 3 18";
 std::string simpleDuckFen = "3k4/5@2/8/8/2B5/8/8/5K2 w - - 0 1";
 std::string duckChessPuzzleFen = "8/5Q1p/7k/5@1p/4Bn2/6q1/6P1/7K w - - 0 1";
 std::string myGameFen = "r2qkb1r/1p1n1p2/p4npp/1Npp4/2@1b3/1P5P/PBPPQPP1/2KNRB1R w kq - 0 1";

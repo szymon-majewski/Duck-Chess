@@ -12,6 +12,16 @@ protected:
 
 public:
 
+	void Print() const;
 	BoardPrinter(Board* board);
 	virtual void Handle(Request request) override;
+
+	void PrintRowNumber(int y) const;
+	void PrintFilesLetters() const;
+	virtual void PrintPieceSymbol(int y, int x) const = 0;
+
+private:
+
+	static std::string verticalLine;
+	static std::string InitVerticalLine();
 };

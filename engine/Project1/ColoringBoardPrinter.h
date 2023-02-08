@@ -3,11 +3,10 @@
 #include <windows.h>
 #include "BoardPrinter.h"
 
-class ColoringBoardPrinter : public ConsolePrinterHandler
+class ColoringBoardPrinter : public BoardPrinter
 {
 private:
 
-	BoardPrinter* boardPrinter;
 	HANDLE consoleHandle;
 
 public:
@@ -17,12 +16,9 @@ public:
 	const int CHESSBOARD_LINES_COLOR = 15;
 	const int DUCK_COLOR = 14;
 
-	ColoringBoardPrinter(BoardPrinter* boardPrinter);
-
-	virtual void Print() const;
-	virtual void Handle(Request request) override;
+	ColoringBoardPrinter(Board* board);
 
 private:
 
-	void PrintPieceSymbol(int y, int x) const;
+	void PrintPieceSymbol(int y, int x) const override;
 };
