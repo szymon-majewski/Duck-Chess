@@ -5,19 +5,7 @@
 #include "StandardBoardPrinter.h"
 #include "MovePrinter.h"
 
-Engine* Engine::instance = nullptr;
-
 Engine::Engine() {}
-
-Engine* Engine::GetInstance()
-{
-	if (!instance)
-	{
-		instance = new Engine();	
-	}
-	
-	return instance;
-}
 
 Engine::~Engine()
 {
@@ -186,7 +174,8 @@ void Engine::SetSession(Session* session)
 
 	//boardPrinter = new StandardBoardPrinter(&session->position.board);
 	// Check coloring flag here
-	boardPrinter = new StandardBoardPrinter(&session->position.board);
+	//boardPrinter = new StandardBoardPrinter(&session->position.board);
+	boardPrinter = new ColoringBoardPrinter(&session->position.board);
 
 	positionInformationPrinter = new PositionInformationPrinter(&session->position);
 	movePrinter = new MovePrinter(&movePrinterMove, &movePrinterBoard);
@@ -199,8 +188,8 @@ void Engine::SetSession(Session* session)
 	// Setting what info is going to be displayed in console
 	consolePrinterRequest = (ConsolePrinterHandler::Request)(
 		(uint8_t)ConsolePrinterHandler::Request::Board |
-		(uint8_t)ConsolePrinterHandler::Request::PositionInformation);
-		//(uint8_t)ConsolePrinterHandler::Request::Move);
+		(uint8_t)ConsolePrinterHandler::Request::PositionInformation |
+		(uint8_t)ConsolePrinterHandler::Request::Move);
 
 	evaluator = new StandardPositionEvaluator();
 }

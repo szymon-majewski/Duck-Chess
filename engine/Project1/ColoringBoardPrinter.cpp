@@ -30,7 +30,7 @@ void ColoringBoardPrinter::PrintPieceSymbol(int y, int x) const
 		}
 	}
 
-	std::cout << Piece::FindPieceSymbol(board->pieces[y][x].GetBitPiece());
+	std::cout << (char)toupper(Piece::FindPieceSymbol(board->pieces[y][x].GetBitPiece()));
 	SetConsoleTextAttribute(consoleHandle, CHESSBOARD_LINES_COLOR);
 	std::cout << ' ';
 }

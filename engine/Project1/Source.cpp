@@ -7,20 +7,18 @@
 
 /*
 TODO: 
-* Change BoardPrinter decorator to template method
 * ColoringBoardPrinter attribute dynamic setting
 * Request bit flags dynamic setting
-* I think Evaluate function should recieve a specific position, not have a game pointer
 * (It actually needs a game pointer to )
-* Update GenerateLegalMoves - make cross join with free spaces to include duck moves
-* GenerateLegalMoves pawn moves should be diversified for colours
 * squaresToEdgeCount make generate statically
 * Update engine pointers either to unique_ptr or make it local (should be fine that way)
 * Implement alpha-beta pruning. X
-* Store evaluation in smaller type
+* Store evaluation in smaller variable
+* Update GenerateLegalMoves - make cross join with free spaces to include duck moves
 * Moves generator doesn't generate duck moves for castling and en passant
 * Use flyweight design pattern to minimize memory usage in evaluation tree (can it even be done?)
-* For now I memento whole position, but it's not acceptable for memory demand reason. Change it.
+* For now I memento whole position, but it's not acceptable for memory demand reason. Change it. Every move will from now on contain additional info about
+* what piece if any was captured, so AdditionalInfo will be a 32 (or 16?) bit flag
 */
 
 // Board pieces start from row 1 (so it goes bottom up)
@@ -40,13 +38,15 @@ std::string myGameFen = "r2qkb1r/1p1n1p2/p4npp/1Npp4/2@1b3/1P5P/PBPPQPP1/2KNRB1R
 
 int main(int argc, char** argv)
 {
-	Engine::GetInstance()->SetSession(new Session(*(new Position())));
-	Engine::GetInstance()->fenParser.ParseFen(myGameFen, Engine::GetInstance()->GetSession()->position);
-	Engine::GetInstance()->searchDepth = 3;
-	Engine::GetInstance()->Print();
+	Engine engine;
 
-	Evaluation eval = Engine::GetInstance()->Search(Engine::GetInstance()->GetSession()->position, Engine::GetInstance()->searchDepth, NEGATIVE_INFINITY_EVALUATION, POSITIVE_INFINITY_EVALUATION);
-	Engine::GetInstance()->PrintBestMoves(eval);
+	engine.SetSession(new Session(*(new Position())));
+	engine.fenParser.ParseFen(myGameFen, engine.GetSession()->position);
+	engine.searchDepth = 3;
+	engine.Print();
+
+	Evaluation eval = engine.Search(engine.GetSession()->position, engine.searchDepth, NEGATIVE_INFINITY_EVALUATION, POSITIVE_INFINITY_EVALUATION);
+	engine.PrintBestMoves(eval);
 	std::cout << "Evaluation: " << eval;
 
  	return 0;

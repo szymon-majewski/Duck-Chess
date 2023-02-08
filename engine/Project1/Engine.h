@@ -13,9 +13,6 @@ class Engine
 {
 private: /*DEBUG ->*/ public:
 
-	static Engine* instance;
-	Engine();
-
 	Session* session;
 	MovesGenerator movesGenerator;
 	PositionEvaluator* evaluator;
@@ -35,7 +32,7 @@ private: /*DEBUG ->*/ public:
 
 public:
 
-	static Engine* GetInstance();
+	Engine();
 	~Engine();
 
 	Evaluation Search(Position& position, unsigned depth, Evaluation alpha, Evaluation beta);

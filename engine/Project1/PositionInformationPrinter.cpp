@@ -8,7 +8,7 @@ PositionInformationPrinter::PositionInformationPrinter(Position* position)
 
 void PositionInformationPrinter::Print() const
 {
-	std::cout << (position->playerToMove == PlayerColor::White ? "White's" : "Black's") << " move" << std::endl;
+	std::cout << (position->playerToMove == PlayerColor::White ? "White" : "Black") << " to move" << std::endl;
 	std::cout << "Move: " << position->fullMovesCount << std::endl;
 
 	uint8_t whiteKingside = (uint8_t)position->castlingRights & (uint8_t)CastlingRights::WhiteKingside;
