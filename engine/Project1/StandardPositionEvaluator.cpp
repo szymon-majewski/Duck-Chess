@@ -1,6 +1,6 @@
 #include "StandardPositionEvaluator.h"
 
-std::unordered_map<Piece::Type, int32_t> StandardPositionEvaluator::piecesMaterial =
+std::unordered_map<Piece::Type, Evaluation> StandardPositionEvaluator::piecesMaterial =
 {
 	{ Piece::Type::Pawn, 100 },
 	{ Piece::Type::Knight, 300 },
@@ -10,7 +10,7 @@ std::unordered_map<Piece::Type, int32_t> StandardPositionEvaluator::piecesMateri
 	{ Piece::Type::None, 0 }
 };
 
-std::unordered_map<StandardPositionEvaluator::TacticalFactors, int32_t> StandardPositionEvaluator::tacticalFactorsMaterial =
+std::unordered_map<StandardPositionEvaluator::TacticalFactors, Evaluation> StandardPositionEvaluator::tacticalFactorsMaterial =
 {
 	{ StandardPositionEvaluator::TacticalFactors::KingLinedUpWithQueen, 350 }
 };

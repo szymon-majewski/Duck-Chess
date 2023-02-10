@@ -43,6 +43,8 @@ Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation a
 		{
 			session->MakeMove(move);
 
+			//*DEBUG*/ Print();
+
 			// Check if white won the game
 			if (session->winnerColor != PlayerColor::None)
 			{
@@ -57,6 +59,8 @@ Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation a
 
 			currentEvaluation = MinMaxSearch(session->position, depth - 1, alpha, beta, childNode);
 			session->UndoMove();
+
+			//*DEBUG*/ Print();
 
 			childNode->data.first = currentEvaluation;
 
@@ -192,5 +196,5 @@ void Engine::SetSession(Session* session)
 		(uint8_t)ConsolePrinterHandler::Request::PositionInformation |
 		(uint8_t)ConsolePrinterHandler::Request::Move);
 
-	evaluator = new StandardPositionEvaluator();
+	evaluator = new MaterialEvaluator();
 }

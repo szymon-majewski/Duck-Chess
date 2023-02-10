@@ -1,14 +1,14 @@
 #pragma once
 
 #include "Position.h"
-#include "PositionMemento.h"
+#include "MoveMemento.h"
 
 class Session
 {
 private:
 	/*DEBUG*/ public:
 
-	PositionMemento positionMemento;
+	MoveMemento moveMemento;
 	Position position;
 
 public:

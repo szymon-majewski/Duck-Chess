@@ -12,11 +12,12 @@ public:
 	PlayerColor playerToMove;
 	CastlingRights castlingRights;
 	Square enPassantTarget;
-	int plyClock;
-	int fullMovesCount;
+	uint8_t plyClock;
+	uint16_t fullMovesCount;
 
-	// Returns winner color or PlayerColor::None if game isn'r resolved yet
+	// Returns winner color or PlayerColor::None if game isn't resolved yet
 	PlayerColor Update(const FullMove& move);
+	void UndoMove(std::tuple<FullMove, Square, uint8_t> revertedMove);
 
 private:
 

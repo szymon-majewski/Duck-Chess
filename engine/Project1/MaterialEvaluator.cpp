@@ -1,6 +1,6 @@
 #include "MaterialEvaluator.h"
 
-std::unordered_map<Piece::Type, int32_t> MaterialEvaluator::piecesMaterial =
+std::unordered_map<Piece::Type, Evaluation> MaterialEvaluator::piecesMaterial =
 {
 	{ Piece::Type::Pawn, 100 },
 	{ Piece::Type::Knight, 550 },

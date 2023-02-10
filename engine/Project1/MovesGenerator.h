@@ -35,7 +35,8 @@ private:
 
 	void AssignSquare(Piece const* piece, unsigned& y, unsigned& x, PlayerColor movingPlayerColor);
 	std::unique_ptr<std::list<Square>> GenerateAllSquaresKnightMovesTo(const Square& startingSquare);
-	void GenerateLongRangePieceMoves(std::list<Move>& legalMoves, Piece::Type pieceType);
+	void GenerateLongRangePieceMoves(std::list<Move>& legalMoves, Piece::Type pieceType, const Board& board);
+	Move::AdditionalInfo SquarePieceTypeToMoveInfo(const Square& square, const Board& board);
 
 	inline unsigned Min(unsigned x, unsigned y) { return x < y ? x : y; }
 };

@@ -6,12 +6,12 @@ Session::Session(const Position& position) :
 
 void Session::MakeMove(const FullMove& move)
 {
-	positionMemento.SavePosition(position);
+	moveMemento.SaveMove(move, position.enPassantTarget, position.plyClock);
 	winnerColor = position.Update(move);
 }
 
 void Session::UndoMove()
 {
-	position = positionMemento.RevertMove();
+	position.UndoMove(moveMemento.RevertMove());
 	winnerColor = PlayerColor::None;
 }

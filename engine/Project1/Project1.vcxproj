@@ -148,7 +148,7 @@
     <ClCompile Include="MovesGenerator.cpp" />
     <ClCompile Include="Piece.cpp" />
     <ClCompile Include="PositionEvaluator.cpp" />
-    <ClCompile Include="PositionMemento.cpp" />
+    <ClCompile Include="MoveMemento.cpp" />
     <ClCompile Include="Session.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="StandardBoardPrinter.cpp" />
@@ -173,7 +173,7 @@
     <ClInclude Include="MovesGenerator.h" />
     <ClInclude Include="Piece.h" />
     <ClInclude Include="PositionEvaluator.h" />
-    <ClInclude Include="PositionMemento.h" />
+    <ClInclude Include="MoveMemento.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="StandardBoardPrinter.h" />
   </ItemGroup>

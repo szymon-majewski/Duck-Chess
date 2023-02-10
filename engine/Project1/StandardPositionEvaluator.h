@@ -11,8 +11,8 @@ public:
 		KingLinedUpWithQueen
 	};
 
-	static std::unordered_map <Piece::Type, int32_t> piecesMaterial;
-	static std::unordered_map <TacticalFactors, int32_t> tacticalFactorsMaterial;
+	static std::unordered_map <Piece::Type, Evaluation> piecesMaterial;
+	static std::unordered_map <TacticalFactors, Evaluation> tacticalFactorsMaterial;
 
 	virtual Evaluation Evaluate(const Position& game);
 };

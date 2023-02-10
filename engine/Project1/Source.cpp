@@ -19,6 +19,9 @@ TODO:
 * Use flyweight design pattern to minimize memory usage in evaluation tree (can it even be done?)
 * For now I memento whole position, but it's not acceptable for memory demand reason. Change it. Every move will from now on contain additional info about
 * what piece if any was captured, so AdditionalInfo will be a 32 (or 16?) bit flag
+* tuples structured binding in MoveMemento
+* Probably Move::AdditionalInfo doesnt need color in castling info
+* Probably movingPieceColor is not necessary in position Update and UndoMove
 */
 
 // Board pieces start from row 1 (so it goes bottom up)
@@ -35,13 +38,14 @@ TODO:
 std::string simpleDuckFen = "3k4/5@2/8/8/2B5/8/8/5K2 w - - 0 1";
 std::string duckChessPuzzleFen = "8/5Q1p/7k/5@1p/4Bn2/6q1/6P1/7K w - - 0 1";
 std::string myGameFen = "r2qkb1r/1p1n1p2/p4npp/1Npp4/2@1b3/1P5P/PBPPQPP1/2KNRB1R w kq - 0 1";
+std::string testFen = "rnbqkbnr/ppp1pppp/7@/8/7P/3p1PP1/PPPPP3/RNBQKBNR w KQkq - 0 4";
 
 int main(int argc, char** argv)
 {
 	Engine engine;
 
 	engine.SetSession(new Session(*(new Position())));
-	engine.fenParser.ParseFen(myGameFen, engine.GetSession()->position);
+	engine.fenParser.ParseFen(duckChessPuzzleFen, engine.GetSession()->position);
 	engine.searchDepth = 3;
 	engine.Print();
 
