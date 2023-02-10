@@ -5,7 +5,8 @@
 #include "StandardBoardPrinter.h"
 #include "MovePrinter.h"
 
-Engine::Engine() {}
+Engine::Engine() :
+	engineConfigurator(EngineConfigurator(this)) {}
 
 Engine::~Engine()
 {

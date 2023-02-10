@@ -8,6 +8,7 @@
 #include "FenParser.h"
 #include "Session.h"
 #include "EvaulationTree.h"
+#include "EngineConfigurator.h"
 
 class Engine
 {
@@ -27,6 +28,8 @@ private: /*DEBUG ->*/ public:
 	ConsolePrinterHandler* firstConsolePrinter;
 	ConsolePrinterHandler::Request consolePrinterRequest;
 	FenParser fenParser;
+
+	EngineConfigurator engineConfigurator;
 
 	unsigned searchDepth;
 
@@ -49,4 +52,8 @@ public:
 
 	Session* GetSession();
 	void SetSession(Session* session);
+
+private:
+
+	friend class EngineConfigurator;
 };
