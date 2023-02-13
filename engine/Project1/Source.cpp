@@ -23,6 +23,7 @@ TODO:
 * Probably Move::AdditionalInfo doesnt need color in castling info
 * Probably movingPieceColor is not necessary in position Update and UndoMove
 * Why engine search has any arguments??
+* There is some kind of bug when engine searches after taking the king. Run myGameFen on depth 4
 */
 
 // Board pieces start from row 1 (so it goes bottom up)

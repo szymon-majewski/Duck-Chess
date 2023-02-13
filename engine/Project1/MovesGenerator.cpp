@@ -67,10 +67,10 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 					//// Promoting
 					if (northSquare >= Square::A8)
 					{
-						legalPiecesMoves.emplace_back(Move(pawnSquare, northSquare, Move::AdditionalInfo::PromotionToQueen));
-						legalPiecesMoves.emplace_back(Move(pawnSquare, northSquare, Move::AdditionalInfo::PromotionToRook));
-						legalPiecesMoves.emplace_back(Move(pawnSquare, northSquare, Move::AdditionalInfo::PromotionToKnight));
-						legalPiecesMoves.emplace_back(Move(pawnSquare, northSquare, Move::AdditionalInfo::PromotionToBishop));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, northSquare, Move::AdditionalInfo::PromotionToKnight));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, northSquare, Move::AdditionalInfo::PromotionToBishop));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, northSquare, Move::AdditionalInfo::PromotionToQueen));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, northSquare, Move::AdditionalInfo::PromotionToRook));
 					}
 					else
 					{
@@ -100,19 +100,19 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 						// Takes and promotes
 						if (northWestSquare >= Square::A8)
 						{
-							legalPiecesMoves.emplace_back(Move(pawnSquare, northWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToQueen | (uint16_t)capturedOnNorthWest)));
-							legalPiecesMoves.emplace_back(Move(pawnSquare, northWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToRook | (uint16_t)capturedOnNorthWest)));
-							legalPiecesMoves.emplace_back(Move(pawnSquare, northWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToKnight | (uint16_t)capturedOnNorthWest)));
-							legalPiecesMoves.emplace_back(Move(pawnSquare, northWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToBishop | (uint16_t)capturedOnNorthWest)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToKnight | (uint16_t)capturedOnNorthWest)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToBishop | (uint16_t)capturedOnNorthWest)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToRook | (uint16_t)capturedOnNorthWest)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToQueen | (uint16_t)capturedOnNorthWest)));
 						}
 						else
 						{
-							legalPiecesMoves.emplace_back(Move(pawnSquare, northWestSquare, capturedOnNorthWest));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, capturedOnNorthWest));
 						}
 					}
 					else if (northWestSquare == position.enPassantTarget)
 					{
-						legalPiecesMoves.emplace_back(Move(pawnSquare, northWestSquare, Move::AdditionalInfo::EnPassant));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, Move::AdditionalInfo::EnPassant));
 					}
 				}
 				if ((uint8_t)pawnSquare % Board::WIDTH != 0)
@@ -123,19 +123,19 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 
 						if (northEastSquare >= Square::A8)
 						{
-							legalPiecesMoves.emplace_back(Move(pawnSquare, northEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToQueen | (uint16_t)capturedOnNorthEast)));
-							legalPiecesMoves.emplace_back(Move(pawnSquare, northEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToRook | (uint16_t)capturedOnNorthEast)));
-							legalPiecesMoves.emplace_back(Move(pawnSquare, northEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToKnight | (uint16_t)capturedOnNorthEast)));
-							legalPiecesMoves.emplace_back(Move(pawnSquare, northEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToBishop | (uint16_t)capturedOnNorthEast)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToKnight | (uint16_t)capturedOnNorthEast)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToBishop | (uint16_t)capturedOnNorthEast)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToRook | (uint16_t)capturedOnNorthEast)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToQueen | (uint16_t)capturedOnNorthEast)));
 						}
 						else
 						{
-							legalPiecesMoves.emplace_back(Move(pawnSquare, northEastSquare, capturedOnNorthEast));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, capturedOnNorthEast));
 						}
 					}
 					else if (northEastSquare == position.enPassantTarget)
 					{
-						legalPiecesMoves.emplace_back(Move(pawnSquare, northEastSquare, Move::AdditionalInfo::EnPassant));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, Move::AdditionalInfo::EnPassant));
 					}
 				}
 			}
@@ -150,10 +150,10 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 					//// Promoting
 					if (southSquare < Square::A2)
 					{
-						legalPiecesMoves.emplace_back(Move(pawnSquare, southSquare, Move::AdditionalInfo::PromotionToQueen));
-						legalPiecesMoves.emplace_back(Move(pawnSquare, southSquare, Move::AdditionalInfo::PromotionToRook));
-						legalPiecesMoves.emplace_back(Move(pawnSquare, southSquare, Move::AdditionalInfo::PromotionToKnight));
-						legalPiecesMoves.emplace_back(Move(pawnSquare, southSquare, Move::AdditionalInfo::PromotionToBishop));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, southSquare, Move::AdditionalInfo::PromotionToKnight));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, southSquare, Move::AdditionalInfo::PromotionToBishop));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, southSquare, Move::AdditionalInfo::PromotionToRook));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, southSquare, Move::AdditionalInfo::PromotionToQueen));
 					}
 					else
 					{
@@ -183,19 +183,19 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 						// Takes and promotes
 						if (southWestSquare < Square::A2)
 						{
-							legalPiecesMoves.emplace_back(Move(pawnSquare, southWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToQueen | (uint16_t)capturedOnSouthWest)));
-							legalPiecesMoves.emplace_back(Move(pawnSquare, southWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToRook | (uint16_t)capturedOnSouthWest)));
-							legalPiecesMoves.emplace_back(Move(pawnSquare, southWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToKnight | (uint16_t)capturedOnSouthWest)));
-							legalPiecesMoves.emplace_back(Move(pawnSquare, southWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToBishop | (uint16_t)capturedOnSouthWest)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToKnight | (uint16_t)capturedOnSouthWest)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToBishop | (uint16_t)capturedOnSouthWest)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToRook | (uint16_t)capturedOnSouthWest)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToQueen | (uint16_t)capturedOnSouthWest)));
 						}
 						else
 						{
-							legalPiecesMoves.emplace_back(Move(pawnSquare, southWestSquare, capturedOnSouthWest));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, capturedOnSouthWest));
 						}
 					}
 					else if (southWestSquare == position.enPassantTarget)
 					{
-						legalPiecesMoves.emplace_back(Move(pawnSquare, southWestSquare, Move::AdditionalInfo::EnPassant));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, Move::AdditionalInfo::EnPassant));
 					}
 				}
 				if ((uint8_t)pawnSquare % Board::WIDTH != 0)
@@ -206,19 +206,19 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 
 						if (southEastSquare < Square::A2)
 						{
-							legalPiecesMoves.emplace_back(Move(pawnSquare, southEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToQueen | (uint16_t)capturedOnSouthEast)));
-							legalPiecesMoves.emplace_back(Move(pawnSquare, southEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToRook | (uint16_t)capturedOnSouthEast)));
-							legalPiecesMoves.emplace_back(Move(pawnSquare, southEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToKnight | (uint16_t)capturedOnSouthEast)));
-							legalPiecesMoves.emplace_back(Move(pawnSquare, southEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToBishop | (uint16_t)capturedOnSouthEast)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToKnight | (uint16_t)capturedOnSouthEast)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToBishop | (uint16_t)capturedOnSouthEast)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToRook | (uint16_t)capturedOnSouthEast)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToQueen | (uint16_t)capturedOnSouthEast)));
 						}
 						else
 						{
-							legalPiecesMoves.emplace_back(Move(pawnSquare, southEastSquare, capturedOnSouthEast));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, capturedOnSouthEast));
 						}
 					}
 					else if (southEastSquare == position.enPassantTarget)
 					{
-						legalPiecesMoves.emplace_back(Move(pawnSquare, southEastSquare, Move::AdditionalInfo::EnPassant));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, Move::AdditionalInfo::EnPassant));
 					}
 				}
 			}
@@ -240,7 +240,7 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 				}
 				else if (opponentPiecesSquares.contains(squareKnightCanMoveTo))
 				{
-					legalPiecesMoves.emplace_back(Move(knightSquare, squareKnightCanMoveTo, SquarePieceTypeToMoveInfo(squareKnightCanMoveTo, position.board)));
+					legalPiecesMoves.emplace_front(Move(knightSquare, squareKnightCanMoveTo, SquarePieceTypeToMoveInfo(squareKnightCanMoveTo, position.board)));
 				}
 			}
 		}
@@ -273,7 +273,7 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 				}
 				else if (opponentPiecesSquares.contains(squareInDirection))
 				{
-					legalPiecesMoves.emplace_back(Move(kingSquare, squareInDirection, SquarePieceTypeToMoveInfo(squareInDirection, position.board)));
+					legalPiecesMoves.emplace_front(Move(kingSquare, squareInDirection, SquarePieceTypeToMoveInfo(squareInDirection, position.board)));
 				}
 			}
 		}
@@ -492,7 +492,7 @@ void MovesGenerator::GenerateLongRangePieceMoves(std::list<Move>& legalMoves, Pi
 				}
 				else if (opponentPiecesSquares.contains(squareInDirection))
 				{
-					legalMoves.emplace_back(Move(pieceSquare, squareInDirection, SquarePieceTypeToMoveInfo(squareInDirection, board)));
+					legalMoves.emplace_front(Move(pieceSquare, squareInDirection, SquarePieceTypeToMoveInfo(squareInDirection, board)));
 					break;
 				}
 				else
