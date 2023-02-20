@@ -6,7 +6,7 @@ Session::Session(const Position& position) :
 
 void Session::MakeMove(const FullMove& move)
 {
-	moveMemento.SaveMove(move, position.enPassantTarget, position.plyClock);
+	moveMemento.SaveMove(move, position.enPassantTarget, position.plyClock, position.castlingRights);
 	winnerColor = position.Update(move);
 }
 

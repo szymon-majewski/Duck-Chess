@@ -43,7 +43,7 @@ public:
 
 private:
 
-	Evaluation MinMaxSearch(Position& position, unsigned depth, Evaluation alpha, Evaluation beta, std::shared_ptr<EvaluationTree::Node> node);
+	Evaluation MinMaxSearch(Position& position, unsigned depth, Evaluation alpha, Evaluation beta, std::shared_ptr<EvaluationTree::Node>& node);
 	void OrderMoves(std::unique_ptr<std::list<FullMove>>& moves);
 
 public:

@@ -307,6 +307,11 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 		}
 	}
 
+	//for (const Move& legalPieceMove : legalPiecesMoves)
+	//{
+	//	legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
+	//}
+
 	for (const Move& legalPieceMove : legalPiecesMoves)
 	{
 		switch (legalPieceMove.additionalInfo)
@@ -365,8 +370,6 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 		}
 	}
 
-	// Castling and en passant don't work
-
 	emptySquares.clear();
 	playerPiecesSquares.clear();
 	opponentPiecesSquares.clear();
@@ -417,7 +420,7 @@ Square MovesGenerator::SquareIndicesToSquare(unsigned& y, unsigned& x)
 
 std::unique_ptr<std::list<Square>> MovesGenerator::GenerateAllSquaresKnightMovesTo(const Square& startingSquare)
 {
-	std::unique_ptr<std::list<Square>> knightSquares(new std::list<Square>());
+	std::unique_ptr<std::list<Square>> knightSquares = std::make_unique<std::list<Square>>(std::list<Square>());
 
 	// 2x north
 	uint8_t currentDirectionOffset = (uint8_t)startingSquare + (uint8_t)DirectionOffsets::North;

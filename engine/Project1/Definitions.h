@@ -12,9 +12,12 @@ enum class CastlingRights : uint8_t
 {
 	None = 0,
 	WhiteKingside = 1,
-	WhiteQueenside = 1<<1,
-	BlackKingside = 1<<2,
-	BlackQueenside = 1<<3
+	WhiteQueenside = 1 << 1,
+	BlackKingside = 1 << 2,
+	BlackQueenside = 1 << 3,
+	White = WhiteKingside | WhiteQueenside,
+	Black = BlackKingside | BlackQueenside,
+	All = White | Black
 };
 
 // These are the same values as pieces colors so they can be casted to one another (not None)

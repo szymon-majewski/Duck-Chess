@@ -8,10 +8,10 @@ class MoveMemento
 {
 private:
 
-	std::stack<std::tuple<FullMove, Square, uint8_t>> moveHistory;
+	std::stack<std::tuple<FullMove, Square, uint8_t, CastlingRights>> moveHistory;
 
 public:
 
-	void SaveMove(const FullMove& move, Square enPassantTarget, uint8_t plyClock);
-	std::tuple<FullMove, Square, uint8_t> RevertMove();
+	void SaveMove(const FullMove& move, Square enPassantTarget, uint8_t plyClock, CastlingRights castlingRights);
+	std::tuple<FullMove, Square, uint8_t, CastlingRights> RevertMove();
 };
