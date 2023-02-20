@@ -6,20 +6,40 @@
 #include "MovePrinter.h"
 
 Engine::Engine() :
-	engineConfigurator(EngineConfigurator(this)) {}
+	Engine(STARTING_POSITION_FEN) {}
 
-Engine::~Engine()
+Engine::Engine(std::string fen) :
+	engineConfigurator(EngineConfigurator(this)),
+	session(Position())
 {
-	delete boardPrinter;
-	delete positionInformationPrinter;
-	delete movePrinter;
-	delete evaluator;
-	delete session;
+	searchDepth = DEFAULT_SEARCH_DEPTH;
+	fenParser.ParseFen(fen, session.position);
+	session.position.materialDisparity = session.position.CountMaterial();
+
+	evaluator = std::make_unique<MaterialEvaluator>();
+
+	// Check coloring flag here
+	//boardPrinter = new StandardBoardPrinter(&session.position.board);
+	boardPrinter = std::make_shared<ColoringBoardPrinter>(&session.position.board);
+
+	positionInformationPrinter = std::make_shared<PositionInformationPrinter>(&session.position);
+	movePrinter = std::make_shared<MovePrinter>(&movePrinterMove, &movePrinterBoard);
+
+	// Setting printers order
+	movePrinter->SetSuccessor(boardPrinter);
+	boardPrinter->SetSuccessor(positionInformationPrinter);
+	firstConsolePrinter = movePrinter;
+
+	// Setting what info is going to be displayed in console
+	consolePrinterRequest = (ConsolePrinterHandler::Request)(
+		(uint8_t)ConsolePrinterHandler::Request::Board |
+		(uint8_t)ConsolePrinterHandler::Request::PositionInformation |
+		(uint8_t)ConsolePrinterHandler::Request::Move);
 }
 
-Evaluation Engine::Search(Position& position, unsigned depth, Evaluation alpha, Evaluation beta)
+Evaluation Engine::Search()
 {
-	return MinMaxSearch(position, depth, alpha, beta, evaluationTree.root);
+	return MinMaxSearch(session.position, searchDepth, NEGATIVE_INFINITY_EVALUATION, POSITIVE_INFINITY_EVALUATION, evaluationTree.root);
 }
 
 Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation alpha, Evaluation beta, std::shared_ptr<EvaluationTree::Node> node)
@@ -41,14 +61,14 @@ Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation a
 
 		for (const FullMove& move : *moves)
 		{
-			session->MakeMove(move);
+			session.MakeMove(move);
 
 			//*DEBUG*/ Print();
 
 			// Check if white won the game
-			if (session->winnerColor != PlayerColor::None)
+			if (session.winnerColor != PlayerColor::None)
 			{
-				session->UndoMove();
+				session.UndoMove();
 				
 				evaluationTree.AddNode(POSITIVE_INFINITY_EVALUATION, move, node);
 
@@ -57,8 +77,8 @@ Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation a
 
 			std::shared_ptr<EvaluationTree::Node> childNode = evaluationTree.AddNode(0, move, node);
 
-			currentEvaluation = MinMaxSearch(session->position, depth - 1, alpha, beta, childNode);
-			session->UndoMove();
+			currentEvaluation = MinMaxSearch(session.position, depth - 1, alpha, beta, childNode);
+			session.UndoMove();
 
 			//*DEBUG*/ Print();
 
@@ -87,12 +107,12 @@ Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation a
 
 		for (const FullMove& move : *moves)
 		{
-			session->MakeMove(move);
+			session.MakeMove(move);
 
 			// Check if black won the game
-			if (session->winnerColor != PlayerColor::None)
+			if (session.winnerColor != PlayerColor::None)
 			{
-				session->UndoMove();
+				session.UndoMove();
 
 				evaluationTree.AddNode(NEGATIVE_INFINITY_EVALUATION, move, node);
 
@@ -101,8 +121,8 @@ Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation a
 
 			std::shared_ptr<EvaluationTree::Node> childNode = evaluationTree.AddNode(0, move, node);
 
-			currentEvaluation = MinMaxSearch(session->position, depth - 1, alpha, beta, childNode);
-			session->UndoMove();
+			currentEvaluation = MinMaxSearch(session.position, depth - 1, alpha, beta, childNode);
+			session.UndoMove();
 
 			childNode->data.first = currentEvaluation;
 
@@ -154,47 +174,10 @@ void Engine::PrintBestMoves(Evaluation bestEvaluation)
 		}
 
 		movePrinterMove = currentNode->data.second;
-		movePrinterBoard = session->position.board;
+		movePrinterBoard = session.position.board;
 
-		session->MakeMove(currentNode->data.second);
+		session.MakeMove(currentNode->data.second);
 
 		Print();
 	}
-}
-
-Session* Engine::GetSession()
-{
-	return session;
-}
-
-void Engine::SetSession(Session* session)
-{
-	delete this->session;
-	delete boardPrinter;
-	delete positionInformationPrinter;
-	delete movePrinter;
-	delete evaluator;
-
-	this->session = session;
-
-	//boardPrinter = new StandardBoardPrinter(&session->position.board);
-	// Check coloring flag here
-	//boardPrinter = new StandardBoardPrinter(&session->position.board);
-	boardPrinter = new ColoringBoardPrinter(&session->position.board);
-
-	positionInformationPrinter = new PositionInformationPrinter(&session->position);
-	movePrinter = new MovePrinter(&movePrinterMove, &movePrinterBoard);
-
-	// Setting printers order
-	movePrinter->SetSuccessor(boardPrinter);
-	boardPrinter->SetSuccessor(positionInformationPrinter);
-	firstConsolePrinter = movePrinter;
-
-	// Setting what info is going to be displayed in console
-	consolePrinterRequest = (ConsolePrinterHandler::Request)(
-		(uint8_t)ConsolePrinterHandler::Request::Board |
-		(uint8_t)ConsolePrinterHandler::Request::PositionInformation |
-		(uint8_t)ConsolePrinterHandler::Request::Move);
-
-	evaluator = new MaterialEvaluator();
 }

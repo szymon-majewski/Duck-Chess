@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "Position.h"
 #include "PositionEvaluator.h"
 #include "BoardPrinter.h"
@@ -14,31 +16,30 @@ class Engine
 {
 private: /*DEBUG ->*/ public:
 
-	Session* session;
+	Session session;
 	MovesGenerator movesGenerator;
-	PositionEvaluator* evaluator;
+	std::unique_ptr<PositionEvaluator> evaluator;
 	EvaluationTree evaluationTree;
-
-	ConsolePrinterHandler* movePrinter;
-	FullMove movePrinterMove;
-	Board movePrinterBoard;
-
-	ConsolePrinterHandler* boardPrinter;
-	ConsolePrinterHandler* positionInformationPrinter;
-	ConsolePrinterHandler* firstConsolePrinter;
-	ConsolePrinterHandler::Request consolePrinterRequest;
 	FenParser fenParser;
-
 	EngineConfigurator engineConfigurator;
 
 	unsigned searchDepth;
+	const unsigned DEFAULT_SEARCH_DEPTH = 3;
+
+	std::shared_ptr<ConsolePrinterHandler> movePrinter;
+	FullMove movePrinterMove;
+	Board movePrinterBoard;
+	std::shared_ptr<ConsolePrinterHandler> boardPrinter;
+	std::shared_ptr<ConsolePrinterHandler> positionInformationPrinter;
+	std::shared_ptr<ConsolePrinterHandler> firstConsolePrinter;
+	ConsolePrinterHandler::Request consolePrinterRequest;
 
 public:
 
 	Engine();
-	~Engine();
+	Engine(std::string fen);
 
-	Evaluation Search(Position& position, unsigned depth, Evaluation alpha, Evaluation beta);
+	Evaluation Search();
 
 private:
 
@@ -49,9 +50,6 @@ public:
 
 	void Print();
 	void PrintBestMoves(Evaluation bestEvaluation);
-
-	Session* GetSession();
-	void SetSession(Session* session);
 
 private:
 

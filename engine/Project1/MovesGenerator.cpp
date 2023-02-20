@@ -316,11 +316,39 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 			case Move::AdditionalInfo::BlackQueensideCastle:
 			case Move::AdditionalInfo::WhiteQueensideCastle:
 			{
+				const std::pair<Square, Square>& rookCastlingSquares = Move::ROOK_CASTLING_SQUARES.at(legalPieceMove.additionalInfo);
 
+				for (const Square& emptySquare : emptySquares)
+				{
+					if (emptySquare != legalPieceMove.targetSquare && emptySquare != rookCastlingSquares.second)
+					{
+						legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, emptySquare));
+					}
+				}
+
+				legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
+				legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, rookCastlingSquares.first));
 			}
 			case Move::AdditionalInfo::EnPassant:
 			{
+				for (const Square& emptySquare : emptySquares)
+				{
+					if (emptySquare != legalPieceMove.targetSquare)
+					{
+						legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, emptySquare));
+					}
+				}
 
+				legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
+
+				if (position.playerToMove == PlayerColor::White)
+				{
+					legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)((uint8_t)legalPieceMove.sourceSquare + (int8_t)DirectionOffsets::South)));
+				}
+				else
+				{
+					legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)((uint8_t)legalPieceMove.sourceSquare + (int8_t)DirectionOffsets::North)));
+				}
 			}
 			default:
 			{

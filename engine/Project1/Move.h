@@ -37,4 +37,8 @@ public:
 	Square sourceSquare;
 	Square targetSquare;
 	AdditionalInfo additionalInfo;
+
+	// Contains source square and target square
+	const static std::unordered_map<AdditionalInfo, std::pair<Square, Square>> KING_CASTLING_SQUARES;
+	const static std::unordered_map<AdditionalInfo, std::pair<Square, Square>> ROOK_CASTLING_SQUARES;
 };

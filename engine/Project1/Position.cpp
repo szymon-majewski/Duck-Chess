@@ -90,30 +90,30 @@ void Position::UndoMove(std::tuple<FullMove, Square, uint8_t> revertedMoveTuple)
 			// A bit of hardcoding, but these indices are always the same
 			switch (castlingInfo)
 			{
-			case Move::AdditionalInfo::WhiteKingsideCastle:
-			{
-				board.pieces[0][5].SetBitPiece((BitPiece)Piece::Type::None);
-				board.pieces[0][7].SetBitPiece((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor);
-				castlingRights = (CastlingRights)((uint8_t)castlingRights | (uint8_t)CastlingRights::WhiteKingside);
-			}
-			case Move::AdditionalInfo::WhiteQueensideCastle:
-			{
-				board.pieces[0][3].SetBitPiece((BitPiece)Piece::Type::None);
-				board.pieces[0][0].SetBitPiece((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor);
-				castlingRights = (CastlingRights)((uint8_t)castlingRights | (uint8_t)CastlingRights::WhiteQueenside);
-			}
-			case Move::AdditionalInfo::BlackKingsideCastle:
-			{
-				board.pieces[7][5].SetBitPiece((BitPiece)Piece::Type::None);
-				board.pieces[7][7].SetBitPiece((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor);
-				castlingRights = (CastlingRights)((uint8_t)castlingRights | (uint8_t)CastlingRights::BlackKingside);
-			}
-			case Move::AdditionalInfo::BlackQueensideCastle:
-			{
-				board.pieces[7][3].SetBitPiece((BitPiece)Piece::Type::None);
-				board.pieces[7][0].SetBitPiece((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor);
-				castlingRights = (CastlingRights)((uint8_t)castlingRights | (uint8_t)CastlingRights::BlackQueenside);
-			}
+				case Move::AdditionalInfo::WhiteKingsideCastle:
+				{
+					board.pieces[0][5].SetBitPiece((BitPiece)Piece::Type::None);
+					board.pieces[0][7].SetBitPiece((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor);
+					castlingRights = (CastlingRights)((uint8_t)castlingRights | (uint8_t)CastlingRights::WhiteKingside);
+				}
+				case Move::AdditionalInfo::WhiteQueensideCastle:
+				{
+					board.pieces[0][3].SetBitPiece((BitPiece)Piece::Type::None);
+					board.pieces[0][0].SetBitPiece((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor);
+					castlingRights = (CastlingRights)((uint8_t)castlingRights | (uint8_t)CastlingRights::WhiteQueenside);
+				}
+				case Move::AdditionalInfo::BlackKingsideCastle:
+				{
+					board.pieces[7][5].SetBitPiece((BitPiece)Piece::Type::None);
+					board.pieces[7][7].SetBitPiece((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor);
+					castlingRights = (CastlingRights)((uint8_t)castlingRights | (uint8_t)CastlingRights::BlackKingside);
+				}
+				case Move::AdditionalInfo::BlackQueensideCastle:
+				{
+					board.pieces[7][3].SetBitPiece((BitPiece)Piece::Type::None);
+					board.pieces[7][0].SetBitPiece((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor);
+					castlingRights = (CastlingRights)((uint8_t)castlingRights | (uint8_t)CastlingRights::BlackQueenside);
+				}
 			}
 		}
 	}

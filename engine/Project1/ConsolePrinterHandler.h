@@ -1,12 +1,14 @@
 #pragma once
 
+#include <memory>
+
 #include "Definitions.h"
 
 class ConsolePrinterHandler
 {
 private:
 
-	ConsolePrinterHandler* successor;
+	std::shared_ptr<ConsolePrinterHandler> successor;
 
 public:
 
@@ -19,7 +21,7 @@ public:
 		Evaluation = 1 << 3
 	};
 
-	void SetSuccessor(ConsolePrinterHandler* successor);
+	void SetSuccessor(const std::shared_ptr<ConsolePrinterHandler>& successor);
 	virtual void Handle(Request request);
 
 	virtual void Print() const = 0;

@@ -1,6 +1,6 @@
 #include "ConsolePrinterHandler.h"
 
-void ConsolePrinterHandler::SetSuccessor(ConsolePrinterHandler* successor)
+void ConsolePrinterHandler::SetSuccessor(const std::shared_ptr<ConsolePrinterHandler>& successor)
 {
 	this->successor = successor;
 }
