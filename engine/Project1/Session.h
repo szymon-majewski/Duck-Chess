@@ -13,7 +13,7 @@ private:
 
 public:
 
-	PlayerColor winnerColor;
+	PlayerColor winnerColor = PlayerColor::None;
 
 	Session(const Position& position);
 

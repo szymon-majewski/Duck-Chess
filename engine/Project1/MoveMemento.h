@@ -17,6 +17,7 @@ public:
 		uint8_t plyClock;
 		CastlingRights castlingRights;
 
+		PositionData() = default;
 		PositionData(FullMove move, Square enPassantTarget, uint8_t plyClock, CastlingRights castlingRights);
 	};
 

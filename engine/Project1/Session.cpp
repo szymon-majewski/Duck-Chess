@@ -1,8 +1,7 @@
 #include "Session.h"
 
 Session::Session(const Position& position) :
-	position(position),
-	winnerColor(PlayerColor::None) {}
+	position(position) {}
 
 void Session::MakeMove(const FullMove& move)
 {
