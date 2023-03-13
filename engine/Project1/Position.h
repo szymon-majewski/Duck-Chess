@@ -2,6 +2,7 @@
 
 #include "Board.h"
 #include "FullMove.h"
+#include "MoveMemento.h"
 
 class Position
 {
@@ -20,7 +21,7 @@ public:
 
 	// Returns winner color or PlayerColor::None if game isn't resolved yet
 	PlayerColor Update(const FullMove& move);
-	void UndoMove(const std::tuple<FullMove, Square, uint8_t, CastlingRights>& revertedMove);
+	void UndoMove(const MoveMemento::PositionData& revertedMove);
 
 	Evaluation CountMaterial();
 

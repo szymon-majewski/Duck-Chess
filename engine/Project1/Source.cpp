@@ -10,15 +10,17 @@
 std::string simpleDuckFen = "3k4/5@2/8/8/2B5/8/8/5K2 w - - 0 1";
 std::string duckChessPuzzleFen = "8/5Q1p/7k/5@1p/4Bn2/6q1/6P1/7K w - - 0 1";
 std::string myGameFen = "r2qkb1r/1p1n1p2/p4npp/1Npp4/2@1b3/1P5P/PBPPQPP1/2KNRB1R w kq - 0 1";
+std::string myGameFen2 = "r2qkb1r/1p1n@p2/p2N1npp/2pp4/4b3/1P5P/PBPPQPP1/2KNRB1R b kq - 1 1";
+std::string myGameFen3 = "r2qkb1r/1p1n1p2/p2N1npp/2pp4/8/1P5P/PBPPQPb1/@1KNRB1R w kq - 1 1";
 std::string testFen = "rnbqkbnr/ppp1pppp/7@/8/7P/3p1PP1/PPPPP3/RNBQKBNR w KQkq - 0 4";
 std::string castlingTestFen = "r@2k3/8/8/8/8/8/8/4K2R w Kq - 0 1";
 std::string bugFen = "8/7k/2b5/7@/8/8/8/4K2R w - - 0 1";
 
 int main(int argc, char** argv)
 {
-	Engine engine = Engine(STARTING_POSITION_FEN);
+	Engine engine = Engine(myGameFen);
 
-	engine.searchDepth = 1;
+	engine.searchDepth = 4;
 	engine.Print();
 
 	Evaluation eval = engine.Search();
@@ -30,7 +32,6 @@ int main(int argc, char** argv)
 
 /*
 TODO:
-* !!!!!!!!!! STARTING_POSITION_FEN, depth 3, throws bad_alloc
 * !!!!!!!!!! myGameFen, depth 4, move 1 suddenly changes to move 34 and some of the pieces change to opponent pieces (even different types)
 * ColoringBoardPrinter attribute dynamic setting
 * Request bit flags dynamic setting

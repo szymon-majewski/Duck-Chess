@@ -1,17 +1,31 @@
 #pragma once
 
-#include<stack>
-#include <tuple>
-#include "Position.h"
+#include "Stack.h"
+#include "Definitions.h"
+#include "FullMove.h"
 
 class MoveMemento
 {
+public:
+
+	class PositionData
+	{
+	public:
+
+		FullMove move;
+		Square enPassantTarget;
+		uint8_t plyClock;
+		CastlingRights castlingRights;
+
+		PositionData(FullMove move, Square enPassantTarget, uint8_t plyClock, CastlingRights castlingRights);
+	};
+
 private:
 
-	std::stack<std::tuple<FullMove, Square, uint8_t, CastlingRights>> moveHistory;
+	Stack<PositionData> moveHistory;
 
 public:
 
-	void SaveMove(const FullMove& move, Square enPassantTarget, uint8_t plyClock, CastlingRights castlingRights);
-	std::tuple<FullMove, Square, uint8_t, CastlingRights> RevertMove();
+	void SaveMove(FullMove move, Square enPassantTarget, uint8_t plyClock, CastlingRights castlingRights);
+	PositionData RevertMove();
 };

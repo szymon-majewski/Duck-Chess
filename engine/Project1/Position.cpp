@@ -186,9 +186,8 @@ PlayerColor Position::Update(const FullMove& move)
 	return winnerColor;
 }
 
-void Position::UndoMove(const std::tuple<FullMove, Square, uint8_t, CastlingRights>& revertedMoveTuple)
+void Position::UndoMove(const MoveMemento::PositionData& revertedMove)
 {
-	FullMove revertedMove = std::get<0>(revertedMoveTuple);
 	int sourceY;
 	int sourceX;
 	int targetY;
@@ -198,10 +197,10 @@ void Position::UndoMove(const std::tuple<FullMove, Square, uint8_t, CastlingRigh
 	int duckTargetY;
 	int duckTargetX;
 
-	SquareToBoardIndices(revertedMove.sourceSquare, sourceY, sourceX);
-	SquareToBoardIndices(revertedMove.targetSquare, targetY, targetX);
-	SquareToBoardIndices(revertedMove.sourceDuckSquare, duckSourceY, duckSourceX);
-	SquareToBoardIndices(revertedMove.targetDuckSquare, duckTargetY, duckTargetX);
+	SquareToBoardIndices(revertedMove.move.sourceSquare, sourceY, sourceX);
+	SquareToBoardIndices(revertedMove.move.targetSquare, targetY, targetX);
+	SquareToBoardIndices(revertedMove.move.sourceDuckSquare, duckSourceY, duckSourceX);
+	SquareToBoardIndices(revertedMove.move.targetDuckSquare, duckTargetY, duckTargetX);
 
 	// What piece is moving
 	Piece::Type movingPieceType = board.pieces[targetY][targetX].PieceType();
@@ -210,7 +209,7 @@ void Position::UndoMove(const std::tuple<FullMove, Square, uint8_t, CastlingRigh
 	int materialMultiplier = movingPieceColor == Piece::Color::White ? 1 : -1;
 
 	// Promotions
-	if ((Move::AdditionalInfo)((uint16_t)revertedMove.additionalInfo & (uint16_t)Move::promotionChecker) != Move::AdditionalInfo::None)
+	if ((Move::AdditionalInfo)((uint16_t)revertedMove.move.additionalInfo & (uint16_t)Move::promotionChecker) != Move::AdditionalInfo::None)
 	{
 		// Material update
 		materialDisparity -= materialMultiplier * (PositionEvaluator::piecesMaterial[movingPieceType] - PositionEvaluator::piecesMaterial[Piece::Type::Pawn]);
@@ -225,7 +224,7 @@ void Position::UndoMove(const std::tuple<FullMove, Square, uint8_t, CastlingRigh
 	board.pieces[duckTargetY][duckTargetX].SetBitPiece((BitPiece)Piece::Type::None);
 
 	// Piece was taken
-	if ((Move::AdditionalInfo)(capturedPiece = (uint16_t)revertedMove.additionalInfo & Move::captureChecker) != Move::AdditionalInfo::None)
+	if ((Move::AdditionalInfo)(capturedPiece = (uint16_t)revertedMove.move.additionalInfo & Move::captureChecker) != Move::AdditionalInfo::None)
 	{
 		Piece::Type capturedPieceType;
 
@@ -249,7 +248,7 @@ void Position::UndoMove(const std::tuple<FullMove, Square, uint8_t, CastlingRigh
 	{
 		board.pieces[targetY][targetX].SetBitPiece((BitPiece)Piece::Type::None);
 
-		if ((Move::AdditionalInfo)((uint16_t)revertedMove.additionalInfo & (uint16_t)Move::AdditionalInfo::EnPassant) != Move::AdditionalInfo::None)
+		if ((Move::AdditionalInfo)((uint16_t)revertedMove.move.additionalInfo & (uint16_t)Move::AdditionalInfo::EnPassant) != Move::AdditionalInfo::None)
 		{
 			// Current player is white, so the move was done by black
 			if (playerToMove == PlayerColor::White)
@@ -266,7 +265,7 @@ void Position::UndoMove(const std::tuple<FullMove, Square, uint8_t, CastlingRigh
 
 		Move::AdditionalInfo castlingInfo;
 
-		if ((castlingInfo = (Move::AdditionalInfo)((uint16_t)revertedMove.additionalInfo & Move::castlingChecker)) != Move::AdditionalInfo::None)
+		if ((castlingInfo = (Move::AdditionalInfo)((uint16_t)revertedMove.move.additionalInfo & Move::castlingChecker)) != Move::AdditionalInfo::None)
 		{
 			// Moving rook to starting position
 			// A bit of hardcoding, but these indices are always the same
@@ -311,9 +310,9 @@ void Position::UndoMove(const std::tuple<FullMove, Square, uint8_t, CastlingRigh
 	// Restoring previous duck position
 	board.pieces[duckSourceY][duckSourceX].SetBitPiece((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both);
 
-	enPassantTarget = std::get<1>(revertedMoveTuple);
-	plyClock = std::get<2>(revertedMoveTuple);
-	castlingRights = std::get<3>(revertedMoveTuple);
+	enPassantTarget = revertedMove.enPassantTarget;
+	plyClock = revertedMove.plyClock;
+	castlingRights = revertedMove.castlingRights;
 
 	if (playerToMove == PlayerColor::White)
 	{

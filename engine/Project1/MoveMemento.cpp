@@ -1,15 +1,17 @@
 #include "MoveMemento.h"
 
-void MoveMemento::SaveMove(const FullMove& move, Square enPassantTarget, uint8_t plyClock, CastlingRights castlingRights)
+MoveMemento::PositionData::PositionData(FullMove move, Square enPassantTarget, uint8_t plyClock, CastlingRights castlingRights) :
+	move(move),
+	enPassantTarget(enPassantTarget),
+	plyClock(plyClock),
+	castlingRights(castlingRights) {}
+
+void MoveMemento::SaveMove(FullMove move, Square enPassantTarget, uint8_t plyClock, CastlingRights castlingRights)
 {
-	moveHistory.push(std::tuple(move, enPassantTarget, plyClock, castlingRights));
+	moveHistory.Push(PositionData(move, enPassantTarget, plyClock, castlingRights));
 }
 
-std::tuple<FullMove, Square, uint8_t, CastlingRights> MoveMemento::RevertMove()
+MoveMemento::PositionData MoveMemento::RevertMove()
 {
-	std::tuple<FullMove, Square, uint8_t, CastlingRights> restoredMove = moveHistory.top();
-
-	moveHistory.pop();
-
-	return restoredMove;
+	return moveHistory.Pop();
 }
