@@ -37,61 +37,56 @@ Engine::Engine(std::string fen) :
 		(uint8_t)ConsolePrinterHandler::Request::Move);
 }
 
-Evaluation Engine::Search()
+std::unique_ptr<Engine::SearchInfo> Engine::Search()
 {
-	return MinMaxSearch(session.position, searchDepth, NEGATIVE_INFINITY_EVALUATION, POSITIVE_INFINITY_EVALUATION, evaluationTree.root);
+	//return MinMaxSearch(session.position, searchDepth, NEGATIVE_INFINITY_EVALUATION, POSITIVE_INFINITY_EVALUATION, evaluationTree.root);
+	return MinMaxSearch(session.position, searchDepth, NEGATIVE_INFINITY_EVALUATION, POSITIVE_INFINITY_EVALUATION, FullMove());
 }
 
-Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation alpha, Evaluation beta, std::shared_ptr<EvaluationTree::Node>& node)
+//Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation alpha, Evaluation beta, std::shared_ptr<EvaluationTree::Node>& node)
+std::unique_ptr<Engine::SearchInfo> Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation alpha, Evaluation beta, const FullMove& prevMove)
 {
 	if (depth == 0)
 	{
-		return evaluator->Evaluate(position);
+		return std::make_unique<SearchInfo>(evaluator->Evaluate(position), prevMove);
 	}
 
 	std::unique_ptr<std::list<FullMove>> moves = movesGenerator.GenerateLegalMoves(position);
 
-	Evaluation bestEvaluation;
-	Evaluation currentEvaluation;
+	std::unique_ptr<SearchInfo> bestSearchInfo = std::make_unique<SearchInfo>();
+	std::unique_ptr<SearchInfo> currentSearchInfo;
+	FullMove bestMove;
 
 	// White move
 	if (position.playerToMove == PlayerColor::White)
 	{
-		bestEvaluation = NEGATIVE_INFINITY_EVALUATION;
+		bestSearchInfo->evaluation = NEGATIVE_INFINITY_EVALUATION;
 
 		for (const FullMove& move : *moves)
 		{
 			session.MakeMove(move);
 
-			//*DEBUG*/ Print();
-
 			// Check if white won the game
 			if (session.winnerColor != PlayerColor::None)
 			{
 				session.UndoMove();
-				
-				evaluationTree.AddNode(POSITIVE_INFINITY_EVALUATION, move, node);
 
-				return POSITIVE_INFINITY_EVALUATION;
+				return std::make_unique<SearchInfo>(POSITIVE_INFINITY_EVALUATION, move);
 			}
 
-			std::shared_ptr<EvaluationTree::Node> childNode = evaluationTree.AddNode(0, move, node);
-
-			currentEvaluation = MinMaxSearch(session.position, depth - 1, alpha, beta, childNode);
+			currentSearchInfo = MinMaxSearch(session.position, depth - 1, alpha, beta, move);
+			
 			session.UndoMove();
 
-			//*DEBUG*/ Print();
-
-			childNode->data.first = currentEvaluation;
-
-			if (currentEvaluation > bestEvaluation)
+			if (alpha < currentSearchInfo->evaluation)
 			{
-				bestEvaluation = currentEvaluation;
+				alpha = currentSearchInfo->evaluation;
 			}
 
-			if (alpha < currentEvaluation)
+			if (currentSearchInfo->evaluation > bestSearchInfo->evaluation)
 			{
-				alpha = currentEvaluation;
+				bestSearchInfo = std::move(currentSearchInfo);
+				bestMove = move;
 			}
 
 			if (beta <= alpha)
@@ -103,7 +98,7 @@ Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation a
 	// Black move
 	else
 	{
-		bestEvaluation = POSITIVE_INFINITY_EVALUATION;
+		bestSearchInfo->evaluation = POSITIVE_INFINITY_EVALUATION;
 
 		for (const FullMove& move : *moves)
 		{
@@ -114,26 +109,21 @@ Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation a
 			{
 				session.UndoMove();
 
-				evaluationTree.AddNode(NEGATIVE_INFINITY_EVALUATION, move, node);
-
-				return NEGATIVE_INFINITY_EVALUATION;
+				return std::make_unique<SearchInfo>(NEGATIVE_INFINITY_EVALUATION, move);
 			}
 
-			std::shared_ptr<EvaluationTree::Node> childNode = evaluationTree.AddNode(0, move, node);
-
-			currentEvaluation = MinMaxSearch(session.position, depth - 1, alpha, beta, childNode);
+			currentSearchInfo = MinMaxSearch(session.position, depth - 1, alpha, beta, move);
 			session.UndoMove();
 
-			childNode->data.first = currentEvaluation;
-
-			if (currentEvaluation < bestEvaluation)
+			if (beta > currentSearchInfo->evaluation)
 			{
-				bestEvaluation = currentEvaluation;
+				beta = currentSearchInfo->evaluation;
 			}
 
-			if (beta > currentEvaluation)
+			if (currentSearchInfo->evaluation < bestSearchInfo->evaluation)
 			{
-				beta = currentEvaluation;
+				bestSearchInfo = std::move(currentSearchInfo);
+				bestMove = move;
 			}
 
 			if (beta <= alpha)
@@ -143,9 +133,9 @@ Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation a
 		}
 	}
 
-	node->data.first = bestEvaluation;
+	bestSearchInfo->movesPath.emplace_front(bestMove);
 
-	return bestEvaluation;
+	return bestSearchInfo;
 }
 
 void Engine::OrderMoves(std::unique_ptr<std::list<FullMove>>& moves)
@@ -158,26 +148,39 @@ void Engine::Print()
 	firstConsolePrinter->Handle(consolePrinterRequest);
 }
 
-void Engine::PrintBestMoves(Evaluation bestEvaluation)
+void Engine::PrintBestMoves(const std::list<FullMove>& movesPath)
 {
-	std::shared_ptr<EvaluationTree::Node> currentNode = evaluationTree.root;
-
-	while (!currentNode->children.empty())
+	for (const FullMove& move : movesPath)
 	{
-		for (std::shared_ptr<EvaluationTree::Node>& child : currentNode->children)
-		{
-			if (child->data.first == bestEvaluation)
-			{
-				currentNode = child;
-				break;
-			}
-		}
-
-		movePrinterMove = currentNode->data.second;
+		movePrinterMove = move;
 		movePrinterBoard = session.position.board;
 
-		session.MakeMove(currentNode->data.second);
+		session.MakeMove(move);
 
 		Print();
 	}
 }
+
+//void Engine::PrintBestMoves(Evaluation bestEvaluation)
+//{
+//	std::shared_ptr<EvaluationTree::Node> currentNode = evaluationTree.root;
+//
+//	while (!currentNode->children.empty())
+//	{
+//		for (std::shared_ptr<EvaluationTree::Node>& child : currentNode->children)
+//		{
+//			if (child->data.first == bestEvaluation)
+//			{
+//				currentNode = child;
+//				break;
+//			}
+//		}
+//
+//		movePrinterMove = currentNode->data.second;
+//		movePrinterBoard = session.position.board;
+//
+//		session.MakeMove(currentNode->data.second);
+//
+//		Print();
+//	}
+//}

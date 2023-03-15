@@ -19,7 +19,7 @@ private: /*DEBUG ->*/ public:
 	Session session;
 	MovesGenerator movesGenerator;
 	std::unique_ptr<PositionEvaluator> evaluator;
-	EvaluationTree evaluationTree;
+	//EvaluationTree evaluationTree;
 	FenParser fenParser;
 	EngineConfigurator engineConfigurator;
 
@@ -36,20 +36,35 @@ private: /*DEBUG ->*/ public:
 
 public:
 
+	class SearchInfo
+	{
+	public:
+
+		Evaluation evaluation;
+		std::list<FullMove> movesPath;
+
+		SearchInfo() :
+			evaluation(0),
+			movesPath(std::list<FullMove>()) {}
+
+		SearchInfo(const Evaluation& evaluation, const FullMove& firstMove) :
+			evaluation(evaluation),
+			movesPath({ firstMove }) {}
+	};
+
 	Engine();
 	Engine(std::string fen);
 
-	Evaluation Search();
+	std::unique_ptr<SearchInfo> Search();
+
+	void Print();
+	void PrintBestMoves(const std::list<FullMove>& movesPath);
 
 private:
 
-	Evaluation MinMaxSearch(Position& position, unsigned depth, Evaluation alpha, Evaluation beta, std::shared_ptr<EvaluationTree::Node>& node);
+	//Evaluation MinMaxSearch(Position& position, unsigned depth, Evaluation alpha, Evaluation beta, std::shared_ptr<EvaluationTree::Node>& node);
+	std::unique_ptr<SearchInfo> MinMaxSearch(Position& position, unsigned depth, Evaluation alpha, Evaluation beta, const FullMove& prevMove);
 	void OrderMoves(std::unique_ptr<std::list<FullMove>>& moves);
-
-public:
-
-	void Print();
-	void PrintBestMoves(Evaluation bestEvaluation);
 
 private:
 

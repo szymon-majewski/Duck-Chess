@@ -82,4 +82,4 @@ enum class Ranks : uint8_t
 const Evaluation NEGATIVE_INFINITY_EVALUATION = INT32_MIN;
 const Evaluation POSITIVE_INFINITY_EVALUATION = INT32_MAX;
 
-const uint8_t MAX_SEARCH_DEPTH = UINT8_MAX;
+const uint8_t MAX_SEARCH_DEPTH = 64U;

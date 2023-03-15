@@ -18,20 +18,23 @@ const std::string bugFen = "8/7k/2b5/7@/8/8/8/4K2R w - - 0 1";
 
 int main(int argc, char** argv)
 {
-	Engine engine = Engine(myGameFen);
+	Engine engine = Engine(testFen);
 
-	engine.searchDepth = 3;
+	engine.searchDepth = 2;
 	engine.Print();
 
-	Evaluation eval = engine.Search();
-	engine.PrintBestMoves(eval);
-	std::cout << "Evaluation: " << eval;
+	Engine::SearchInfo eval = *engine.Search();
+	engine.PrintBestMoves(eval.movesPath);
+	std::cout << "Evaluation: " << eval.evaluation;
 
  	return 0;
 }
 
 /*
 TODO:
+* Delete the whole evaluation tree module. Instead after evaluating the position just generate all the moves and choose the path with the exact evaluation
+* -- always choose the one that is the longest from the opponents perspective, and the shortest from player perspective. Shouldn't be much longer 
+* -- than it is right now, but the memory optimasation will be significant.
 * !!!!!!!!!! myGameFen, depth 4, move 1 suddenly changes to move 34 and some of the pieces change to opponent pieces (even different types)
 * ColoringBoardPrinter attribute dynamic setting
 * Request bit flags dynamic setting
