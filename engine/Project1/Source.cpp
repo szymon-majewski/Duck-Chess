@@ -18,9 +18,9 @@ const std::string bugFen = "8/7k/2b5/7@/8/8/8/4K2R w - - 0 1";
 
 int main(int argc, char** argv)
 {
-	Engine engine = Engine(testFen);
+	Engine engine = Engine(myGameFen);
 
-	engine.searchDepth = 2;
+	engine.searchDepth = 3;
 	engine.Print();
 
 	Engine::SearchInfo eval = *engine.Search();

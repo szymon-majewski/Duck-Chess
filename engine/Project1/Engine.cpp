@@ -39,8 +39,11 @@ Engine::Engine(std::string fen) :
 
 std::unique_ptr<Engine::SearchInfo> Engine::Search()
 {
-	//return MinMaxSearch(session.position, searchDepth, NEGATIVE_INFINITY_EVALUATION, POSITIVE_INFINITY_EVALUATION, evaluationTree.root);
-	return MinMaxSearch(session.position, searchDepth, NEGATIVE_INFINITY_EVALUATION, POSITIVE_INFINITY_EVALUATION, FullMove());
+	std::unique_ptr<SearchInfo> returned = MinMaxSearch(session.position, searchDepth, NEGATIVE_INFINITY_EVALUATION, POSITIVE_INFINITY_EVALUATION, FullMove());
+	
+	returned->movesPath.pop_front();
+
+	return returned;
 }
 
 //Evaluation Engine::MinMaxSearch(Position& position, unsigned depth, Evaluation alpha, Evaluation beta, std::shared_ptr<EvaluationTree::Node>& node)
@@ -55,7 +58,6 @@ std::unique_ptr<Engine::SearchInfo> Engine::MinMaxSearch(Position& position, uns
 
 	std::unique_ptr<SearchInfo> bestSearchInfo = std::make_unique<SearchInfo>();
 	std::unique_ptr<SearchInfo> currentSearchInfo;
-	FullMove bestMove;
 
 	// White move
 	if (position.playerToMove == PlayerColor::White)
@@ -71,22 +73,24 @@ std::unique_ptr<Engine::SearchInfo> Engine::MinMaxSearch(Position& position, uns
 			{
 				session.UndoMove();
 
-				return std::make_unique<SearchInfo>(POSITIVE_INFINITY_EVALUATION, move);
+				bestSearchInfo = std::make_unique<SearchInfo>(POSITIVE_INFINITY_EVALUATION, move);
+				break;
 			}
 
 			currentSearchInfo = MinMaxSearch(session.position, depth - 1, alpha, beta, move);
 			
 			session.UndoMove();
 
+			if (currentSearchInfo->evaluation > bestSearchInfo->evaluation)
+			{
+				//bestSearchInfo = std::move(currentSearchInfo);
+				bestSearchInfo->evaluation = currentSearchInfo->evaluation;
+				bestSearchInfo->movesPath = currentSearchInfo->movesPath;
+			}
+
 			if (alpha < currentSearchInfo->evaluation)
 			{
 				alpha = currentSearchInfo->evaluation;
-			}
-
-			if (currentSearchInfo->evaluation > bestSearchInfo->evaluation)
-			{
-				bestSearchInfo = std::move(currentSearchInfo);
-				bestMove = move;
 			}
 
 			if (beta <= alpha)
@@ -109,21 +113,23 @@ std::unique_ptr<Engine::SearchInfo> Engine::MinMaxSearch(Position& position, uns
 			{
 				session.UndoMove();
 
-				return std::make_unique<SearchInfo>(NEGATIVE_INFINITY_EVALUATION, move);
+				bestSearchInfo = std::make_unique<SearchInfo>(NEGATIVE_INFINITY_EVALUATION, move);
+				break;
 			}
 
 			currentSearchInfo = MinMaxSearch(session.position, depth - 1, alpha, beta, move);
 			session.UndoMove();
 
+			if (currentSearchInfo->evaluation < bestSearchInfo->evaluation)
+			{
+				//bestSearchInfo = std::move(currentSearchInfo);
+				bestSearchInfo->evaluation = currentSearchInfo->evaluation;
+				bestSearchInfo->movesPath = currentSearchInfo->movesPath;
+			}
+
 			if (beta > currentSearchInfo->evaluation)
 			{
 				beta = currentSearchInfo->evaluation;
-			}
-
-			if (currentSearchInfo->evaluation < bestSearchInfo->evaluation)
-			{
-				bestSearchInfo = std::move(currentSearchInfo);
-				bestMove = move;
 			}
 
 			if (beta <= alpha)
@@ -133,7 +139,7 @@ std::unique_ptr<Engine::SearchInfo> Engine::MinMaxSearch(Position& position, uns
 		}
 	}
 
-	bestSearchInfo->movesPath.emplace_front(bestMove);
+	bestSearchInfo->movesPath.emplace_front(prevMove);
 
 	return bestSearchInfo;
 }
