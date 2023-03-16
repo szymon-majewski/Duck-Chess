@@ -20,6 +20,11 @@ const std::string bugHuntFen = "@7/8/8/8/8/6k1/5b2/7K w - - 0 1";
 
 const std::string myGameFenRev = "r2qkb1r/1p1n1p2/p4npp/1Npp4/2@1b3/1P5P/PBPPQPP1/2KNRB1R b kq - 0 1";
 
+const std::string enPassantWhiteFen = "1k6/8/8/4pP2/8/8/8/1K6 w - e6 0 1";
+const std::string enPassantBlackFen = "4k3/8/8/8/4pP2/8/8/1K6 b - f3 0 1";
+const std::string enPassant2Fen = "4k3/8/8/8/pP6/8/8/1K6 b - b3 0 1";
+const std::string enPassant3Fen = "4k3/8/8/8/p7/8/1P6/1K6 w - - 0 1";
+
 // depth 3
 const std::string bug2Fen = "rnbqkbnr/2pppppp/1p@5/pB6/3P1N2/2P1P3/PP3PPP/RNBQK2R b KQkq - 0 1";
 
@@ -27,14 +32,17 @@ void GameLoop(Engine& engine);
 
 int main(int argc, char** argv)
 {
-	Engine engine = Engine(bug2Fen);
-	engine.searchDepth = 3;
+	Engine engine = Engine(enPassant3Fen);
+	engine.searchDepth = 2;
 
 	//GameLoop(engine);
 
 	engine.Print();
 
 	Engine::SearchInfo eval = *engine.Search();
+
+	engine.Print();
+
 	engine.PrintBestMoves(eval.movesPath);
 	std::cout << "Evaluation: " << eval.evaluation;
 
@@ -113,6 +121,8 @@ FullMove PlayerInputMove(Engine& engine)
 
 /*
 TODO:
+* Enpassant is the source of all your problems...
+* Delete these OVER_INFINITIES and instead just put first move in bestSearchInfo
 * Returning list of moves in MinMaxSearch doesn't work properly, if one of the players is winning.
 * -- it seems to play correct moves, but just doesn't print all of them
 * !!!!!!!!!! myGameFen, depth 4, move 1 suddenly changes to move 34 and some of the pieces change to opponent pieces (even different types)

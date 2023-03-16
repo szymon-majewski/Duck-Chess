@@ -21,7 +21,7 @@ enum class CastlingRights : uint8_t
 };
 
 // These are the same values as pieces colors so they can be casted to one another (not None)
-enum class PlayerColor
+enum class PlayerColor : uint8_t
 {
 	None = 0,
 	White = 8,

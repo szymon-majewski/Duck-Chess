@@ -145,12 +145,12 @@ PlayerColor Position::Update(const FullMove& move)
 		//// White
 		if (targetY > sourceY)
 		{
-			board.pieces[targetY + 1][targetX].SetBitPiece((BitPiece)Piece::Type::None);
+			board.pieces[targetY - 1][targetX].SetBitPiece((BitPiece)Piece::Type::None);
 		}
 		//// Black
 		else
 		{
-			board.pieces[targetY - 1][targetX].SetBitPiece((BitPiece)Piece::Type::None);
+			board.pieces[targetY + 1][targetX].SetBitPiece((BitPiece)Piece::Type::None);
 		}
 
 		board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Pawn | (uint8_t)movingPieceColor));

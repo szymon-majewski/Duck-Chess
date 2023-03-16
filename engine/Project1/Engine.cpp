@@ -40,7 +40,7 @@ Engine::Engine(std::string fen) :
 std::unique_ptr<Engine::SearchInfo> Engine::Search()
 {
 	std::unique_ptr<SearchInfo> returned = MinMaxSearch(session.position, searchDepth, NEGATIVE_INFINITY_EVALUATION, POSITIVE_INFINITY_EVALUATION, FullMove());
-	
+
 	returned->movesPath.pop_front();
 
 	return returned;
@@ -106,9 +106,6 @@ std::unique_ptr<Engine::SearchInfo> Engine::MinMaxSearch(Position& position, uns
 		for (const FullMove& move : *moves)
 		{
 			session.MakeMove(move);
-
-			//DEBUG
-			Print();
 
 			// Check if black won the game
 			if (session.winnerColor != PlayerColor::None)

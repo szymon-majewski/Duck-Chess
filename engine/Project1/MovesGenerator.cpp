@@ -307,10 +307,10 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 		}
 	}
 
-	for (const Move& legalPieceMove : legalPiecesMoves)
-	{
-		legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
-	}
+	//for (const Move& legalPieceMove : legalPiecesMoves)
+	//{
+	//	legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
+	//}
 
 	for (const Move& legalPieceMove : legalPiecesMoves)
 	{
@@ -350,11 +350,11 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 
 				if (position.playerToMove == PlayerColor::White)
 				{
-					legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)((uint8_t)legalPieceMove.sourceSquare + (int8_t)DirectionOffsets::South)));
+					legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)((uint8_t)legalPieceMove.targetSquare + (int8_t)DirectionOffsets::South)));
 				}
 				else
 				{
-					legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)((uint8_t)legalPieceMove.sourceSquare + (int8_t)DirectionOffsets::North)));
+					legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)((uint8_t)legalPieceMove.targetSquare + (int8_t)DirectionOffsets::North)));
 				}
 
 				break;
