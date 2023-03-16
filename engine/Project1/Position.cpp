@@ -308,7 +308,10 @@ void Position::UndoMove(const MoveMemento::PositionData& revertedMove)
 	board.pieces[sourceY][sourceX].SetBitPiece((uint8_t)movingPieceType | (uint8_t)movingPieceColor);
 
 	// Restoring previous duck position
-	board.pieces[duckSourceY][duckSourceX].SetBitPiece((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both);
+	if (revertedMove.move.sourceDuckSquare != Square::None)
+	{
+		board.pieces[duckSourceY][duckSourceX].SetBitPiece((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both);
+	}
 
 	enPassantTarget = revertedMove.enPassantTarget;
 	plyClock = revertedMove.plyClock;

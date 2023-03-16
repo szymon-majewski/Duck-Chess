@@ -15,6 +15,5 @@ public:
 private:
 
 	std::string* SplitFenMetadata(std::string& metadata) const;
-	Square SquareIdToSquare(std::string squareId) const;
 	CastlingRights ParseCastilngRights(std::string castlingRightsString) const;
 };

@@ -307,10 +307,10 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 		}
 	}
 
-	//for (const Move& legalPieceMove : legalPiecesMoves)
-	//{
-	//	legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
-	//}
+	for (const Move& legalPieceMove : legalPiecesMoves)
+	{
+		legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
+	}
 
 	for (const Move& legalPieceMove : legalPiecesMoves)
 	{
@@ -333,6 +333,8 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 
 				legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
 				legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, rookCastlingSquares.first));
+
+				break;
 			}
 			case Move::AdditionalInfo::EnPassant:
 			{
@@ -354,6 +356,8 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 				{
 					legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)((uint8_t)legalPieceMove.sourceSquare + (int8_t)DirectionOffsets::North)));
 				}
+
+				break;
 			}
 			default:
 			{
@@ -366,6 +370,8 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 				}
 
 				legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
+
+				break;
 			}
 		}
 	}
@@ -383,7 +389,6 @@ void MovesGenerator::AssignSquare(Piece const* piece, unsigned& y, unsigned& x, 
 	if (piece->PieceType() == Piece::Type::None)
 	{
 		emptySquares.insert(SquareIndicesToSquare(y, x));
-
 		return;
 	}
 

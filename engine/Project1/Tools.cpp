@@ -41,6 +41,24 @@ std::string MoveStringFormat(const FullMove& move, Piece::Type movingPieceType, 
 	return result;
 }
 
+Square SquareIdToSquare(std::string squareId)
+{
+	if (squareId[0] == '-')
+	{
+		return Square::None;
+	}
+	else
+	{
+		squareId[0] = toupper(squareId[0]);
+		return (Square)((squareId[1] - '0' - 1) * Board::WIDTH + squareId[0] - 'A' + 1);
+	}
+}
+
+//FullMove StringToMove(const std::string& moveString, const Board& board)
+//{
+//	Piece::PIECES_SYMBOLS_MAP
+//}
+
 void SquareToBoardIndices(const Square& square, int& y, int& x)
 {
 	y = ((uint8_t)square - 1) / Board::WIDTH;

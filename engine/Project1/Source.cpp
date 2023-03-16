@@ -16,11 +16,22 @@ const std::string testFen = "rnbqkbnr/ppp1pppp/7@/8/7P/3p1PP1/PPPPP3/RNBQKBNR w 
 const std::string castlingTestFen = "r@2k3/8/8/8/8/8/8/4K2R w Kq - 0 1";
 const std::string bugFen = "8/7k/2b5/7@/8/8/8/4K2R w - - 0 1";
 
+const std::string bugHuntFen = "@7/8/8/8/8/6k1/5b2/7K w - - 0 1";
+
+const std::string myGameFenRev = "r2qkb1r/1p1n1p2/p4npp/1Npp4/2@1b3/1P5P/PBPPQPP1/2KNRB1R b kq - 0 1";
+
+// depth 3
+const std::string bug2Fen = "rnbqkbnr/2pppppp/1p@5/pB6/3P1N2/2P1P3/PP3PPP/RNBQK2R b KQkq - 0 1";
+
+void GameLoop(Engine& engine);
+
 int main(int argc, char** argv)
 {
-	Engine engine = Engine(myGameFen);
-
+	Engine engine = Engine(bug2Fen);
 	engine.searchDepth = 3;
+
+	//GameLoop(engine);
+
 	engine.Print();
 
 	Engine::SearchInfo eval = *engine.Search();
@@ -30,12 +41,82 @@ int main(int argc, char** argv)
  	return 0;
 }
 
+FullMove PlayerInputMove(Engine& engine);
+
+void GameLoop(Engine& engine)
+{
+	engine.Print();
+
+	while (true)
+	{
+		FullMove inputMove = PlayerInputMove(engine);
+
+		engine.session.MakeMove(inputMove);
+		engine.Print();
+
+		if ((Move::AdditionalInfo)((uint16_t)inputMove.additionalInfo & (uint16_t)Move::AdditionalInfo::CapturedKing) != Move::AdditionalInfo::None)
+		{
+			break;
+		}
+
+		auto searchInfo = engine.Search();
+
+		engine.session.MakeMove((*searchInfo).movesPath.front());
+
+		engine.Print();
+
+		if ((Move::AdditionalInfo)((uint16_t)(*searchInfo).movesPath.front().additionalInfo & (uint16_t)Move::AdditionalInfo::CapturedKing) != Move::AdditionalInfo::None)
+		{
+			break;
+		}
+	}
+}
+
+extern Square SquareIdToSquare(std::string squareId);
+
+FullMove PlayerInputMove(Engine& engine)
+{
+	// Input move format: [piece source square] [piece target square] [duck target square]
+	std::string squareStr;
+	Square squares[3];
+
+	for (int i = 0; i < 3; ++i)
+	{
+		std::cin >> squareStr;
+		squares[i] = SquareIdToSquare(squareStr);
+	}
+
+	FullMove inputMove;
+	auto moves = engine.movesGenerator.GenerateLegalMoves(engine.session.position);
+
+	for (const FullMove& move : *moves)
+	{
+		if (move.sourceSquare == squares[0] &&
+			move.targetSquare == squares[1] &&
+			move.targetDuckSquare == squares[2])
+		{
+			inputMove = move;
+			break;
+		}
+	}
+
+	// Something was chosen
+	if (inputMove.sourceSquare != Square::None)
+	{
+		return inputMove;
+	}
+	else
+	{
+		// repeat
+	}
+}
+
 /*
 TODO:
-* Delete the whole evaluation tree module. Instead after evaluating the position just generate all the moves and choose the path with the exact evaluation
-* -- always choose the one that is the longest from the opponents perspective, and the shortest from player perspective. Shouldn't be much longer 
-* -- than it is right now, but the memory optimasation will be significant.
+* Returning list of moves in MinMaxSearch doesn't work properly, if one of the players is winning.
+* -- it seems to play correct moves, but just doesn't print all of them
 * !!!!!!!!!! myGameFen, depth 4, move 1 suddenly changes to move 34 and some of the pieces change to opponent pieces (even different types)
+* -- it may be happening in positions, in which one player wins but depth is exceeded somehow
 * ColoringBoardPrinter attribute dynamic setting
 * Request bit flags dynamic setting
 * (It actually needs a game pointer to )

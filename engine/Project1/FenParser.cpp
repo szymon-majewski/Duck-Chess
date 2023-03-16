@@ -1,5 +1,7 @@
 #include "FenParser.h"
 
+extern Square SquareIdToSquare(std::string squareId);
+
 void FenParser::ParseFen(const std::string& fen, Position& position) const
 {
 	int squaresFilled = 0;
@@ -97,19 +99,6 @@ std::string* FenParser::SplitFenMetadata(std::string& metadata) const
 	tokens[dataIndex] = metadata;
 
 	return tokens;
-}
-
-Square FenParser::SquareIdToSquare(std::string squareId) const
-{
-	if (squareId[0] == '-')
-	{
-		return Square::None;
-	}
-	else
-	{
-		squareId[0] = toupper(squareId[0]);
-		return (Square)((squareId[1] - '0' - 1) * Board::WIDTH + squareId[0] - 'A' + 1);
-	}
 }
 
 CastlingRights FenParser::ParseCastilngRights(std::string castlingRightsString) const

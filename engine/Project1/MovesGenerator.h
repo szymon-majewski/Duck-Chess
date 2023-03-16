@@ -23,7 +23,7 @@ public:
 
 	MovesGenerator();
 
-	std::unique_ptr<std::list<FullMove>> GenerateLegalMoves(const Position& game);
+	std::unique_ptr<std::list<FullMove>> GenerateLegalMoves(const Position& position);
 
 	Square SquareIndicesToSquare(unsigned& y, unsigned& x);
 

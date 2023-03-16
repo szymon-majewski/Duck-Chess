@@ -7,7 +7,7 @@ class Stack
 {
 private:
 
-	T elements[MAX_SEARCH_DEPTH];
+	T elements[MAX_GAME_LENGTH];
 
 	// headIndex = -1 means that the stack is empty
 	int headIndex = -1;

@@ -62,7 +62,7 @@ std::unique_ptr<Engine::SearchInfo> Engine::MinMaxSearch(Position& position, uns
 	// White move
 	if (position.playerToMove == PlayerColor::White)
 	{
-		bestSearchInfo->evaluation = NEGATIVE_INFINITY_EVALUATION;
+		bestSearchInfo->evaluation = OVER_NEGATIVE_INFINITY_EVALUATION;
 
 		for (const FullMove& move : *moves)
 		{
@@ -78,7 +78,6 @@ std::unique_ptr<Engine::SearchInfo> Engine::MinMaxSearch(Position& position, uns
 			}
 
 			currentSearchInfo = MinMaxSearch(session.position, depth - 1, alpha, beta, move);
-			
 			session.UndoMove();
 
 			if (currentSearchInfo->evaluation > bestSearchInfo->evaluation)
@@ -102,11 +101,14 @@ std::unique_ptr<Engine::SearchInfo> Engine::MinMaxSearch(Position& position, uns
 	// Black move
 	else
 	{
-		bestSearchInfo->evaluation = POSITIVE_INFINITY_EVALUATION;
+		bestSearchInfo->evaluation = OVER_POSITIVE_INFINITY_EVALUATION;
 
 		for (const FullMove& move : *moves)
 		{
 			session.MakeMove(move);
+
+			//DEBUG
+			Print();
 
 			// Check if black won the game
 			if (session.winnerColor != PlayerColor::None)

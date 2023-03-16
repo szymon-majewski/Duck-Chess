@@ -79,7 +79,12 @@ enum class Ranks : uint8_t
 	Rank8
 };
 
-const Evaluation NEGATIVE_INFINITY_EVALUATION = INT32_MIN;
-const Evaluation POSITIVE_INFINITY_EVALUATION = INT32_MAX;
+constexpr Evaluation NEGATIVE_INFINITY_EVALUATION = INT32_MIN + 1;
+constexpr Evaluation POSITIVE_INFINITY_EVALUATION = INT32_MAX - 1;
 
-const uint8_t MAX_SEARCH_DEPTH = 64U;
+// These exist because i want true infinite evaluations to override these, which starting best evaluations 
+// -- are initialized with
+const Evaluation OVER_NEGATIVE_INFINITY_EVALUATION = INT32_MIN;
+const Evaluation OVER_POSITIVE_INFINITY_EVALUATION = INT32_MAX;
+
+const uint16_t MAX_GAME_LENGTH = 500U;
