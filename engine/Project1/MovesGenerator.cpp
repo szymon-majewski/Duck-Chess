@@ -110,7 +110,7 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 							legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, capturedOnNorthWest));
 						}
 					}
-					else if (northWestSquare == position.enPassantTarget)
+					else if (northWestSquare == position.enPassantTarget && northWestSquare != duckSquare)
 					{
 						legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, Move::AdditionalInfo::EnPassant));
 					}
@@ -133,7 +133,7 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 							legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, capturedOnNorthEast));
 						}
 					}
-					else if (northEastSquare == position.enPassantTarget)
+					else if (northEastSquare == position.enPassantTarget && northEastSquare != duckSquare)
 					{
 						legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, Move::AdditionalInfo::EnPassant));
 					}
@@ -193,7 +193,7 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 							legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, capturedOnSouthWest));
 						}
 					}
-					else if (southWestSquare == position.enPassantTarget)
+					else if (southWestSquare == position.enPassantTarget && southWestSquare != duckSquare)
 					{
 						legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, Move::AdditionalInfo::EnPassant));
 					}
@@ -216,7 +216,7 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 							legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, capturedOnSouthEast));
 						}
 					}
-					else if (southEastSquare == position.enPassantTarget)
+					else if (southEastSquare == position.enPassantTarget && southEastSquare != duckSquare)
 					{
 						legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, Move::AdditionalInfo::EnPassant));
 					}

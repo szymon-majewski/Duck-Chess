@@ -32,17 +32,14 @@ void GameLoop(Engine& engine);
 
 int main(int argc, char** argv)
 {
-	Engine engine = Engine(enPassant3Fen);
-	engine.searchDepth = 2;
+	Engine engine = Engine(bug2Fen);
+	engine.searchDepth = 3;
 
 	//GameLoop(engine);
 
 	engine.Print();
 
 	Engine::SearchInfo eval = *engine.Search();
-
-	engine.Print();
-
 	engine.PrintBestMoves(eval.movesPath);
 	std::cout << "Evaluation: " << eval.evaluation;
 
