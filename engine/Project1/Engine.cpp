@@ -10,7 +10,8 @@ Engine::Engine() :
 
 Engine::Engine(std::string fen) :
 	engineConfigurator(EngineConfigurator(this)),
-	session(Position())
+	session(Position()),
+	playerInputManager(*this)
 {
 	searchDepth = DEFAULT_SEARCH_DEPTH;
 	fenParser.ParseFen(fen, session.position);
@@ -163,6 +164,14 @@ void Engine::PrintBestMoves(const std::list<FullMove>& movesPath)
 		session.MakeMove(move);
 
 		Print();
+	}
+}
+
+void Engine::GameLoop()
+{
+	while (true)
+	{
+		playerInputManager.ReadAndManageInput();
 	}
 }
 

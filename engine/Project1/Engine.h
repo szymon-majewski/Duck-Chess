@@ -11,6 +11,7 @@
 #include "Session.h"
 #include "EvaulationTree.h"
 #include "EngineConfigurator.h"
+#include "PlayerInputManager.h"
 
 class Engine
 {
@@ -22,6 +23,7 @@ private: /*DEBUG ->*/ public:
 	//EvaluationTree evaluationTree;
 	FenParser fenParser;
 	EngineConfigurator engineConfigurator;
+	PlayerInputManager playerInputManager;
 
 	unsigned searchDepth;
 	const unsigned DEFAULT_SEARCH_DEPTH = 3;
@@ -59,6 +61,8 @@ public:
 
 	void Print();
 	void PrintBestMoves(const std::list<FullMove>& movesPath);
+
+	void GameLoop();
 
 private:
 

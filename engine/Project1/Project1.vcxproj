@@ -141,6 +141,7 @@
     <ClCompile Include="FullMove.cpp" />
     <ClCompile Include="MaterialEvaluator.cpp" />
     <ClCompile Include="MovePrinter.cpp" />
+    <ClCompile Include="PlayerInputManager.cpp" />
     <ClCompile Include="Position.cpp" />
     <ClCompile Include="Position.h" />
     <ClCompile Include="PositionInformationPrinter.cpp" />
@@ -168,6 +169,7 @@
     <ClInclude Include="FullMove.h" />
     <ClInclude Include="MaterialEvaluator.h" />
     <ClInclude Include="MovePrinter.h" />
+    <ClInclude Include="PlayerInputManager.h" />
     <ClInclude Include="PositionInformationPrinter.h" />
     <ClInclude Include="Move.h" />
     <ClInclude Include="MovesGenerator.h" />

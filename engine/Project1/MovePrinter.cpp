@@ -8,14 +8,7 @@ MovePrinter::MovePrinter(FullMove* move, Board* board) :
 
 void MovePrinter::Print() const
 {
-	int srcX;
-	int srcY;
-	int targetX;
-	int targetY;
-
-	SquareToBoardIndices(move->sourceSquare, srcY, srcX);
-	SquareToBoardIndices(move->targetSquare, targetY, targetX);
-	std::cout << MoveStringFormat(*move, board->pieces[srcY][srcX].PieceType(), board->pieces[targetY][targetX].PieceType() != Piece::Type::None) << std::endl << std::endl;
+	std::cout << MoveStringFormat(*move, *board) << std::endl << std::endl;
 }
 
 void MovePrinter::Handle(Request request)

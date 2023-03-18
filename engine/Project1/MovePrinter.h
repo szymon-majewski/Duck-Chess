@@ -5,7 +5,7 @@
 #include "Piece.h"
 #include "Board.h"
 
-extern std::string MoveStringFormat(const FullMove& move, Piece::Type movingPieceType, bool take);
+extern std::string MoveStringFormat(const FullMove& move, const Board& board);
 extern void SquareToBoardIndices(const Square& square, int& y, int& x);
 
 class MovePrinter : public ConsolePrinterHandler

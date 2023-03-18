@@ -25,105 +25,38 @@ const std::string enPassantBlackFen = "4k3/8/8/8/4pP2/8/8/1K6 b - f3 0 1";
 const std::string enPassant2Fen = "4k3/8/8/8/pP6/8/8/1K6 b - b3 0 1";
 const std::string enPassant3Fen = "4k3/8/8/8/p7/8/1P6/1K6 w - - 0 1";
 
+const std::string promotionFen = "8/1k4PP/7K/8/8/8/8/8 w - - 0 1";
+
+
 // depth 3
 const std::string bug2Fen = "rnbqkbnr/2pppppp/1p@5/pB6/3P1N2/2P1P3/PP3PPP/RNBQK2R b KQkq - 0 1";
 
-void GameLoop(Engine& engine);
-
 int main(int argc, char** argv)
 {
-	Engine engine = Engine(bug2Fen);
-	engine.searchDepth = 3;
-
-	//GameLoop(engine);
+	Engine engine = Engine(myGameFen);
+	engine.searchDepth = 4;
 
 	engine.Print();
 
-	Engine::SearchInfo eval = *engine.Search();
-	engine.PrintBestMoves(eval.movesPath);
-	std::cout << "Evaluation: " << eval.evaluation;
+	engine.GameLoop();
+
+	//Engine::SearchInfo eval = *engine.Search();
+	//engine.PrintBestMoves(eval.movesPath);
+	//std::cout << "Evaluation: " << eval.evaluation;
 
  	return 0;
 }
 
-FullMove PlayerInputMove(Engine& engine);
-
-void GameLoop(Engine& engine)
-{
-	engine.Print();
-
-	while (true)
-	{
-		FullMove inputMove = PlayerInputMove(engine);
-
-		engine.session.MakeMove(inputMove);
-		engine.Print();
-
-		if ((Move::AdditionalInfo)((uint16_t)inputMove.additionalInfo & (uint16_t)Move::AdditionalInfo::CapturedKing) != Move::AdditionalInfo::None)
-		{
-			break;
-		}
-
-		auto searchInfo = engine.Search();
-
-		engine.session.MakeMove((*searchInfo).movesPath.front());
-
-		engine.Print();
-
-		if ((Move::AdditionalInfo)((uint16_t)(*searchInfo).movesPath.front().additionalInfo & (uint16_t)Move::AdditionalInfo::CapturedKing) != Move::AdditionalInfo::None)
-		{
-			break;
-		}
-	}
-}
-
-extern Square SquareIdToSquare(std::string squareId);
-
-FullMove PlayerInputMove(Engine& engine)
-{
-	// Input move format: [piece source square] [piece target square] [duck target square]
-	std::string squareStr;
-	Square squares[3];
-
-	for (int i = 0; i < 3; ++i)
-	{
-		std::cin >> squareStr;
-		squares[i] = SquareIdToSquare(squareStr);
-	}
-
-	FullMove inputMove;
-	auto moves = engine.movesGenerator.GenerateLegalMoves(engine.session.position);
-
-	for (const FullMove& move : *moves)
-	{
-		if (move.sourceSquare == squares[0] &&
-			move.targetSquare == squares[1] &&
-			move.targetDuckSquare == squares[2])
-		{
-			inputMove = move;
-			break;
-		}
-	}
-
-	// Something was chosen
-	if (inputMove.sourceSquare != Square::None)
-	{
-		return inputMove;
-	}
-	else
-	{
-		// repeat
-	}
-}
-
 /*
 TODO:
+* Change PlayerInputManager so it only reads and parses input and all engine instructions are
+* -- called in Engine class itself
 * Enpassant is the source of all your problems...
 * Delete these OVER_INFINITIES and instead just put first move in bestSearchInfo
 * Returning list of moves in MinMaxSearch doesn't work properly, if one of the players is winning.
-* -- it seems to play correct moves, but just doesn't print all of them
+* -- it seems tay o plcorrect moves, but just doesn't print all of them
 * !!!!!!!!!! myGameFen, depth 4, move 1 suddenly changes to move 34 and some of the pieces change to opponent pieces (even different types)
-* -- it may be happening in positions, in which one player wins but depth is exceeded somehow
+* -- it's because of castling - turn of adding castling moves in MovesGenerator
 * ColoringBoardPrinter attribute dynamic setting
 * Request bit flags dynamic setting
 * (It actually needs a game pointer to )

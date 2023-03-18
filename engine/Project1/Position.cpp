@@ -120,21 +120,25 @@ PlayerColor Position::Update(const FullMove& move)
 			{
 				board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Queen | (uint8_t)movingPieceColor));
 				materialDisparity += materialMultiplier * (PositionEvaluator::piecesMaterial[Piece::Type::Queen] - PositionEvaluator::piecesMaterial[Piece::Type::Pawn]);
+				break;
 			}
 			case Move::AdditionalInfo::PromotionToRook:
 			{
 				board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor));
 				materialDisparity += materialMultiplier * (PositionEvaluator::piecesMaterial[Piece::Type::Rook] - PositionEvaluator::piecesMaterial[Piece::Type::Pawn]);
+				break;
 			}
 			case Move::AdditionalInfo::PromotionToKnight:
 			{
 				board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Knight | (uint8_t)movingPieceColor));
 				materialDisparity += materialMultiplier * (PositionEvaluator::piecesMaterial[Piece::Type::Knight] - PositionEvaluator::piecesMaterial[Piece::Type::Pawn]);
+				break;
 			}
 			case Move::AdditionalInfo::PromotionToBishop:
 			{
 				board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Bishop | (uint8_t)movingPieceColor));
 				materialDisparity += materialMultiplier * (PositionEvaluator::piecesMaterial[Piece::Type::Bishop] - PositionEvaluator::piecesMaterial[Piece::Type::Pawn]);
+				break;
 			}
 		}
 	}

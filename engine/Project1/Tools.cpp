@@ -15,10 +15,28 @@ std::string SquareStringFormat(const Square& square, bool lowerCase = false)
 	return result;
 }
 
+void SquareToBoardIndices(const Square& square, int& y, int& x)
+{
+	y = ((uint8_t)square - 1) / Board::WIDTH;
+	x = ((uint8_t)square - 1) % Board::WIDTH;
+}
+
+Square BoardIndicesToSquare(int y, int x)
+{
+	return (Square)(y * Board::WIDTH + x + 1);
+}
+
 // Update: multiple pieces of same type in same row/file
-std::string MoveStringFormat(const FullMove& move, Piece::Type movingPieceType, bool take)
+std::string MoveStringFormat(const FullMove& move, const Board& board)
 {
 	std::string result;
+	bool take = ((uint16_t)move.additionalInfo & (uint16_t)Move::captureChecker) != (uint16_t)Move::AdditionalInfo::None;
+	int movingPieceY;
+	int movingPieceX;
+
+	SquareToBoardIndices(move.sourceSquare, movingPieceY, movingPieceX);
+
+	Piece::Type movingPieceType = board.pieces[movingPieceY][movingPieceX].PieceType();
 
 	if (movingPieceType != Piece::Type::Pawn)
 	{
@@ -58,14 +76,3 @@ Square SquareIdToSquare(std::string squareId)
 //{
 //	Piece::PIECES_SYMBOLS_MAP
 //}
-
-void SquareToBoardIndices(const Square& square, int& y, int& x)
-{
-	y = ((uint8_t)square - 1) / Board::WIDTH;
-	x = ((uint8_t)square - 1) % Board::WIDTH;
-}
-
-Square BoardIndicesToSquare(int y, int x)
-{
-	return (Square)(y * Board::WIDTH + x + 1);
-}
