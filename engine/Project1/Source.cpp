@@ -39,7 +39,7 @@ int main(int argc, char** argv)
 
 	engine.Print();
 
-	engine.playerColor = PlayerColor::White;
+	engine.playerColor = PlayerColor::Black;
 	engine.GameLoop();
 
 	//Engine::SearchInfo eval = *engine.Search();

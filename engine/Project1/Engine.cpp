@@ -169,6 +169,20 @@ void Engine::PrintBestMoves(const std::list<FullMove>& movesPath)
 
 void Engine::GameLoop()
 {
+	if (playerColor != session.position.playerToMove)
+	{
+		auto searchInfo = Search();
+
+		session.MakeMove((*searchInfo).movesPath.front());
+		Print();
+
+		if ((Move::AdditionalInfo)((uint16_t)(*searchInfo).movesPath.front().additionalInfo & (uint16_t)Move::AdditionalInfo::CapturedKing) != Move::AdditionalInfo::None)
+		{
+			// TEMPORARY
+			exit(0);
+		}
+	}
+
 	while (true)
 	{
 		playerInputManager.ReadAndManageInput();

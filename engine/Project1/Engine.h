@@ -23,7 +23,10 @@ private: /*DEBUG ->*/ public:
 	//EvaluationTree evaluationTree;
 	FenParser fenParser;
 	EngineConfigurator engineConfigurator;
+
+	//Game
 	PlayerInputManager playerInputManager;
+	PlayerColor playerColor;
 
 	unsigned searchDepth;
 	const unsigned DEFAULT_SEARCH_DEPTH = 3;
