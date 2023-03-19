@@ -2,22 +2,16 @@
 #include "ColoringBoardPrinter.h"
 #include "StandardBoardPrinter.h"
 
-const std::unordered_map<BitPiece, const char*> ColoringBoardPrinter::PIECES_UNICODE_SYMBOLS =
+const std::unordered_map<Piece::Type, const char*> ColoringBoardPrinter::PIECES_UNICODE_SYMBOLS =
 {
-	{ (uint8_t)Piece::Type::Pawn | (uint8_t)Piece::Color::Black, "\xe2\x99\x9f" },
-	{ (uint8_t)Piece::Type::Pawn | (uint8_t)Piece::Color::White, "\xe2\x99\x99" },
-	{ (uint8_t)Piece::Type::Knight | (uint8_t)Piece::Color::Black, "\xe2\x99\x9e" },
-	{ (uint8_t)Piece::Type::Knight | (uint8_t)Piece::Color::White, "\xe2\x99\x98" },
-	{ (uint8_t)Piece::Type::Bishop | (uint8_t)Piece::Color::Black, "\xe2\x99\x9d" },
-	{ (uint8_t)Piece::Type::Bishop | (uint8_t)Piece::Color::White, "\xe2\x99\x97" },
-	{ (uint8_t)Piece::Type::Rook | (uint8_t)Piece::Color::Black, "\xe2\x99\x9c" },
-	{ (uint8_t)Piece::Type::Rook | (uint8_t)Piece::Color::White, "\xe2\x99\x96" },
-	{ (uint8_t)Piece::Type::Queen | (uint8_t)Piece::Color::Black, "\xe2\x99\x9b" },
-	{ (uint8_t)Piece::Type::Queen | (uint8_t)Piece::Color::White, "\xe2\x99\x95" },
-	{ (uint8_t)Piece::Type::King | (uint8_t)Piece::Color::Black, "\xe2\x99\x9a"},
-	{ (uint8_t)Piece::Type::King | (uint8_t)Piece::Color::White, "\xe2\x99\x94" },
-	{ (uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both, "@" },
-	{ (uint8_t)Piece::Type::None, " " }
+	{ Piece::Type::Pawn, "\xe2\x99\x9f" },
+	{ Piece::Type::Knight, "\xe2\x99\x9e" },
+	{ Piece::Type::Bishop, "\xe2\x99\x9d" },
+	{ Piece::Type::Rook, "\xe2\x99\x9c" },
+	{ Piece::Type::Queen, "\xe2\x99\x9b" },
+	{ Piece::Type::King, "\xe2\x99\x9a"},
+	{ Piece::Type::Duck, "@" },
+	{ Piece::Type::None, " " }
 };
 
 ColoringBoardPrinter::ColoringBoardPrinter(Board* board) :
@@ -27,29 +21,35 @@ ColoringBoardPrinter::ColoringBoardPrinter(Board* board) :
 	consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 }
 
-void ColoringBoardPrinter::PrintPieceSymbol(int y, int x) const
+void ColoringBoardPrinter::PrintPieceSymbol(int y, int x, bool lightSquare) const
 {
-	std::cout << "| ";
+	std::cout << "|";
+
 	switch (board->pieces[y][x].PieceColor())
 	{
-	case Piece::Color::Both:
-	{
-		SetConsoleTextAttribute(consoleHandle, DUCK_COLOR);
-		break;
-	}
-	case Piece::Color::White:
-	{
-		SetConsoleTextAttribute(consoleHandle, WHITE_PIECES_COLOR);
-		break;
-	}
-	case Piece::Color::Black:
-	{
-		SetConsoleTextAttribute(consoleHandle, BLACK_PIECES_COLOR);
-		break;
-	}
+		case Piece::Color::Both:
+		{
+			SetConsoleTextAttribute(consoleHandle, DUCK_COLOR | (lightSquare ? LIGHT_SQUARES_COLOR : DARK_SQUARES_COLOR));
+			break;
+		}
+		case Piece::Color::White:
+		{
+			SetConsoleTextAttribute(consoleHandle, WHITE_PIECES_COLOR | (lightSquare ? LIGHT_SQUARES_COLOR : DARK_SQUARES_COLOR));
+			break;
+		}
+		case Piece::Color::Black:
+		{
+			SetConsoleTextAttribute(consoleHandle, BLACK_PIECES_COLOR | (lightSquare ? LIGHT_SQUARES_COLOR : DARK_SQUARES_COLOR));
+			break;
+		}
+		default:
+		{
+			SetConsoleTextAttribute(consoleHandle, lightSquare ? LIGHT_SQUARES_COLOR : DARK_SQUARES_COLOR);
+			break;
+		}
 	}
 
-	std::cout << PIECES_UNICODE_SYMBOLS.at(board->pieces[y][x].GetBitPiece());
+	std::cout << ' ' << PIECES_UNICODE_SYMBOLS.at(board->pieces[y][x].PieceType()) << ' ';
+
 	SetConsoleTextAttribute(consoleHandle, CHESSBOARD_LINES_COLOR);
-	std::cout << ' ';
 }

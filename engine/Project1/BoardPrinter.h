@@ -18,7 +18,7 @@ public:
 
 	void PrintRowNumber(int y) const;
 	void PrintFilesLetters() const;
-	virtual void PrintPieceSymbol(int y, int x) const = 0;
+	virtual void PrintPieceSymbol(int y, int x, bool lightSquare) const = 0;
 
 private:
 
