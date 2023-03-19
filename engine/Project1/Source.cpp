@@ -34,7 +34,7 @@ const std::string bug2Fen = "rnbqkbnr/2pppppp/1p@5/pB6/3P1N2/2P1P3/PP3PPP/RNBQK2
 int main(int argc, char** argv)
 {
 	Engine engine = Engine(myGameFen);
-	engine.searchDepth = 4;
+	engine.searchDepth = 3;
 
 	engine.Print();
 
