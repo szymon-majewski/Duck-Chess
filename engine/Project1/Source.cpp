@@ -27,22 +27,24 @@ const std::string enPassant3Fen = "4k3/8/8/8/p7/8/1P6/1K6 w - - 0 1";
 
 const std::string promotionFen = "8/1k4PP/7K/8/8/8/8/8 w - - 0 1";
 
-
 // depth 3
 const std::string bug2Fen = "rnbqkbnr/2pppppp/1p@5/pB6/3P1N2/2P1P3/PP3PPP/RNBQK2R b KQkq - 0 1";
 
+const std::string castleFen = "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1";
+
 int main(int argc, char** argv)
 {
-	Engine engine = Engine(myGameFen2);
+	Engine engine = Engine(STARTING_POSITION_FEN);
 	engine.searchDepth = 3;
 
 	engine.Print();
 
-	//engine.GameLoop();
+	engine.playerColor = PlayerColor::White;
+	engine.GameLoop();
 
-	Engine::SearchInfo eval = *engine.Search();
-	engine.PrintBestMoves(eval.movesPath);
-	std::cout << "Evaluation: " << eval.evaluation;
+	//Engine::SearchInfo eval = *engine.Search();
+	//engine.PrintBestMoves(eval.movesPath);
+	//std::cout << "Evaluation: " << eval.evaluation;
 
  	return 0;
 }

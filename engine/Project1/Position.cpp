@@ -26,45 +26,6 @@ PlayerColor Position::Update(const FullMove& move)
 		winnerColor = (PlayerColor)movingPieceColor;
 	}
 
-	// Losing castling rights after king or rook moves
-	if (castlingRights != CastlingRights::None)
-	{
-		if (movingPieceType == Piece::Type::King)
-		{
-			if (movingPieceColor == Piece::Color::White)
-			{
-				castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::White);
-			}
-			else
-			{
-				castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::Black);
-			}
-		}
-		else if (movingPieceType == Piece::Type::Rook)
-		{
-			// White Kingside
-			if (sourceY == 0 && sourceX == 7)
-			{
-				castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::WhiteKingside);
-			}
-			// White Queenside
-			else if (sourceY == 0 && sourceX == 0)
-			{
-				castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::WhiteQueenside);
-			}
-			// Black Kingside
-			else if (sourceY == 7 && sourceX == 7)
-			{
-				castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::BlackKingside);
-			}
-			// Black Queenside
-			else if (sourceY == 7 && sourceX == 0)
-			{
-				castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::BlackQueenside);
-			}
-		}
-	}
-
 	// Update some position data
 	enPassantTarget = Square::None;
 	if (movingPieceType == Piece::Type::Pawn || board.pieces[targetY][targetX].PieceType() != Piece::Type::None)
@@ -107,6 +68,33 @@ PlayerColor Position::Update(const FullMove& move)
 
 		// Material update 
 		materialDisparity += materialMultiplier * PositionEvaluator::piecesMaterial[capturedPieceType];
+
+		// Losing castling rights if the rook was taken on corner square
+		if (capturedPieceType == Piece::Type::Rook)
+		{
+			if (movingPieceColor == Piece::Color::White)
+			{
+				if (move.targetSquare == Square::H8)
+				{
+					castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::BlackKingside);
+				}
+				else if (move.targetSquare == Square::A8)
+				{
+					castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::BlackQueenside);
+				}
+			}
+			else
+			{
+				if (move.targetSquare == Square::H1)
+				{
+					castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::WhiteKingside);
+				}
+				else if (move.targetSquare == Square::A1)
+				{
+					castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::WhiteQueenside);
+				}
+			}
+		}
 	}
 
 	//Promotions
@@ -172,6 +160,45 @@ PlayerColor Position::Update(const FullMove& move)
 		UpdateCastling(move.additionalInfo, targetY, targetX, (uint8_t)movingPieceColor);
 	}
 
+	// Losing castling rights after king or rook moves
+	if (castlingRights != CastlingRights::None)
+	{
+		if (movingPieceType == Piece::Type::King)
+		{
+			if (movingPieceColor == Piece::Color::White)
+			{
+				castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::White);
+			}
+			else
+			{
+				castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::Black);
+			}
+		}
+		else if (movingPieceType == Piece::Type::Rook)
+		{
+			// White Kingside
+			if (move.sourceSquare == Square::H1)
+			{
+				castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::WhiteKingside);
+			}
+			// White Queenside
+			else if (move.sourceSquare == Square::A1)
+			{
+				castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::WhiteQueenside);
+			}
+			// Black Kingside
+			else if (move.sourceSquare == Square::H8)
+			{
+				castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::BlackKingside);
+			}
+			// Black Queenside
+			else if (move.sourceSquare == Square::A8)
+			{
+				castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::BlackQueenside);
+			}
+		}
+	}
+
 	// Move the duck
 	SquareToBoardIndices(move.sourceDuckSquare, sourceY, sourceX);
 	SquareToBoardIndices(move.targetDuckSquare, targetY, targetX);
@@ -213,7 +240,7 @@ void Position::UndoMove(const MoveMemento::PositionData& revertedMove)
 	int materialMultiplier = movingPieceColor == Piece::Color::White ? 1 : -1;
 
 	// Promotions
-	if ((Move::AdditionalInfo)((uint16_t)revertedMove.move.additionalInfo & (uint16_t)Move::promotionChecker) != Move::AdditionalInfo::None)
+	if ((Move::AdditionalInfo)((uint16_t)revertedMove.move.additionalInfo & Move::promotionChecker) != Move::AdditionalInfo::None)
 	{
 		// Material update
 		materialDisparity -= materialMultiplier * (PositionEvaluator::piecesMaterial[movingPieceType] - PositionEvaluator::piecesMaterial[Piece::Type::Pawn]);
@@ -353,7 +380,6 @@ Evaluation Position::CountMaterial()
 void Position::UpdateCastling(const Move::AdditionalInfo& moveInfo, const int& targetY, const int& targetX, const uint8_t& playerColor)
 {
 	Move::AdditionalInfo castlingInfo = (Move::AdditionalInfo)((uint16_t)moveInfo & Move::castlingChecker);
-	CastlingRights castlingType;
 	Square rookSourceSquare;
 	Square rookTargetSquare;
 
@@ -363,28 +389,24 @@ void Position::UpdateCastling(const Move::AdditionalInfo& moveInfo, const int& t
 		{ 
 			rookSourceSquare = Square::H1;
 			rookTargetSquare = Square::F1;
-			castlingType = CastlingRights::WhiteKingside;
 			break;
 		}
 		case Move::AdditionalInfo::WhiteQueensideCastle:
 		{ 
 			rookSourceSquare = Square::A1;
 			rookTargetSquare = Square::D1;
-			castlingType = CastlingRights::WhiteQueenside;
 			break;
 		}
 		case Move::AdditionalInfo::BlackKingsideCastle:
 		{ 
 			rookSourceSquare = Square::H8; 
 			rookTargetSquare = Square::F8; 
-			castlingType = CastlingRights::BlackKingside;
 			break;
 		}
 		case Move::AdditionalInfo::BlackQueensideCastle: 
 		{ 
 			rookSourceSquare = Square::A8;
 			rookTargetSquare = Square::D8;
-			castlingType = CastlingRights::BlackQueenside;
 			break;
 		}
 		default: { return; }
@@ -404,7 +426,4 @@ void Position::UpdateCastling(const Move::AdditionalInfo& moveInfo, const int& t
 
 	// Moving rook
 	board.pieces[rookY][rookX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Rook | playerColor));
-
-	// Removing castling rights
-	castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)castlingType);
 }

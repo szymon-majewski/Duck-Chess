@@ -290,7 +290,7 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 				emptySquares.contains(Square::B1) && emptySquares.contains(Square::C1) && emptySquares.contains(Square::D1))
 			{
 				legalPiecesMoves.emplace_back(Move(kingSquare, Square::C1, Move::AdditionalInfo::WhiteQueensideCastle));
-			}
+			} 
 		}
 		else
 		{
