@@ -33,16 +33,16 @@ const std::string bug2Fen = "rnbqkbnr/2pppppp/1p@5/pB6/3P1N2/2P1P3/PP3PPP/RNBQK2
 
 int main(int argc, char** argv)
 {
-	Engine engine = Engine(myGameFen);
+	Engine engine = Engine(myGameFen2);
 	engine.searchDepth = 3;
 
 	engine.Print();
 
-	engine.GameLoop();
+	//engine.GameLoop();
 
-	//Engine::SearchInfo eval = *engine.Search();
-	//engine.PrintBestMoves(eval.movesPath);
-	//std::cout << "Evaluation: " << eval.evaluation;
+	Engine::SearchInfo eval = *engine.Search();
+	engine.PrintBestMoves(eval.movesPath);
+	std::cout << "Evaluation: " << eval.evaluation;
 
  	return 0;
 }

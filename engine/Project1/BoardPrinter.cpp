@@ -32,20 +32,16 @@ void BoardPrinter::Handle(Request request)
 
 void BoardPrinter::Print() const
 {
-	bool lightSquare = true;
-
 	for (int y = Board::HEIGHT - 1; y >= 0; --y)
 	{
 		PrintRowNumber(y + 1);
 
 		for (int x = 0; x < Board::WIDTH; ++x)
 		{
-			PrintPieceSymbol(y, x, lightSquare);
-			lightSquare = !lightSquare;
+			PrintPieceSymbol(y, x);
 		}
 
 		std::cout << '|' << std::endl;
-		lightSquare = !lightSquare;
 	}
 
 	PrintFilesLetters();

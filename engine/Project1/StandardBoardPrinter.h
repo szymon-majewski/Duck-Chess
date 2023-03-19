@@ -10,5 +10,5 @@ public:
 
 private:
 
-	virtual void PrintPieceSymbol(int y, int x, bool lightSquare) const override;
+	virtual void PrintPieceSymbol(int y, int x) const override;
 };

@@ -13,10 +13,8 @@ private:
 
 public:
 
-	const unsigned short WHITE_PIECES_COLOR = 0xF;
-	const unsigned short BLACK_PIECES_COLOR = 0x0;
-	const unsigned short LIGHT_SQUARES_COLOR = 0xD0;
-	const unsigned short DARK_SQUARES_COLOR = 0x50;
+	const unsigned short WHITE_PIECES_COLOR = 0xB;
+	const unsigned short BLACK_PIECES_COLOR = 0x4;
 	const unsigned short CHESSBOARD_LINES_COLOR = 0xF;
 	const unsigned short DUCK_COLOR = 0xE;
 
@@ -24,5 +22,5 @@ public:
 
 private:
 
-	void PrintPieceSymbol(int y, int x, bool lightSquare) const override;
+	void PrintPieceSymbol(int y, int x) const override;
 };
