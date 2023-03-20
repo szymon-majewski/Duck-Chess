@@ -21,7 +21,7 @@ void SquareToBoardIndices(const Square& square, int& y, int& x)
 	x = ((uint8_t)square - 1) % Board::WIDTH;
 }
 
-Square BoardIndicesToSquare(int y, int x)
+Square BoardIndicesToSquare(const unsigned& y, const unsigned& x)
 {
 	return (Square)(y * Board::WIDTH + x + 1);
 }
@@ -33,8 +33,11 @@ std::string MoveStringFormat(const FullMove& move, const Board& board)
 	bool take = ((uint16_t)move.additionalInfo & (uint16_t)Move::captureChecker) != (uint16_t)Move::AdditionalInfo::None;
 	int movingPieceY;
 	int movingPieceX;
+	int targetSquareY;
+	int targetSquareX;
 
 	SquareToBoardIndices(move.sourceSquare, movingPieceY, movingPieceX);
+	SquareToBoardIndices(move.targetSquare, targetSquareY, targetSquareX);
 
 	Piece::Type movingPieceType = board.pieces[movingPieceY][movingPieceX].PieceType();
 
@@ -42,9 +45,20 @@ std::string MoveStringFormat(const FullMove& move, const Board& board)
 	{
 		result += Piece::FindPieceSymbol((uint8_t)movingPieceType | (uint8_t)Piece::Color::White);
 	}
-	else if (take)
+	else
 	{
-		result += SquareStringFormat(move.sourceSquare, true)[0];
+		/*switch (movingPieceType)
+		{
+			case Piece::Type::Bishop:
+			{
+
+			}
+		}*/
+
+		if (take)
+		{
+			result += SquareStringFormat(move.sourceSquare, true)[0];
+		}
 	}
 
 	if (take)

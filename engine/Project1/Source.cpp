@@ -34,17 +34,17 @@ const std::string castleFen = "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1";
 
 int main(int argc, char** argv)
 {
-	Engine engine = Engine(STARTING_POSITION_FEN);
+	Engine engine = Engine(castlingTestFen);
 	engine.searchDepth = 3;
 
 	engine.Print();
 
-	engine.playerColor = PlayerColor::Black;
-	engine.GameLoop();
+	//engine.playerColor = PlayerColor::Black;
+	//engine.GameLoop();
 
-	//Engine::SearchInfo eval = *engine.Search();
-	//engine.PrintBestMoves(eval.movesPath);
-	//std::cout << "Evaluation: " << eval.evaluation;
+	Engine::SearchInfo eval = *engine.Search();
+	engine.PrintBestMoves(eval.movesPath);
+	std::cout << "Evaluation: " << eval.evaluation;
 
  	return 0;
 }
@@ -53,40 +53,22 @@ int main(int argc, char** argv)
 TODO:
 * Change PlayerInputManager so it only reads and parses input and all engine instructions are
 * -- called in Engine class itself
-* Enpassant is the source of all your problems...
 * Delete these OVER_INFINITIES and instead just put first move in bestSearchInfo
-* Returning list of moves in MinMaxSearch doesn't work properly, if one of the players is winning.
-* -- it seems tay o plcorrect moves, but just doesn't print all of them
-* !!!!!!!!!! myGameFen, depth 4, move 1 suddenly changes to move 34 and some of the pieces change to opponent pieces (even different types)
-* -- it's because of castling - turn of adding castling moves in MovesGenerator
 * ColoringBoardPrinter attribute dynamic setting
 * Request bit flags dynamic setting
 * (It actually needs a game pointer to )
 * squaresToEdgeCount make generate statically
 * Update engine pointers either to unique_ptr or make it local (should be fine that way)
-* Implement alpha-beta pruning. X
 * Store evaluation in smaller variable
 * Update GenerateLegalMoves - make cross join with free spaces to include duck moves
-* Moves generator doesn't generate duck moves for castling and en passant
 * Use flyweight design pattern to minimize memory usage in evaluation tree (can it even be done?)
-* For now I memento whole position, but it's not acceptable for memory demand reason. Change it. Every move will from now on contain additional info about
-* what piece if any was captured, so AdditionalInfo will be a 32 (or 16?) bit flag
 * tuples structured binding in MoveMemento
 * Probably Move::AdditionalInfo doesnt need color in castling info
 * Probably movingPieceColor is not necessary in position Update and UndoMove
-* There is some kind of bug when engine searches after taking the king. Run myGameFen on depth 4 or castlingTestFen on depth 3
-* Why is node passed by copy in Engine::MinMaxSearch
 * MoveStringFormat does not consider ambigous pieces moves
-* When king or rook moves player should lose castling rights
 */
 
 // Board pieces start from row 1 (so it goes bottom up)
-
-// Reverting moves - additional info is not enough to revert moves.
-// It's not enough info. If a piece is taken, there is no way to know what piece was that.
-// Possible solutions: 
-// Memento whole position, not a move.
-// Additional info for all kind of takes. That would be painful to code.
 
 // FOR NOW EN PASSANT IS NOT MARKED AS CAPTURE!!!!!!!!
 

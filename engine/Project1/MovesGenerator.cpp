@@ -1,6 +1,8 @@
 #include "MovesGenerator.h"
 
 extern void SquareToBoardIndices(const Square& square, int& y, int& x);
+extern Square BoardIndicesToSquare(const unsigned& y, const unsigned& x);
+
 
 const DirectionOffsets MovesGenerator::directions[DIRECTIONS_COUNT] =
 {
@@ -28,10 +30,10 @@ MovesGenerator::MovesGenerator()
 			squaresToEdgeCount[currentIndex][1] = y;
 			squaresToEdgeCount[currentIndex][2] = x;
 			squaresToEdgeCount[currentIndex][3] = Board::WIDTH - x - 1;
-			squaresToEdgeCount[currentIndex][4] = Min(squaresToEdgeCount[currentIndex][0], squaresToEdgeCount[currentIndex][2]);
-			squaresToEdgeCount[currentIndex][5] = Min(squaresToEdgeCount[currentIndex][0], squaresToEdgeCount[currentIndex][3]);
-			squaresToEdgeCount[currentIndex][6] = Min(squaresToEdgeCount[currentIndex][1], squaresToEdgeCount[currentIndex][2]);
-			squaresToEdgeCount[currentIndex][7] = Min(squaresToEdgeCount[currentIndex][1], squaresToEdgeCount[currentIndex][3]);
+			squaresToEdgeCount[currentIndex][4] = std::min(squaresToEdgeCount[currentIndex][0], squaresToEdgeCount[currentIndex][2]);
+			squaresToEdgeCount[currentIndex][5] = std::min(squaresToEdgeCount[currentIndex][0], squaresToEdgeCount[currentIndex][3]);
+			squaresToEdgeCount[currentIndex][6] = std::min(squaresToEdgeCount[currentIndex][1], squaresToEdgeCount[currentIndex][2]);
+			squaresToEdgeCount[currentIndex][7] = std::min(squaresToEdgeCount[currentIndex][1], squaresToEdgeCount[currentIndex][3]);
 		}
 	}
 }
@@ -388,13 +390,13 @@ void MovesGenerator::AssignSquare(Piece const* piece, unsigned& y, unsigned& x, 
 {
 	if (piece->PieceType() == Piece::Type::None)
 	{
-		emptySquares.insert(SquareIndicesToSquare(y, x));
+		emptySquares.insert(BoardIndicesToSquare(y, x));
 		return;
 	}
 
 	if (piece->PieceType() == Piece::Type::Duck)
 	{
-		duckSquare = (SquareIndicesToSquare(y, x));
+		duckSquare = (BoardIndicesToSquare(y, x));
 		return;
 	}
 
@@ -405,22 +407,17 @@ void MovesGenerator::AssignSquare(Piece const* piece, unsigned& y, unsigned& x, 
 			playerPiecesSquares.insert(std::pair(piece->PieceType(), std::unordered_set<Square>()));
 		}
 		
-		playerPiecesSquares.at(piece->PieceType()).insert(SquareIndicesToSquare(y, x));
+		playerPiecesSquares.at(piece->PieceType()).insert(BoardIndicesToSquare(y, x));
 	}
 	else
 	{
-		opponentPiecesSquares.insert(SquareIndicesToSquare(y, x));
+		opponentPiecesSquares.insert(BoardIndicesToSquare(y, x));
 
 		if (piece->PieceType() == Piece::Type::Pawn)
 		{
-			opponentPawnsSquares.insert(SquareIndicesToSquare(y, x));
+			opponentPawnsSquares.insert(BoardIndicesToSquare(y, x));
 		}
 	}
-}
-
-Square MovesGenerator::SquareIndicesToSquare(unsigned& y, unsigned& x)
-{
-	return (Square)(y * Board::WIDTH + x + 1);
 }
 
 std::unique_ptr<std::list<Square>> MovesGenerator::GenerateAllSquaresKnightMovesTo(const Square& startingSquare)

@@ -25,8 +25,6 @@ public:
 
 	std::unique_ptr<std::list<FullMove>> GenerateLegalMoves(const Position& position);
 
-	Square SquareIndicesToSquare(unsigned& y, unsigned& x);
-
 private:
 
 	const static unsigned DIRECTIONS_COUNT = 8;
@@ -37,6 +35,4 @@ private:
 	std::unique_ptr<std::list<Square>> GenerateAllSquaresKnightMovesTo(const Square& startingSquare);
 	void GenerateLongRangePieceMoves(std::list<Move>& legalMoves, Piece::Type pieceType, const Board& board);
 	Move::AdditionalInfo SquarePieceTypeToMoveInfo(const Square& square, const Board& board);
-
-	inline unsigned Min(unsigned x, unsigned y) { return x < y ? x : y; }
 };

@@ -2,7 +2,7 @@
 #include "PositionEvaluator.h"
 
 extern void SquareToBoardIndices(const Square& square, int& y, int& x);
-extern Square BoardIndicesToSquare(int y, int x);
+Square BoardIndicesToSquare(const unsigned& y, const unsigned& x);
 
 PlayerColor Position::Update(const FullMove& move)
 {
