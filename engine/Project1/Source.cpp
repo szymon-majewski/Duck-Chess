@@ -34,23 +34,24 @@ const std::string castleFen = "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1";
 
 int main(int argc, char** argv)
 {
-	Engine engine = Engine(castlingTestFen);
+	Engine engine = Engine(promotionFen);
 	engine.searchDepth = 3;
 
 	engine.Print();
 
-	//engine.playerColor = PlayerColor::Black;
-	//engine.GameLoop();
+	engine.playerColor = PlayerColor::White;
+	engine.GameLoop();
 
-	Engine::SearchInfo eval = *engine.Search();
+	/*Engine::SearchInfo eval = *engine.Search();
 	engine.PrintBestMoves(eval.movesPath);
-	std::cout << "Evaluation: " << eval.evaluation;
+	std::cout << "Evaluation: " << eval.evaluation;*/
 
  	return 0;
 }
 
 /*
 TODO:
+* MoveStringFormat is a mess
 * Change PlayerInputManager so it only reads and parses input and all engine instructions are
 * -- called in Engine class itself
 * Delete these OVER_INFINITIES and instead just put first move in bestSearchInfo

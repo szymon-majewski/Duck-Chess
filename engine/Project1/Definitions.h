@@ -29,6 +29,8 @@ enum class PlayerColor : uint8_t
 };
 
 const std::string STARTING_POSITION_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const std::string KINGSIDE_CASTLING_SYMBOL = "O-O";
+const std::string QUEENSIDE_CASTLING_SYMBOL = "O-O-O";
 
 enum class Square : uint8_t
 {

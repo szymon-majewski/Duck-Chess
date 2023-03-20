@@ -38,10 +38,79 @@ void PlayerInputManager::ReadAndManageInput()
 			ManageEval();
 			commandRead = true;
 		}
+		else if (command == "movec")
+		{
+			ManageMoveC();
+			commandRead = true;
+		}
 	}
 }
 
 void PlayerInputManager::ManageMove()
+{
+	std::string moveStr;
+	FullMove inputMove;
+	bool validMove = false;
+
+	while (!validMove)
+	{
+		std::cin >> moveStr;
+
+		auto moves = engine.movesGenerator.GenerateLegalMoves(engine.session.position);
+
+		for (const FullMove& move : *moves)
+		{
+			if (moveStr == MoveStringFormat(move, engine.session.position.board))
+			{
+				inputMove = move;
+				validMove = true;
+
+				break;
+			}
+		}
+	}
+
+	std::cout << "\n" << MoveStringFormat(inputMove, engine.session.position.board) << "\n\n";
+	engine.session.MakeMove(inputMove);
+	engine.Print();
+
+	if ((Move::AdditionalInfo)((uint16_t)inputMove.additionalInfo & (uint16_t)Move::AdditionalInfo::CapturedKing) != Move::AdditionalInfo::None)
+	{
+		// TEMPORARY
+		exit(0);
+	}
+
+	auto searchInfo = engine.Search();
+
+	std::cout << MoveStringFormat((*searchInfo).movesPath.front(), engine.session.position.board) << "\n\n";
+	engine.session.MakeMove((*searchInfo).movesPath.front());
+	engine.Print();
+
+	if ((Move::AdditionalInfo)((uint16_t)(*searchInfo).movesPath.front().additionalInfo & (uint16_t)Move::AdditionalInfo::CapturedKing) != Move::AdditionalInfo::None)
+	{
+		// TEMPORARY
+		exit(0);
+	}
+}
+
+void PlayerInputManager::ManageUndo()
+{
+	// Undo computer and player move
+	engine.session.UndoMove();
+	engine.session.UndoMove();
+	engine.Print();
+}
+
+void PlayerInputManager::ManageEval()
+{
+	auto searchInfo = engine.Search();
+	std::string bestMove = MoveStringFormat((*searchInfo).movesPath.front(), engine.session.position.board);
+
+	std::cout << "Evaluation: " << (*searchInfo).evaluation << "\n";
+	std::cout << "Best move: " << bestMove << "\n\n";
+}
+
+void PlayerInputManager::ManageMoveC()
 {
 	std::string squareStr;
 	Square squares[3];
@@ -99,6 +168,7 @@ void PlayerInputManager::ManageMove()
 		}
 	}
 
+	std::cout << "\n" << MoveStringFormat(inputMove, engine.session.position.board) << "\n\n";
 	engine.session.MakeMove(inputMove);
 	engine.Print();
 
@@ -110,6 +180,7 @@ void PlayerInputManager::ManageMove()
 
 	auto searchInfo = engine.Search();
 
+	std::cout << MoveStringFormat((*searchInfo).movesPath.front(), engine.session.position.board) << "\n\n";
 	engine.session.MakeMove((*searchInfo).movesPath.front());
 	engine.Print();
 
@@ -118,21 +189,4 @@ void PlayerInputManager::ManageMove()
 		// TEMPORARY
 		exit(0);
 	}
-}
-
-void PlayerInputManager::ManageUndo()
-{
-	// Undo computer and player move
-	engine.session.UndoMove();
-	engine.session.UndoMove();
-	engine.Print();
-}
-
-void PlayerInputManager::ManageEval()
-{
-	auto searchInfo = engine.Search();
-	std::string bestMove = MoveStringFormat((*searchInfo).movesPath.front(), engine.session.position.board);
-
-	std::cout << "Evaluation: " << (*searchInfo).evaluation << "\n";
-	std::cout << "Best move: " << bestMove << "\n\n";
 }

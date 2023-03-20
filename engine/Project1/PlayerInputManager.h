@@ -16,4 +16,5 @@ private:
 	void ManageMove();
 	void ManageUndo();
 	void ManageEval();
+	void ManageMoveC();
 };

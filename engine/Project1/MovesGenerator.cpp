@@ -3,7 +3,6 @@
 extern void SquareToBoardIndices(const Square& square, int& y, int& x);
 extern Square BoardIndicesToSquare(const unsigned& y, const unsigned& x);
 
-
 const DirectionOffsets MovesGenerator::directions[DIRECTIONS_COUNT] =
 {
 	DirectionOffsets::North,

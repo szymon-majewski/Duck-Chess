@@ -167,12 +167,16 @@ void Engine::PrintBestMoves(const std::list<FullMove>& movesPath)
 	}
 }
 
+// DEBUG!!!
+#include <iostream>
+
 void Engine::GameLoop()
 {
 	if (playerColor != session.position.playerToMove)
 	{
 		auto searchInfo = Search();
 
+		std::cout << MoveStringFormat((*searchInfo).movesPath.front(), session.position.board) << "\n\n";
 		session.MakeMove((*searchInfo).movesPath.front());
 		Print();
 

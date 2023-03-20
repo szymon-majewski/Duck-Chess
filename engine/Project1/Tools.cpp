@@ -41,23 +41,82 @@ std::string MoveStringFormat(const FullMove& move, const Board& board)
 
 	Piece::Type movingPieceType = board.pieces[movingPieceY][movingPieceX].PieceType();
 
-	if (movingPieceType != Piece::Type::Pawn)
+	switch (movingPieceType)
 	{
-		result += Piece::FindPieceSymbol((uint8_t)movingPieceType | (uint8_t)Piece::Color::White);
-	}
-	else
-	{
-		/*switch (movingPieceType)
+		case Piece::Type::Pawn:
 		{
-			case Piece::Type::Bishop:
+			Move::AdditionalInfo promotionType;
+
+			if (take)
 			{
-
+				result += SquareStringFormat(move.sourceSquare, true)[0];
 			}
-		}*/
+			if ((promotionType = (Move::AdditionalInfo)((uint16_t)move.additionalInfo & Move::promotionChecker)) != Move::AdditionalInfo::None)
+			{
+				result += SquareStringFormat(move.targetSquare, true);
 
-		if (take)
+				switch (promotionType)
+				{
+					case Move::AdditionalInfo::PromotionToQueen:
+					{
+						result += "=Q";
+						break;
+					}
+					case Move::AdditionalInfo::PromotionToRook:
+					{
+						result += "=R";
+						break;
+					}
+					case Move::AdditionalInfo::PromotionToKnight:
+					{
+						result += "=N";
+						break;
+					}
+					case Move::AdditionalInfo::PromotionToBishop:
+					{
+						result += "=B";
+						break;
+					}
+				}
+
+				result += Piece::FindPieceSymbol((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both);
+				result += SquareStringFormat(move.targetDuckSquare, true);
+
+				return result;
+			}
+
+			break;
+		}
+		case Piece::Type::King:
 		{
-			result += SquareStringFormat(move.sourceSquare, true)[0];
+			if ((Move::AdditionalInfo)((uint16_t)move.additionalInfo & Move::castlingChecker) != Move::AdditionalInfo::None)
+			{
+				if (move.additionalInfo == Move::AdditionalInfo::BlackKingsideCastle ||
+					move.additionalInfo == Move::AdditionalInfo::WhiteKingsideCastle)
+				{
+					result += KINGSIDE_CASTLING_SYMBOL;
+				}
+				else
+				{
+					result += QUEENSIDE_CASTLING_SYMBOL;
+				}
+
+				result += Piece::FindPieceSymbol((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both);
+				result += SquareStringFormat(move.targetDuckSquare, true);
+
+				return result;
+			}
+			else
+			{
+				result += Piece::FindPieceSymbol((uint8_t)movingPieceType | (uint8_t)Piece::Color::White);
+			}
+
+			break;
+		}
+		default:
+		{
+			result += Piece::FindPieceSymbol((uint8_t)movingPieceType | (uint8_t)Piece::Color::White);
+			break;
 		}
 	}
 
