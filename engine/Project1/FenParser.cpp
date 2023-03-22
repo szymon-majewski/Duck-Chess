@@ -26,7 +26,7 @@ void FenParser::ParseFen(const std::string& fen, Position& position) const
 
 			while (digit--)
 			{
-				position.board.pieces[Board::WIDTH - y - 1][x++].SetBitPiece((BitPiece)Piece::Type::None);
+				position.board.pieces[Board::WIDTH - y - 1][x++].SetBitPiece(NO_PIECE);
 			}
 		}
 		else if (fen[i] == '/')

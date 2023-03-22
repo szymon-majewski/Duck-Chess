@@ -8,6 +8,8 @@ typedef uint64_t BitBoard;
 typedef uint8_t BitPiece;
 typedef int32_t Evaluation;
 
+const BitPiece NO_PIECE = 0;
+
 enum class CastlingRights : uint8_t
 {
 	None = 0,
@@ -89,4 +91,4 @@ constexpr Evaluation POSITIVE_INFINITY_EVALUATION = INT32_MAX - 1;
 const Evaluation OVER_NEGATIVE_INFINITY_EVALUATION = INT32_MIN;
 const Evaluation OVER_POSITIVE_INFINITY_EVALUATION = INT32_MAX;
 
-const uint16_t MAX_GAME_LENGTH = 500U;
+const uint16_t MAX_GAME_LENGTH = 700U;

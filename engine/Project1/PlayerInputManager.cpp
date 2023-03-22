@@ -43,6 +43,11 @@ void PlayerInputManager::ReadAndManageInput()
 			ManageMoveC();
 			commandRead = true;
 		}
+		else if (command == "board")
+		{
+			engine.Print();
+			commandRead = true;
+		}
 	}
 }
 
@@ -143,19 +148,19 @@ void PlayerInputManager::ManageMoveC()
 
 					if (promotingPieceSymbol == "q")
 					{
-						inputMove.additionalInfo = Move::AdditionalInfo::PromotionToQueen;
+						inputMove.additionalInfo = (Move::AdditionalInfo)((uint16_t)inputMove.additionalInfo | (uint16_t)Move::AdditionalInfo::PromotionToQueen);
 					}
 					else if (promotingPieceSymbol == "r")
 					{
-						inputMove.additionalInfo = Move::AdditionalInfo::PromotionToRook;
+						inputMove.additionalInfo = (Move::AdditionalInfo)((uint16_t)inputMove.additionalInfo | (uint16_t)Move::AdditionalInfo::PromotionToRook);
 					}
 					else if (promotingPieceSymbol == "n")
 					{
-						inputMove.additionalInfo = Move::AdditionalInfo::PromotionToKnight;
+						inputMove.additionalInfo = (Move::AdditionalInfo)((uint16_t)inputMove.additionalInfo | (uint16_t)Move::AdditionalInfo::PromotionToKnight);
 					}
 					else if (promotingPieceSymbol == "b")
 					{
-						inputMove.additionalInfo = Move::AdditionalInfo::PromotionToBishop;
+						inputMove.additionalInfo = (Move::AdditionalInfo)((uint16_t)inputMove.additionalInfo | (uint16_t)Move::AdditionalInfo::PromotionToBishop);
 					}
 					else
 					{

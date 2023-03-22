@@ -38,7 +38,7 @@ PlayerColor Position::Update(const FullMove& move)
 	}
 
 	// Emptying source sqaure
-	board.pieces[sourceY][sourceX].SetBitPiece((BitPiece)Piece::Type::None);
+	board.pieces[sourceY][sourceX].SetBitPiece(NO_PIECE);
 
 	int materialMultiplier = movingPieceColor == Piece::Color::White ? 1 : -1;
 	uint16_t capturedPiece;
@@ -137,12 +137,12 @@ PlayerColor Position::Update(const FullMove& move)
 		//// White
 		if (targetY > sourceY)
 		{
-			board.pieces[targetY - 1][targetX].SetBitPiece((BitPiece)Piece::Type::None);
+			board.pieces[targetY - 1][targetX].SetBitPiece(NO_PIECE);
 		}
 		//// Black
 		else
 		{
-			board.pieces[targetY + 1][targetX].SetBitPiece((BitPiece)Piece::Type::None);
+			board.pieces[targetY + 1][targetX].SetBitPiece(NO_PIECE);
 		}
 
 		board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Pawn | (uint8_t)movingPieceColor));
@@ -203,7 +203,7 @@ PlayerColor Position::Update(const FullMove& move)
 	SquareToBoardIndices(move.sourceDuckSquare, sourceY, sourceX);
 	SquareToBoardIndices(move.targetDuckSquare, targetY, targetX);
 
-	board.pieces[sourceY][sourceX].SetBitPiece((BitPiece)Piece::Type::None);
+	board.pieces[sourceY][sourceX].SetBitPiece(NO_PIECE);
 	board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both));
 
 	// Updating other information (apart from new en passant target - it's done earlier)
@@ -252,7 +252,7 @@ void Position::UndoMove(const MoveMemento::PositionData& revertedMove)
 	uint16_t capturedPiece;
 
 	// Clearing target duck square
-	board.pieces[duckTargetY][duckTargetX].SetBitPiece((BitPiece)Piece::Type::None);
+	board.pieces[duckTargetY][duckTargetX].SetBitPiece(NO_PIECE);
 
 	// Piece was taken
 	if ((Move::AdditionalInfo)(capturedPiece = (uint16_t)revertedMove.move.additionalInfo & Move::captureChecker) != Move::AdditionalInfo::None)
@@ -277,7 +277,7 @@ void Position::UndoMove(const MoveMemento::PositionData& revertedMove)
 	}
 	else
 	{
-		board.pieces[targetY][targetX].SetBitPiece((BitPiece)Piece::Type::None);
+		board.pieces[targetY][targetX].SetBitPiece(NO_PIECE);
 
 		if ((Move::AdditionalInfo)((uint16_t)revertedMove.move.additionalInfo & (uint16_t)Move::AdditionalInfo::EnPassant) != Move::AdditionalInfo::None)
 		{
@@ -305,28 +305,28 @@ void Position::UndoMove(const MoveMemento::PositionData& revertedMove)
 			{
 				case Move::AdditionalInfo::WhiteKingsideCastle:
 				{
-					board.pieces[0][5].SetBitPiece((BitPiece)Piece::Type::None);
+					board.pieces[0][5].SetBitPiece(NO_PIECE);
 					board.pieces[0][7].SetBitPiece((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor);
 					//castlingRights = (CastlingRights)((uint8_t)castlingRights | (uint8_t)CastlingRights::WhiteKingside);
 					break;
 				}
 				case Move::AdditionalInfo::WhiteQueensideCastle:
 				{
-					board.pieces[0][3].SetBitPiece((BitPiece)Piece::Type::None);
+					board.pieces[0][3].SetBitPiece(NO_PIECE);
 					board.pieces[0][0].SetBitPiece((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor);
 					//castlingRights = (CastlingRights)((uint8_t)castlingRights | (uint8_t)CastlingRights::WhiteQueenside);
 					break;
 				}
 				case Move::AdditionalInfo::BlackKingsideCastle:
 				{
-					board.pieces[7][5].SetBitPiece((BitPiece)Piece::Type::None);
+					board.pieces[7][5].SetBitPiece(NO_PIECE);
 					board.pieces[7][7].SetBitPiece((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor);
 					//castlingRights = (CastlingRights)((uint8_t)castlingRights | (uint8_t)CastlingRights::BlackKingside);
 					break;
 				}
 				case Move::AdditionalInfo::BlackQueensideCastle:
 				{
-					board.pieces[7][3].SetBitPiece((BitPiece)Piece::Type::None);
+					board.pieces[7][3].SetBitPiece(NO_PIECE);
 					board.pieces[7][0].SetBitPiece((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor);
 					//castlingRights = (CastlingRights)((uint8_t)castlingRights | (uint8_t)CastlingRights::BlackQueenside);
 					break;
@@ -417,7 +417,7 @@ void Position::UpdateCastling(const Move::AdditionalInfo& moveInfo, const int& t
 	int rookY;
 
 	SquareToBoardIndices(rookSourceSquare, rookY, rookX);
-	board.pieces[rookY][rookX].SetBitPiece((BitPiece)Piece::Type::None);
+	board.pieces[rookY][rookX].SetBitPiece(NO_PIECE);
 
 	SquareToBoardIndices(rookTargetSquare, rookY, rookX);
 

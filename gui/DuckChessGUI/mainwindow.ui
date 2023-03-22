@@ -36,7 +36,11 @@
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="fenLayout"/>
+      <layout class="QHBoxLayout" name="fenLayout">
+       <property name="sizeConstraint">
+        <enum>QLayout::SetDefaultConstraint</enum>
+       </property>
+      </layout>
      </item>
     </layout>
    </widget>

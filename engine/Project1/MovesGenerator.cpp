@@ -3,7 +3,7 @@
 extern void SquareToBoardIndices(const Square& square, int& y, int& x);
 extern Square BoardIndicesToSquare(const unsigned& y, const unsigned& x);
 
-const DirectionOffsets MovesGenerator::directions[DIRECTIONS_COUNT] =
+const DirectionOffsets MovesGenerator::DIRECTIONS[DIRECTIONS_COUNT] =
 {
 	DirectionOffsets::North,
 	DirectionOffsets::South,
@@ -264,7 +264,7 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 		for (unsigned d = 0; d < DIRECTIONS_COUNT; ++d)
 		{
 			//// One square moves
-			squareInDirection = (Square)((uint8_t)kingSquare + (int8_t)directions[d]);
+			squareInDirection = (Square)((uint8_t)kingSquare + (int8_t)DIRECTIONS[d]);
 
 			if (squaresToEdgeCount[(uint8_t)kingSquare - 1][d] > 0)
 			{
@@ -381,6 +381,7 @@ std::unique_ptr<std::list<FullMove>> MovesGenerator::GenerateLegalMoves(const Po
 	playerPiecesSquares.clear();
 	opponentPiecesSquares.clear();
 	opponentPawnsSquares.clear();
+	duckSquare = Square::None;
 
 	return legalMoves;
 }
@@ -516,7 +517,7 @@ void MovesGenerator::GenerateLongRangePieceMoves(std::list<Move>& legalMoves, Pi
 
 			for (unsigned s = 0; s < squaresToEdgeCount[(uint8_t)pieceSquare - 1][d]; ++s)
 			{
-				squareInDirection = (Square)((uint8_t)squareInDirection + (int8_t)directions[d]);
+				squareInDirection = (Square)((uint8_t)squareInDirection + (int8_t)DIRECTIONS[d]);
 
 				if (emptySquares.contains(squareInDirection))
 				{

@@ -24,15 +24,16 @@ public:
 	MovesGenerator();
 
 	std::unique_ptr<std::list<FullMove>> GenerateLegalMoves(const Position& position);
+	static std::unique_ptr<std::list<Square>> GenerateAllSquaresKnightMovesTo(const Square& startingSquare);
+
+	const static unsigned DIRECTIONS_COUNT = 8;
+	const static DirectionOffsets DIRECTIONS[DIRECTIONS_COUNT];
+	static unsigned squaresToEdgeCount[Board::SQUARES_COUNT][DIRECTIONS_COUNT];
+
+	Move::AdditionalInfo SquarePieceTypeToMoveInfo(const Square& square, const Board& board);
 
 private:
 
-	const static unsigned DIRECTIONS_COUNT = 8;
-	const static DirectionOffsets directions[DIRECTIONS_COUNT];
-	static unsigned squaresToEdgeCount[Board::SQUARES_COUNT][DIRECTIONS_COUNT];
-
 	void AssignSquare(Piece const* piece, unsigned& y, unsigned& x, PlayerColor movingPlayerColor);
-	std::unique_ptr<std::list<Square>> GenerateAllSquaresKnightMovesTo(const Square& startingSquare);
 	void GenerateLongRangePieceMoves(std::list<Move>& legalMoves, Piece::Type pieceType, const Board& board);
-	Move::AdditionalInfo SquarePieceTypeToMoveInfo(const Square& square, const Board& board);
 };

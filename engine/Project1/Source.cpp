@@ -5,7 +5,7 @@
 
 #include "Engine.h"
 
-//std::string someFen = "rnbqkb1r/ppppp1PP/3pn3/8/8/8/PPPPPP2/RNBQKBNR w KQkq - 0 1";
+const std::string someFen = "rnbqkb1r/ppppp1PP/3pn3/8/8/8/PPPPPP2/RNBQKBNR w KQkq - 0 1";
 //std::string mateInTwoFen = "rn2kb1r/p1p1p2p/b4pp1/8/4PP1P/4nNP1/P4K1R/2q5 b kq - 3 18";
 const std::string simpleDuckFen = "3k4/5@2/8/8/2B5/8/8/5K2 w - - 0 1";
 const std::string duckChessPuzzleFen = "8/5Q1p/7k/5@1p/4Bn2/6q1/6P1/7K w - - 0 1";
@@ -31,10 +31,19 @@ const std::string promotionFen = "8/1k4PP/7K/8/8/8/8/8 w - - 0 1";
 const std::string bug2Fen = "rnbqkbnr/2pppppp/1p@5/pB6/3P1N2/2P1P3/PP3PPP/RNBQK2R b KQkq - 0 1";
 
 const std::string castleFen = "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1";
-
+const std::string ambiguousFen = "k7/3N1N2/2N3N1/4q3/2N3N1/3N1N2/8/1K6 w - - 0 1";
+const std::string ambiguousFenOnlyLetter = "k7/8/8/4q3/2N3N1/8/8/1K6 w - - 0 1";
+const std::string ambiguousFen123 = "k7/8/2N3N1/4q3/6N1/8/8/1K6 w - - 0 1";
+const std::string ambibiFen = "k7/8/2N3N1/4q3/2N3N1/8/8/1K6 w - - 0 1";
+const std::string ambiQueFen = "k7/2Q5/8/2Q1q3/8/2Q5/8/1K6 w - - 0 1";
+const std::string ambiMANYQUEENFen = "k7/2Q1Q3/8/4q3/8/6Q1/8/1K2Q3 w - - 0 1";
+const std::string ambiBIBIBIBSHOPFen = "2k5/8/8/1BB5/1B6/5B2/2B5/3K4 w - - 0 1";
+const std::string ambishopFen = "8/1B3B2/8/8/7k/1B3B2/8/3K4 w - - 0 1";
+const std::string rokesFen = "8/r5RR/8/8/3R3k/1R3R2/3R4/3K4 w - - 0 1";
+ 
 int main(int argc, char** argv)
 {
-	Engine engine = Engine(promotionFen);
+	Engine engine = Engine(rokesFen);
 	engine.searchDepth = 3;
 
 	engine.Print();
