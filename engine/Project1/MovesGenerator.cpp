@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "MovesGenerator.h"
 
 extern void SquareToBoardIndices(const Square& square, int& y, int& x);
@@ -321,6 +322,12 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
 			}
 		}
 	}
+
+	//std::sort(legalPiecesMoves.begin(), legalPiecesMoves.end(),
+	//	[](const Move& move1, const Move& move2)
+	//	{
+	//		return move1.additionalInfo < move2.additionalInfo;
+	//	});
 
 	auto legalMoves = std::make_unique<std::vector<FullMove>>();
 	(*legalMoves).reserve(legalPiecesMoves.size()* emptySquares.size() + numberOfCaptureMoves);

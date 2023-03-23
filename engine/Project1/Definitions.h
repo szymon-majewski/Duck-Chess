@@ -8,7 +8,7 @@ typedef uint64_t BitBoard;
 typedef uint8_t BitPiece;
 typedef int32_t Evaluation;
 
-const BitPiece NO_PIECE = 0;
+const BitPiece NO_PIECE = 0U;
 
 enum class CastlingRights : uint8_t
 {
