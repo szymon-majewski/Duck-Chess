@@ -13,8 +13,10 @@ public:
 
 private:
 
-	void ManageMove();
-	void ManageUndo();
-	void ManageEval();
-	void ManageMoveC();
+	bool ManageMove();
+	bool ManageUndo();
+	bool ManageEval();
+	bool ManageMoveC();
+
+	void PrintWinnerEvaluation();
 };

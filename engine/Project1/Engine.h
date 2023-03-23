@@ -67,6 +67,8 @@ public:
 
 	void GameLoop();
 
+	void PrintEvaluation(Evaluation evaluation);
+
 private:
 
 	//Evaluation MinMaxSearch(Position& position, unsigned depth, Evaluation alpha, Evaluation beta, std::shared_ptr<EvaluationTree::Node>& node);

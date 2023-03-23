@@ -180,7 +180,7 @@ void Engine::GameLoop()
 		session.MakeMove((*searchInfo).movesPath.front());
 		Print();
 
-		if ((Move::AdditionalInfo)((uint16_t)(*searchInfo).movesPath.front().additionalInfo & (uint16_t)Move::AdditionalInfo::CapturedKing) != Move::AdditionalInfo::None)
+		if (session.winnerColor != PlayerColor::None)
 		{
 			// TEMPORARY
 			exit(0);
@@ -191,6 +191,25 @@ void Engine::GameLoop()
 	{
 		playerInputManager.ReadAndManageInput();
 	}
+}
+
+void Engine::PrintEvaluation(Evaluation evaluation)
+{
+	std::cout << "Evaluation: ";
+	if (evaluation == POSITIVE_INFINITY_EVALUATION)
+	{
+		std::cout << "1-0";
+	}
+	else if (evaluation == NEGATIVE_INFINITY_EVALUATION)
+	{
+		std::cout << "0-1";
+	}
+	else
+	{
+		std::cout << evaluation;
+	}
+
+	std::cout << '\n';
 }
 
 //void Engine::PrintBestMoves(Evaluation bestEvaluation)

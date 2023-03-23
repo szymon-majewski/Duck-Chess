@@ -206,7 +206,7 @@ PlayerColor Position::Update(const FullMove& move)
 	board.pieces[sourceY][sourceX].SetBitPiece(NO_PIECE);
 	board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both));
 
-	// Updating other information (apart from new en passant target - it's done earlier)
+	// Updating other information (apart from new en passant target and playerToMove - it's done earlier)
 	playerToMove = (playerToMove == PlayerColor::White ? PlayerColor::Black : PlayerColor::White);
 
 	if (movingPieceColor == Piece::Color::Black)

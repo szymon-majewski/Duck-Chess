@@ -12,9 +12,12 @@ PlayerInputManager::PlayerInputManager(Engine& engine) :
 void PlayerInputManager::ReadAndManageInput()
 {
 	/* Commands:
-	* move [piece source square] [piece target square] [duck target square] ?[promotion piece]?
+	* move [move in PGN]
+	* movec [piece source square] [piece target square] [duck target square] ?[promotion piece]?
 	* undo
 	* eval
+	* board
+	* exit
 	*/
 	std::string command;
 	bool commandRead = false;
@@ -25,64 +28,75 @@ void PlayerInputManager::ReadAndManageInput()
 
 		if (command == "move")
 		{
-			ManageMove();
-			commandRead = true;
+			commandRead = ManageMove();
 		}
 		else if (command == "undo")
 		{
-			ManageUndo();
-			commandRead = true;
+			commandRead = ManageUndo();
 		}
 		else if (command == "eval")
 		{
-			ManageEval();
-			commandRead = true;
+			commandRead = ManageEval();
 		}
 		else if (command == "movec")
 		{
-			ManageMoveC();
-			commandRead = true;
+			commandRead = ManageMoveC();
 		}
 		else if (command == "board")
 		{
 			engine.Print();
 			commandRead = true;
 		}
+		else if (command == "exit")
+		{
+			std::exit(0);
+		}
+		else
+		{
+			std::cout << "Unknown command: " + command << std::endl;
+		}
 	}
 }
 
-void PlayerInputManager::ManageMove()
+bool PlayerInputManager::ManageMove()
 {
+	// If game ended earlier
+	if (engine.session.winnerColor != PlayerColor::None)
+	{
+		return false;
+	}
+
 	std::string moveStr;
 	FullMove inputMove;
 	bool validMove = false;
+	auto moves = engine.movesGenerator.GenerateLegalMoves(engine.session.position);
 
-	while (!validMove)
+	std::cin >> moveStr;
+
+	for (const FullMove& move : *moves)
 	{
-		std::cin >> moveStr;
-
-		auto moves = engine.movesGenerator.GenerateLegalMoves(engine.session.position);
-
-		for (const FullMove& move : *moves)
+		if (moveStr == MoveStringFormat(move, engine.session.position.board))
 		{
-			if (moveStr == MoveStringFormat(move, engine.session.position.board))
-			{
-				inputMove = move;
-				validMove = true;
+			inputMove = move;
+			validMove = true;
 
-				break;
-			}
+			break;
 		}
+	}
+
+	if (!validMove)
+	{
+		return false;
 	}
 
 	std::cout << "\n" << MoveStringFormat(inputMove, engine.session.position.board) << "\n\n";
 	engine.session.MakeMove(inputMove);
 	engine.Print();
 
-	if ((Move::AdditionalInfo)((uint16_t)inputMove.additionalInfo & (uint16_t)Move::AdditionalInfo::CapturedKing) != Move::AdditionalInfo::None)
+	if (engine.session.winnerColor != PlayerColor::None)
 	{
-		// TEMPORARY
-		exit(0);
+		PrintWinnerEvaluation();
+		return true;
 	}
 
 	auto searchInfo = engine.Search();
@@ -91,96 +105,121 @@ void PlayerInputManager::ManageMove()
 	engine.session.MakeMove((*searchInfo).movesPath.front());
 	engine.Print();
 
-	if ((Move::AdditionalInfo)((uint16_t)(*searchInfo).movesPath.front().additionalInfo & (uint16_t)Move::AdditionalInfo::CapturedKing) != Move::AdditionalInfo::None)
+	if (engine.session.winnerColor != PlayerColor::None)
 	{
-		// TEMPORARY
-		exit(0);
+		PrintWinnerEvaluation();
+		return true;
 	}
+
+	return true;
 }
 
-void PlayerInputManager::ManageUndo()
+bool PlayerInputManager::ManageUndo()
 {
-	// Undo computer and player move
+	// Undo computer and player move, but undo only once if computer lost
 	engine.session.UndoMove();
-	engine.session.UndoMove();
+
+	if (engine.session.winnerColor == engine.playerColor || engine.session.winnerColor == PlayerColor::None)
+	{
+		engine.session.UndoMove();
+	}
 	engine.Print();
+
+	return true;
 }
 
-void PlayerInputManager::ManageEval()
+bool PlayerInputManager::ManageEval()
 {
-	auto searchInfo = engine.Search();
-	std::string bestMove = MoveStringFormat((*searchInfo).movesPath.front(), engine.session.position.board);
+	// If game ended earlier
+	if (engine.session.winnerColor != PlayerColor::None)
+	{
+		PrintWinnerEvaluation();
+	}
+	else
+	{
+		auto searchInfo = engine.Search();
+		std::string bestMove = MoveStringFormat((*searchInfo).movesPath.front(), engine.session.position.board);
 
-	std::cout << "Evaluation: " << (*searchInfo).evaluation << "\n";
-	std::cout << "Best move: " << bestMove << "\n\n";
+		engine.PrintEvaluation((*searchInfo).evaluation);
+		std::cout << "Best move: " << bestMove << "\n\n";
+	}
+
+	return true;
 }
 
-void PlayerInputManager::ManageMoveC()
+bool PlayerInputManager::ManageMoveC()
 {
+	// If game ended earlier
+	if (engine.session.winnerColor != PlayerColor::None)
+	{
+		return false;
+	}
+
 	std::string squareStr;
 	Square squares[3];
 	FullMove inputMove;
 	bool validMove = false;
+	auto moves = engine.movesGenerator.GenerateLegalMoves(engine.session.position);
 
-	while (!validMove)
+	for (int i = 0; i < 3; ++i)
 	{
-		for (int i = 0; i < 3; ++i)
-		{
-			std::cin >> squareStr;
-			squares[i] = SquareIdToSquare(squareStr);
-		}
+		std::cin >> squareStr;
+		squares[i] = SquareIdToSquare(squareStr);
+	}
 
-		auto moves = engine.movesGenerator.GenerateLegalMoves(engine.session.position);
-
-		for (const FullMove& move : *moves)
+	for (const FullMove& move : *moves)
+	{
+		if (move.sourceSquare == squares[0] &&
+			move.targetSquare == squares[1] &&
+			move.targetDuckSquare == squares[2])
 		{
-			if (move.sourceSquare == squares[0] &&
-				move.targetSquare == squares[1] &&
-				move.targetDuckSquare == squares[2])
+			inputMove = move;
+			validMove = true;
+
+			if ((Move::AdditionalInfo)((uint16_t)move.additionalInfo & (uint16_t)Move::promotionChecker) != Move::AdditionalInfo::None)
 			{
-				inputMove = move;
-				validMove = true;
+				std::string promotingPieceSymbol;
+				std::cin >> promotingPieceSymbol;
 
-				if ((Move::AdditionalInfo)((uint16_t)move.additionalInfo & (uint16_t)Move::promotionChecker) != Move::AdditionalInfo::None)
+				if (promotingPieceSymbol == "q")
 				{
-					std::string promotingPieceSymbol;
-					std::cin >> promotingPieceSymbol;
-
-					if (promotingPieceSymbol == "q")
-					{
-						inputMove.additionalInfo = (Move::AdditionalInfo)((uint16_t)inputMove.additionalInfo | (uint16_t)Move::AdditionalInfo::PromotionToQueen);
-					}
-					else if (promotingPieceSymbol == "r")
-					{
-						inputMove.additionalInfo = (Move::AdditionalInfo)((uint16_t)inputMove.additionalInfo | (uint16_t)Move::AdditionalInfo::PromotionToRook);
-					}
-					else if (promotingPieceSymbol == "n")
-					{
-						inputMove.additionalInfo = (Move::AdditionalInfo)((uint16_t)inputMove.additionalInfo | (uint16_t)Move::AdditionalInfo::PromotionToKnight);
-					}
-					else if (promotingPieceSymbol == "b")
-					{
-						inputMove.additionalInfo = (Move::AdditionalInfo)((uint16_t)inputMove.additionalInfo | (uint16_t)Move::AdditionalInfo::PromotionToBishop);
-					}
-					else
-					{
-						validMove = false;
-					}
+					inputMove.additionalInfo = (Move::AdditionalInfo)((uint16_t)inputMove.additionalInfo | (uint16_t)Move::AdditionalInfo::PromotionToQueen);
 				}
-
-				break;
+				else if (promotingPieceSymbol == "r")
+				{
+					inputMove.additionalInfo = (Move::AdditionalInfo)((uint16_t)inputMove.additionalInfo | (uint16_t)Move::AdditionalInfo::PromotionToRook);
+				}
+				else if (promotingPieceSymbol == "n")
+				{
+					inputMove.additionalInfo = (Move::AdditionalInfo)((uint16_t)inputMove.additionalInfo | (uint16_t)Move::AdditionalInfo::PromotionToKnight);
+				}
+				else if (promotingPieceSymbol == "b")
+				{
+					inputMove.additionalInfo = (Move::AdditionalInfo)((uint16_t)inputMove.additionalInfo | (uint16_t)Move::AdditionalInfo::PromotionToBishop);
+				}
+				else
+				{
+					validMove = false;
+				}
 			}
+
+			break;
 		}
+	}
+
+	if (!validMove)
+	{
+		return false;
 	}
 
 	std::cout << "\n" << MoveStringFormat(inputMove, engine.session.position.board) << "\n\n";
 	engine.session.MakeMove(inputMove);
 	engine.Print();
 
-	if ((Move::AdditionalInfo)((uint16_t)inputMove.additionalInfo & (uint16_t)Move::AdditionalInfo::CapturedKing) != Move::AdditionalInfo::None)
+	if (engine.session.winnerColor != PlayerColor::None)
 	{
-		// TEMPORARY
-		exit(0);
+		PrintWinnerEvaluation();
+		return true;
 	}
 
 	auto searchInfo = engine.Search();
@@ -189,9 +228,27 @@ void PlayerInputManager::ManageMoveC()
 	engine.session.MakeMove((*searchInfo).movesPath.front());
 	engine.Print();
 
-	if ((Move::AdditionalInfo)((uint16_t)(*searchInfo).movesPath.front().additionalInfo & (uint16_t)Move::AdditionalInfo::CapturedKing) != Move::AdditionalInfo::None)
+	if (engine.session.winnerColor != PlayerColor::None)
 	{
-		// TEMPORARY
-		exit(0);
+		PrintWinnerEvaluation();
+		return true;
 	}
+
+	return true;
+}
+
+void PlayerInputManager::PrintWinnerEvaluation()
+{
+	std::cout << "Evaluation: ";
+
+	if (engine.session.winnerColor == PlayerColor::White)
+	{
+		std::cout << "1-0";
+	}
+	else
+	{
+		std::cout << "0-1";
+	}
+
+	std::cout << '\n';
 }

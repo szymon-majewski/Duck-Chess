@@ -1,12 +1,10 @@
 #include <memory>
 #include <list>
 
-/*DEBUG*/ #include <iostream>
-
 #include "Engine.h"
 
 const std::string someFen = "rnbqkb1r/ppppp1PP/3pn3/8/8/8/PPPPPP2/RNBQKBNR w KQkq - 0 1";
-//std::string mateInTwoFen = "rn2kb1r/p1p1p2p/b4pp1/8/4PP1P/4nNP1/P4K1R/2q5 b kq - 3 18";
+const std::string mateInTwoFen = "rn2kb1r/p1p1p2p/b4pp1/8/4PP1P/4nNP1/P4K1R/2q5 b kq - 3 18";
 const std::string simpleDuckFen = "3k4/5@2/8/8/2B5/8/8/5K2 w - - 0 1";
 const std::string duckChessPuzzleFen = "8/5Q1p/7k/5@1p/4Bn2/6q1/6P1/7K w - - 0 1";
 const std::string myGameFen = "r2qkb1r/1p1n1p2/p4npp/1Npp4/2@1b3/1P5P/PBPPQPP1/2KNRB1R w kq - 0 1";
@@ -43,7 +41,7 @@ const std::string rokesFen = "8/r5RR/8/8/3R3k/1R3R2/3R4/3K4 w - - 0 1";
  
 int main(int argc, char** argv)
 {
-	Engine engine = Engine(STARTING_POSITION_FEN);
+	Engine engine = Engine(myGameFen);
 	engine.searchDepth = 3;
 
 	engine.Print();
@@ -60,22 +58,20 @@ int main(int argc, char** argv)
 
 /*
 TODO:
-* MoveStringFormat is a mess
+* myGameFen - gameLoop - take the king and 2 undos - duplicated duck
+* Move ordering - maybe some priority system
+* Undo on the first move
 * Change PlayerInputManager so it only reads and parses input and all engine instructions are
 * -- called in Engine class itself
 * Delete these OVER_INFINITIES and instead just put first move in bestSearchInfo
 * ColoringBoardPrinter attribute dynamic setting
 * Request bit flags dynamic setting
-* (It actually needs a game pointer to )
 * squaresToEdgeCount make generate statically
-* Update engine pointers either to unique_ptr or make it local (should be fine that way)
 * Store evaluation in smaller variable
-* Update GenerateLegalMoves - make cross join with free spaces to include duck moves
 * Use flyweight design pattern to minimize memory usage in evaluation tree (can it even be done?)
 * tuples structured binding in MoveMemento
 * Probably Move::AdditionalInfo doesnt need color in castling info
 * Probably movingPieceColor is not necessary in position Update and UndoMove
-* MoveStringFormat does not consider ambigous pieces moves
 */
 
 // Board pieces start from row 1 (so it goes bottom up)
