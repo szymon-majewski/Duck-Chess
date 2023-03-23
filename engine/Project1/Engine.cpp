@@ -55,7 +55,7 @@ std::unique_ptr<Engine::SearchInfo> Engine::MinMaxSearch(Position& position, uns
 		return std::make_unique<SearchInfo>(evaluator->Evaluate(position), prevMove);
 	}
 
-	std::unique_ptr<std::list<FullMove>> moves = movesGenerator.GenerateLegalMoves(position);
+	std::unique_ptr<std::vector<FullMove>> moves = movesGenerator.GenerateLegalMoves(position);
 
 	std::unique_ptr<SearchInfo> bestSearchInfo = std::make_unique<SearchInfo>();
 	std::unique_ptr<SearchInfo> currentSearchInfo;

@@ -1,5 +1,9 @@
 #include <memory>
 #include <list>
+#include <chrono>
+
+//DEBUG
+#include <iostream>
 
 #include "Engine.h"
 
@@ -46,12 +50,17 @@ int main(int argc, char** argv)
 
 	engine.Print();
 
-	engine.playerColor = PlayerColor::White;
-	engine.GameLoop();
+	//engine.playerColor = PlayerColor::White;
+	//engine.GameLoop();
 
-	/*Engine::SearchInfo eval = *engine.Search();
+	auto start = std::chrono::high_resolution_clock::now();
+	Engine::SearchInfo eval = *engine.Search();
+	auto end = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
 	engine.PrintBestMoves(eval.movesPath);
-	std::cout << "Evaluation: " << eval.evaluation;*/
+	engine.PrintEvaluation(eval.evaluation);
+	std::cout << "Execution time: " << duration << " ms" << std::endl;
 
  	return 0;
 }
