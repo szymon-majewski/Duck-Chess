@@ -53,192 +53,6 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
 		}
 	}
 
-	// Pawn moves
-	if (playerPiecesSquares.contains(Piece::Type::Pawn))
-	{
-		for (const Square& pawnSquare : playerPiecesSquares.at(Piece::Type::Pawn))
-		{
-			// White pawns
-			if (position.playerToMove == PlayerColor::White)
-			{
-				//// One square forward
-				Square northSquare = (Square)((int8_t)pawnSquare + (int8_t)DirectionOffsets::North);
-
-				if (emptySquares.contains(northSquare))
-				{
-					//// Promoting
-					if (northSquare >= Square::A8)
-					{
-						legalPiecesMoves.emplace_front(Move(pawnSquare, northSquare, Move::AdditionalInfo::PromotionToKnight));
-						legalPiecesMoves.emplace_front(Move(pawnSquare, northSquare, Move::AdditionalInfo::PromotionToBishop));
-						legalPiecesMoves.emplace_front(Move(pawnSquare, northSquare, Move::AdditionalInfo::PromotionToQueen));
-						legalPiecesMoves.emplace_front(Move(pawnSquare, northSquare, Move::AdditionalInfo::PromotionToRook));
-					}
-					else
-					{
-						legalPiecesMoves.emplace_back(Move(pawnSquare, northSquare));
-
-						//// Two squares forward
-						Square doubleNorthSquare = (Square)((int8_t)northSquare + (int8_t)DirectionOffsets::North);
-
-						//TODO: Maybe upgrade this a bit
-						if (pawnSquare >= Square::A2 && pawnSquare <= Square::H2 && emptySquares.contains(doubleNorthSquare))
-						{
-							legalPiecesMoves.emplace_back(Move(pawnSquare, doubleNorthSquare, Move::AdditionalInfo::PawnDoubleForward));
-						}
-					}
-				}
-
-				//// Takes and en passant
-				Square northWestSquare = (Square)((uint8_t)pawnSquare + (int8_t)DirectionOffsets::NorthWest);
-				Square northEastSquare = (Square)((uint8_t)pawnSquare + (int8_t)DirectionOffsets::NorthEast);
-
-				if ((uint8_t)pawnSquare % Board::WIDTH != 1)
-				{
-					if (opponentPiecesSquares.contains(northWestSquare))
-					{
-						Move::AdditionalInfo capturedOnNorthWest = SquarePieceTypeToMoveInfo(northWestSquare, position.board);
-
-						// Takes and promotes
-						if (northWestSquare >= Square::A8)
-						{
-							legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToKnight | (uint16_t)capturedOnNorthWest)));
-							legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToBishop | (uint16_t)capturedOnNorthWest)));
-							legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToRook | (uint16_t)capturedOnNorthWest)));
-							legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToQueen | (uint16_t)capturedOnNorthWest)));
-							numberOfCaptureMoves += 4;
-						}
-						else
-						{
-							legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, capturedOnNorthWest));
-							++numberOfCaptureMoves;
-						}
-					}
-					else if (northWestSquare == position.enPassantTarget && northWestSquare != duckSquare)
-					{
-						legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, Move::AdditionalInfo::EnPassant));
-						++numberOfCaptureMoves;
-					}
-				}
-				if ((uint8_t)pawnSquare % Board::WIDTH != 0)
-				{
-					if (opponentPiecesSquares.contains(northEastSquare))
-					{
-						Move::AdditionalInfo capturedOnNorthEast = SquarePieceTypeToMoveInfo(northEastSquare, position.board);
-
-						if (northEastSquare >= Square::A8)
-						{
-							legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToKnight | (uint16_t)capturedOnNorthEast)));
-							legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToBishop | (uint16_t)capturedOnNorthEast)));
-							legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToRook | (uint16_t)capturedOnNorthEast)));
-							legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToQueen | (uint16_t)capturedOnNorthEast)));
-							numberOfCaptureMoves += 4;
-						}
-						else
-						{
-							legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, capturedOnNorthEast));
-							++numberOfCaptureMoves;
-						}
-					}
-					else if (northEastSquare == position.enPassantTarget && northEastSquare != duckSquare)
-					{
-						legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, Move::AdditionalInfo::EnPassant));
-						++numberOfCaptureMoves;
-					}
-				}
-			}
-			// Black pawns
-			else
-			{
-				//// One square forward
-				Square southSquare = (Square)((int8_t)pawnSquare + (int8_t)DirectionOffsets::South);
-
-				if (emptySquares.contains(southSquare))
-				{
-					//// Promoting
-					if (southSquare < Square::A2)
-					{
-						legalPiecesMoves.emplace_front(Move(pawnSquare, southSquare, Move::AdditionalInfo::PromotionToKnight));
-						legalPiecesMoves.emplace_front(Move(pawnSquare, southSquare, Move::AdditionalInfo::PromotionToBishop));
-						legalPiecesMoves.emplace_front(Move(pawnSquare, southSquare, Move::AdditionalInfo::PromotionToRook));
-						legalPiecesMoves.emplace_front(Move(pawnSquare, southSquare, Move::AdditionalInfo::PromotionToQueen));
-					}
-					else
-					{
-						legalPiecesMoves.emplace_back(Move(pawnSquare, southSquare));
-
-						//// Two squares forward
-						Square doubleSouthSquare = (Square)((int8_t)southSquare + (int8_t)DirectionOffsets::South);
-
-						//TODO: Maybe upgrade this a bit
-						if (pawnSquare >= Square::A7 && pawnSquare <= Square::H7 && emptySquares.contains(doubleSouthSquare))
-						{
-							legalPiecesMoves.emplace_back(Move(pawnSquare, doubleSouthSquare, Move::AdditionalInfo::PawnDoubleForward));
-						}
-					}
-				}
-
-				//// Takes and en passant
-				Square southWestSquare = (Square)((uint8_t)pawnSquare + (int8_t)DirectionOffsets::SouthWest);
-				Square southEastSquare = (Square)((uint8_t)pawnSquare + (int8_t)DirectionOffsets::SouthEast);
-
-				if ((uint8_t)pawnSquare % Board::WIDTH != 1)
-				{
-					if (opponentPiecesSquares.contains(southWestSquare))
-					{
-						Move::AdditionalInfo capturedOnSouthWest = SquarePieceTypeToMoveInfo(southWestSquare, position.board);
-
-						// Takes and promotes
-						if (southWestSquare < Square::A2)
-						{
-							legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToKnight | (uint16_t)capturedOnSouthWest)));
-							legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToBishop | (uint16_t)capturedOnSouthWest)));
-							legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToRook | (uint16_t)capturedOnSouthWest)));
-							legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToQueen | (uint16_t)capturedOnSouthWest)));
-							numberOfCaptureMoves += 4;
-						}
-						else
-						{
-							legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, capturedOnSouthWest));
-							++numberOfCaptureMoves;
-						}
-					}
-					else if (southWestSquare == position.enPassantTarget && southWestSquare != duckSquare)
-					{
-						legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, Move::AdditionalInfo::EnPassant));
-						++numberOfCaptureMoves;
-					}
-				}
-				if ((uint8_t)pawnSquare % Board::WIDTH != 0)
-				{
-					if (opponentPiecesSquares.contains(southEastSquare))
-					{
-						Move::AdditionalInfo capturedOnSouthEast = SquarePieceTypeToMoveInfo(southEastSquare, position.board);
-
-						if (southEastSquare < Square::A2)
-						{
-							legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToKnight | (uint16_t)capturedOnSouthEast)));
-							legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToBishop | (uint16_t)capturedOnSouthEast)));
-							legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToRook | (uint16_t)capturedOnSouthEast)));
-							legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToQueen | (uint16_t)capturedOnSouthEast)));
-							numberOfCaptureMoves += 4;
-						}
-						else
-						{
-							legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, capturedOnSouthEast));
-							++numberOfCaptureMoves;
-						}
-					}
-					else if (southEastSquare == position.enPassantTarget && southEastSquare != duckSquare)
-					{
-						legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, Move::AdditionalInfo::EnPassant));
-						++numberOfCaptureMoves;
-					}
-				}
-			}
-		}
-	}
-
 	// Knights moves
 	if (playerPiecesSquares.contains(Piece::Type::Knight))
 	{
@@ -322,6 +136,9 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
 			}
 		}
 	}
+
+	// Pawn moves
+	GeneratePawnsMoves(legalPiecesMoves, position, numberOfCaptureMoves);
 
 	//std::sort(legalPiecesMoves.begin(), legalPiecesMoves.end(),
 	//	[](const Move& move1, const Move& move2)
@@ -578,5 +395,193 @@ Move::AdditionalInfo MovesGenerator::SquarePieceTypeToMoveInfo(const Square& squ
 		case Piece::Type::Queen: { return Move::AdditionalInfo::CapturedQueen; }
 		case Piece::Type::King: { return Move::AdditionalInfo::CapturedKing; }
 		default: { return Move::AdditionalInfo::None; }
+	}
+}
+
+void MovesGenerator::GeneratePawnsMoves(std::list<Move>& legalPiecesMoves, const Position& position, unsigned int& numberOfCaptureMoves)
+{
+	if (playerPiecesSquares.contains(Piece::Type::Pawn))
+	{
+		for (const Square& pawnSquare : playerPiecesSquares.at(Piece::Type::Pawn))
+		{
+			// White pawns
+			if (position.playerToMove == PlayerColor::White)
+			{
+				//// One square forward
+				Square northSquare = (Square)((int8_t)pawnSquare + (int8_t)DirectionOffsets::North);
+
+				if (emptySquares.contains(northSquare))
+				{
+					//// Promoting
+					if (northSquare >= Square::A8)
+					{
+						legalPiecesMoves.emplace_front(Move(pawnSquare, northSquare, Move::AdditionalInfo::PromotionToKnight));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, northSquare, Move::AdditionalInfo::PromotionToBishop));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, northSquare, Move::AdditionalInfo::PromotionToQueen));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, northSquare, Move::AdditionalInfo::PromotionToRook));
+					}
+					else
+					{
+						legalPiecesMoves.emplace_back(Move(pawnSquare, northSquare));
+
+						//// Two squares forward
+						Square doubleNorthSquare = (Square)((int8_t)northSquare + (int8_t)DirectionOffsets::North);
+
+						//TODO: Maybe upgrade this a bit
+						if (pawnSquare >= Square::A2 && pawnSquare <= Square::H2 && emptySquares.contains(doubleNorthSquare))
+						{
+							legalPiecesMoves.emplace_back(Move(pawnSquare, doubleNorthSquare, Move::AdditionalInfo::PawnDoubleForward));
+						}
+					}
+				}
+
+				//// Takes and en passant
+				Square northWestSquare = (Square)((uint8_t)pawnSquare + (int8_t)DirectionOffsets::NorthWest);
+				Square northEastSquare = (Square)((uint8_t)pawnSquare + (int8_t)DirectionOffsets::NorthEast);
+
+				if ((uint8_t)pawnSquare % Board::WIDTH != 1)
+				{
+					if (opponentPiecesSquares.contains(northWestSquare))
+					{
+						Move::AdditionalInfo capturedOnNorthWest = SquarePieceTypeToMoveInfo(northWestSquare, position.board);
+
+						// Takes and promotes
+						if (northWestSquare >= Square::A8)
+						{
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToKnight | (uint16_t)capturedOnNorthWest)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToBishop | (uint16_t)capturedOnNorthWest)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToRook | (uint16_t)capturedOnNorthWest)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToQueen | (uint16_t)capturedOnNorthWest)));
+							numberOfCaptureMoves += 4;
+						}
+						else
+						{
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, capturedOnNorthWest));
+							++numberOfCaptureMoves;
+						}
+					}
+					else if (northWestSquare == position.enPassantTarget && northWestSquare != duckSquare)
+					{
+						legalPiecesMoves.emplace_front(Move(pawnSquare, northWestSquare, Move::AdditionalInfo::EnPassant));
+						++numberOfCaptureMoves;
+					}
+				}
+				if ((uint8_t)pawnSquare % Board::WIDTH != 0)
+				{
+					if (opponentPiecesSquares.contains(northEastSquare))
+					{
+						Move::AdditionalInfo capturedOnNorthEast = SquarePieceTypeToMoveInfo(northEastSquare, position.board);
+
+						if (northEastSquare >= Square::A8)
+						{
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToKnight | (uint16_t)capturedOnNorthEast)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToBishop | (uint16_t)capturedOnNorthEast)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToRook | (uint16_t)capturedOnNorthEast)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToQueen | (uint16_t)capturedOnNorthEast)));
+							numberOfCaptureMoves += 4;
+						}
+						else
+						{
+							legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, capturedOnNorthEast));
+							++numberOfCaptureMoves;
+						}
+					}
+					else if (northEastSquare == position.enPassantTarget && northEastSquare != duckSquare)
+					{
+						legalPiecesMoves.emplace_front(Move(pawnSquare, northEastSquare, Move::AdditionalInfo::EnPassant));
+						++numberOfCaptureMoves;
+					}
+				}
+			}
+			// Black pawns
+			else
+			{
+				//// One square forward
+				Square southSquare = (Square)((int8_t)pawnSquare + (int8_t)DirectionOffsets::South);
+
+				if (emptySquares.contains(southSquare))
+				{
+					//// Promoting
+					if (southSquare < Square::A2)
+					{
+						legalPiecesMoves.emplace_front(Move(pawnSquare, southSquare, Move::AdditionalInfo::PromotionToKnight));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, southSquare, Move::AdditionalInfo::PromotionToBishop));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, southSquare, Move::AdditionalInfo::PromotionToRook));
+						legalPiecesMoves.emplace_front(Move(pawnSquare, southSquare, Move::AdditionalInfo::PromotionToQueen));
+					}
+					else
+					{
+						legalPiecesMoves.emplace_back(Move(pawnSquare, southSquare));
+
+						//// Two squares forward
+						Square doubleSouthSquare = (Square)((int8_t)southSquare + (int8_t)DirectionOffsets::South);
+
+						//TODO: Maybe upgrade this a bit
+						if (pawnSquare >= Square::A7 && pawnSquare <= Square::H7 && emptySquares.contains(doubleSouthSquare))
+						{
+							legalPiecesMoves.emplace_back(Move(pawnSquare, doubleSouthSquare, Move::AdditionalInfo::PawnDoubleForward));
+						}
+					}
+				}
+
+				//// Takes and en passant
+				Square southWestSquare = (Square)((uint8_t)pawnSquare + (int8_t)DirectionOffsets::SouthWest);
+				Square southEastSquare = (Square)((uint8_t)pawnSquare + (int8_t)DirectionOffsets::SouthEast);
+
+				if ((uint8_t)pawnSquare % Board::WIDTH != 1)
+				{
+					if (opponentPiecesSquares.contains(southWestSquare))
+					{
+						Move::AdditionalInfo capturedOnSouthWest = SquarePieceTypeToMoveInfo(southWestSquare, position.board);
+
+						// Takes and promotes
+						if (southWestSquare < Square::A2)
+						{
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToKnight | (uint16_t)capturedOnSouthWest)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToBishop | (uint16_t)capturedOnSouthWest)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToRook | (uint16_t)capturedOnSouthWest)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToQueen | (uint16_t)capturedOnSouthWest)));
+							numberOfCaptureMoves += 4;
+						}
+						else
+						{
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, capturedOnSouthWest));
+							++numberOfCaptureMoves;
+						}
+					}
+					else if (southWestSquare == position.enPassantTarget && southWestSquare != duckSquare)
+					{
+						legalPiecesMoves.emplace_front(Move(pawnSquare, southWestSquare, Move::AdditionalInfo::EnPassant));
+						++numberOfCaptureMoves;
+					}
+				}
+				if ((uint8_t)pawnSquare % Board::WIDTH != 0)
+				{
+					if (opponentPiecesSquares.contains(southEastSquare))
+					{
+						Move::AdditionalInfo capturedOnSouthEast = SquarePieceTypeToMoveInfo(southEastSquare, position.board);
+
+						if (southEastSquare < Square::A2)
+						{
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToKnight | (uint16_t)capturedOnSouthEast)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToBishop | (uint16_t)capturedOnSouthEast)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToRook | (uint16_t)capturedOnSouthEast)));
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, (Move::AdditionalInfo)((uint16_t)Move::AdditionalInfo::PromotionToQueen | (uint16_t)capturedOnSouthEast)));
+							numberOfCaptureMoves += 4;
+						}
+						else
+						{
+							legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, capturedOnSouthEast));
+							++numberOfCaptureMoves;
+						}
+					}
+					else if (southEastSquare == position.enPassantTarget && southEastSquare != duckSquare)
+					{
+						legalPiecesMoves.emplace_front(Move(pawnSquare, southEastSquare, Move::AdditionalInfo::EnPassant));
+						++numberOfCaptureMoves;
+					}
+				}
+			}
+		}
 	}
 }
