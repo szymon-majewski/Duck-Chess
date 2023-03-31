@@ -6,40 +6,105 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>977</width>
+    <height>719</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="verticalLayoutWidget">
+   <widget class="QWidget" name="horizontalLayoutWidget">
     <property name="geometry">
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>791</width>
-      <height>541</height>
+      <width>971</width>
+      <height>681</height>
      </rect>
     </property>
-    <layout class="QVBoxLayout" name="verticalLayout">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="5,3">
+     <property name="spacing">
+      <number>10</number>
+     </property>
+     <property name="sizeConstraint">
+      <enum>QLayout::SetDefaultConstraint</enum>
+     </property>
+     <property name="leftMargin">
+      <number>10</number>
+     </property>
+     <property name="topMargin">
+      <number>10</number>
+     </property>
+     <property name="rightMargin">
+      <number>10</number>
+     </property>
+     <property name="bottomMargin">
+      <number>10</number>
+     </property>
      <item>
-      <layout class="QHBoxLayout" name="centralLayout">
+      <layout class="QVBoxLayout" name="leftPanel" stretch="8,1">
+       <property name="sizeConstraint">
+        <enum>QLayout::SetDefaultConstraint</enum>
+       </property>
        <item>
-        <layout class="QGridLayout" name="chessBoard">
-         <property name="sizeConstraint">
-          <enum>QLayout::SetDefaultConstraint</enum>
+        <layout class="QGridLayout" name="chessboardPanel" rowstretch="0" columnstretch="0">
+         <property name="spacing">
+          <number>0</number>
          </property>
         </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="fenPanel"/>
        </item>
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="fenLayout">
+      <layout class="QVBoxLayout" name="rightPanel" stretch="2,6,1">
        <property name="sizeConstraint">
         <enum>QLayout::SetDefaultConstraint</enum>
        </property>
+       <item>
+        <layout class="QHBoxLayout" name="enginePanel"/>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="movesPanel"/>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="movesControllerPanel">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetMaximumSize</enum>
+         </property>
+         <item>
+          <widget class="QPushButton" name="fastBackwardsBtn">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="backwardsBtn">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="forwardsBtn">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="fastForwardsBtn">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
       </layout>
      </item>
     </layout>
@@ -50,8 +115,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
-     <height>25</height>
+     <width>977</width>
+     <height>21</height>
     </rect>
    </property>
   </widget>

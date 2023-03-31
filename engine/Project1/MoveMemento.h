@@ -23,7 +23,7 @@ public:
 
 private:
 
-	Stack<PositionData> moveHistory;
+	Stack<PositionData, MAX_GAME_LENGTH> moveHistory;
 
 public:
 
