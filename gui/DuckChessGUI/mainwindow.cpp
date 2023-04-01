@@ -3,35 +3,48 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 
+extern Square BoardIndicesToSquare(const unsigned& y, const unsigned& x);
+extern void SquareToBoardIndices(const Square& square, int& y, int& x);
+
 MainWindow::MainWindow(QWidget *parent) :
+    session(Position()),
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
     setWindowTitle("Duck Chess Engine");
+    setWindowIcon(QIcon(":/rsc/img/pieces/duck.png"));
+    setFixedSize(1000, 650);
+
+    // INIT
+    InitPiecesPixmaps();
 
     // CHESSBOARD
     chessboardPanel = MainWindow::findChild<QGridLayout*>("chessboardPanel");
 
-    for(int i=0; i<8; i++)
+    for(int y = 0; y < 8; ++y)
     {
-        for(int j=0; j<8; j++)
+        for(int x = 0; x < 8; ++x)
         {
-            QFrame *frame = new QFrame();
-            if((i+j) % 2 == 0)
+            // Mixed x and y - I don't know why I have to do this
+            squareFrames[x][y].x = y;
+            squareFrames[x][y].y = x;
+            squareFrames[x][y].setParent(this);
+
+            if((x + y) % 2 == 0)
             {
-                frame->setStyleSheet("background-color: #6db9e8");
+                squareFrames[x][y].setStyleSheet("background-color: " + LIGHT_SQUARE_COLOR.name());
             }
             else
             {
-                frame->setStyleSheet("background-color: #2052a8");
+                squareFrames[x][y].setStyleSheet("background-color: " + DARK_SQUARE_COLOR.name());
             }
 
-            frame->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-            frame->setMinimumSize(QSize(70, 70));
-            frame->setMaximumSize(QSize(70, 70));
+            squareFrames[x][y].setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+            squareFrames[x][y].setMinimumSize(QSize(70, 70));
+            squareFrames[x][y].setMaximumSize(QSize(70, 70));
 
-            chessboardPanel->addWidget(frame, i, j);
+            chessboardPanel->addWidget(&squareFrames[x][y], x, y);
         }
     }
 
@@ -41,7 +54,7 @@ MainWindow::MainWindow(QWidget *parent) :
         chessboardPanel->setColumnStretch(i, 1);
     }
 
-    //MOVES BUTTONS
+    // MOVES BUTTONS
     QPixmap forwardsPixmap(":/rsc/img/ui/forward.jpg");
     QPixmap fastForwardsPixmap(":/rsc/img/ui/fast_forward.jpg");
     QPixmap backwardsPixmap(":/rsc/img/ui/backward.jpg");
@@ -57,51 +70,17 @@ MainWindow::MainWindow(QWidget *parent) :
     backwardsBtn->setIcon(QIcon(backwardsPixmap));
     fastBackwardsBtn->setIcon(QIcon(fastbBackwardsPixmap));
 
-    //PIECES
-    QPixmap whitePawnPixmap(":/rsc/img/pieces/white_pawn.png");
-    QPixmap whiteKnightPixmap(":/rsc/img/pieces/white_knight.png");
-    QPixmap whiteBishopPixmap(":/rsc/img/pieces/white_bishop.png");
-    QPixmap whiteRookPixmap(":/rsc/img/pieces/white_rook.png");
-    QPixmap whiteQueenPixmap(":/rsc/img/pieces/white_queen.png");
-    QPixmap whiteKingPixmap(":/rsc/img/pieces/white_king.png");
-    QPixmap blackPawnPixmap(":/rsc/img/pieces/black_pawn.png");
-    QPixmap blackKnightPixmap(":/rsc/img/pieces/black_knight.png");
-    QPixmap blackBishopPixmap(":/rsc/img/pieces/black_bishop.png");
-    QPixmap blackRookPixmap(":/rsc/img/pieces/black_rook.png");
-    QPixmap blackQueenPixmap(":/rsc/img/pieces/black_queen.png");
-    QPixmap blackKingPixmap(":/rsc/img/pieces/black_king.png");
-    QPixmap duckPixmap(":/rsc/img/pieces/duck.png");
+    // FEN
+    //// BUTTON
+    QPushButton* fenUpdateBtn = MainWindow::findChild<QPushButton*>("updateFenBtn");
+    connect(fenUpdateBtn, SIGNAL(released()), this, SLOT(FenUpdateButtonPressed()));
 
-    QPixmap maps[] = {whitePawnPixmap, whiteKnightPixmap, whiteBishopPixmap, whiteRookPixmap,
-                     whiteQueenPixmap, whiteKingPixmap, blackPawnPixmap, blackKnightPixmap,
-                     blackBishopPixmap, blackRookPixmap, blackQueenPixmap, blackKingPixmap};
+    //// TEXT EDIT
+    fenTextEdit = MainWindow::findChild<QTextEdit*>("fenTextEdit");
 
-    for (int i = 0; i < 6; ++i)
-    {
-        QLabel* label = new QLabel(this);
-        label->setAlignment(Qt::AlignCenter);
-        label->setPixmap(maps[i]);
-        label->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-        label->setScaledContents(true);
-        chessboardPanel->addWidget(label, i, 1);
-    }
-
-    for (int i = 0; i < 6; ++i)
-    {
-        QLabel* label = new QLabel(this);
-        label->setAlignment(Qt::AlignCenter);
-        label->setPixmap(maps[i + 6]);
-        label->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-        label->setScaledContents(true);
-        chessboardPanel->addWidget(label, i, 2);
-    }
-
-    QLabel* label = new QLabel(this);
-    label->setAlignment(Qt::AlignCenter);
-    label->setPixmap(duckPixmap);
-    label->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    label->setScaledContents(true);
-    chessboardPanel->addWidget(label, 4, 6);
+    // STARTING POSITION
+    session.position = fenParser.ParseFen(STARTING_POSITION_FEN);
+    UpdateChessboard();
 }
 
 MainWindow::~MainWindow()
@@ -109,3 +88,146 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::FenUpdateButtonPressed()
+{
+    try
+    {
+        session.position = fenParser.ParseFen(fenTextEdit->toPlainText().toStdString());
+    }
+    catch (std::exception)
+    {
+        // Just don't update
+    }
+
+    UpdateChessboard();
+}
+
+void MainWindow::UpdateChessboard()
+{
+    piecesLabels.clear();
+
+    BitPiece currentBitPiece;
+
+    for (int y = 0; y < 8; ++y)
+    {
+        for (int x = 0; x < 8; ++x)
+        {
+            currentBitPiece = session.position.board.pieces[y][x].GetBitPiece();
+
+            if (currentBitPiece != NO_PIECE)
+            {
+                auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, x, 7 - y));
+                insertedLabel->setAlignment(Qt::AlignCenter);
+                insertedLabel->setPixmap(piecesPixmaps.at(currentBitPiece));
+                insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+                insertedLabel->setScaledContents(true);
+                chessboardPanel->addWidget(insertedLabel.get(), 7 - y, x);
+            }
+        }
+    }
+}
+
+void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
+{
+    qDebug() << "Kliknieto puste pole " + QString::number(x) + " " + QString::number(y);
+
+    // Piece was selected earlier and wants to move to an empty square
+    if (selectedSquare != Square::None)
+    {
+        // MAKE A MOVE HERE!!!!
+        // ...
+
+        int sourceSqaureX;
+        int sourceSqaureY;
+
+        SquareToBoardIndices(selectedSquare, sourceSqaureY, sourceSqaureX);
+        DeselectSquare(x, 7 - y);
+        selectedSquare = Square::None;
+    }
+
+}
+
+void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
+{
+    // THINK IF YOU WANT TO CLICK DUCK OR NOT EVERY TIME TO MOVE IT (IF NOT YOU NEED TO TAKE INTO ACCOUNT THAT IT'S NOT ALWAYS THERE)
+    qDebug() << "Kliknieto figurke " + QString::number(x) + " " + QString::number(y);
+
+    uint8_t clickedPieceColor = (uint8_t)session.position.board.pieces[7 - y][x].PieceColor();
+
+    // No piece was selected earlier
+    if (selectedSquare == Square::None)
+    {
+        // Color of clicked piece matches player that is to move
+        if (firstPhaseMove && clickedPieceColor == (uint8_t)session.position.playerToMove)
+        {
+            selectedSquare = BoardIndicesToSquare(7 - y, x);
+            SelectSquare(x, y);
+        }
+        // Or it's duck move and duck was clicked
+        else if (!firstPhaseMove && clickedPieceColor == (uint8_t)Piece::Color::Both)
+        {
+            SelectSquare(x, y);
+        }
+    }
+    // Piece was selected earlier and wants to land on a square that is occupied by some other piece
+    else
+    {
+        if (firstPhaseMove && clickedPieceColor != (uint8_t)session.position.playerToMove)
+        {
+            // MAKE A MOVE HERE!!!!
+            // ...
+
+            int sourceSqaureX;
+            int sourceSqaureY;
+
+            SquareToBoardIndices(selectedSquare, sourceSqaureY, sourceSqaureX);
+            DeselectSquare(x, 7 - y);
+            selectedSquare = Square::None;
+        }
+    }
+}
+
+void MainWindow::SelectSquare(unsigned int x, unsigned int y)
+{
+    if ((x + y) % 2 == 0)
+    {
+        qDebug() << "To jest jasne";
+        squareFrames[x][y].setStyleSheet("background-color: " + SELECTED_LIGHT_SQUARE_COLOR.name());
+    }
+    else
+    {
+        squareFrames[x][y].setStyleSheet("background-color: " + SELECTED_DARK_SQUARE_COLOR.name());
+    }
+}
+
+void MainWindow::DeselectSquare(unsigned int x, unsigned int y)
+{
+    if ((x + y) % 2 == 0)
+    {
+        squareFrames[x][y].setStyleSheet("background-color: " + LIGHT_SQUARE_COLOR.name());
+    }
+    else
+    {
+        squareFrames[x][y].setStyleSheet("background-color: " + DARK_SQUARE_COLOR.name());
+    }
+}
+
+void MainWindow::InitPiecesPixmaps()
+{
+    piecesPixmaps =
+    {
+        { (uint8_t)Piece::Type::Pawn | (uint8_t)Piece::Color::Black, QPixmap(":/rsc/img/pieces/black_pawn.png") },
+        { (uint8_t)Piece::Type::Pawn | (uint8_t)Piece::Color::White, QPixmap(":/rsc/img/pieces/white_pawn.png") },
+        { (uint8_t)Piece::Type::Knight | (uint8_t)Piece::Color::Black, QPixmap(":/rsc/img/pieces/black_knight.png") },
+        { (uint8_t)Piece::Type::Knight | (uint8_t)Piece::Color::White, QPixmap(":/rsc/img/pieces/white_knight.png") },
+        { (uint8_t)Piece::Type::Bishop | (uint8_t)Piece::Color::Black, QPixmap(":/rsc/img/pieces/black_bishop.png") },
+        { (uint8_t)Piece::Type::Bishop | (uint8_t)Piece::Color::White, QPixmap(":/rsc/img/pieces/white_bishop.png") },
+        { (uint8_t)Piece::Type::Rook | (uint8_t)Piece::Color::Black, QPixmap(":/rsc/img/pieces/black_rook.png") },
+        { (uint8_t)Piece::Type::Rook | (uint8_t)Piece::Color::White, QPixmap(":/rsc/img/pieces/white_rook.png") },
+        { (uint8_t)Piece::Type::Queen | (uint8_t)Piece::Color::Black, QPixmap(":/rsc/img/pieces/black_queen.png") },
+        { (uint8_t)Piece::Type::Queen | (uint8_t)Piece::Color::White, QPixmap(":/rsc/img/pieces/white_queen.png") },
+        { (uint8_t)Piece::Type::King | (uint8_t)Piece::Color::Black, QPixmap(":/rsc/img/pieces/black_king.png") },
+        { (uint8_t)Piece::Type::King | (uint8_t)Piece::Color::White, QPixmap(":/rsc/img/pieces/white_king.png") },
+        { (uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both, QPixmap(":/rsc/img/pieces/duck.png") }
+    };
+}
