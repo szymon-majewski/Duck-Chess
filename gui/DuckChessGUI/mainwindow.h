@@ -39,7 +39,9 @@ private:
     std::unordered_map<BitPiece, QPixmap> piecesPixmaps;
 
     Square selectedSquare = Square::None;
-    bool firstPhaseMove = true; // Or duck move
+    Move firstPhaseMove;
+    bool firstPhase = true; // Or duck move
+    bool duckOnTheBoard;
 
     const QColor LIGHT_SQUARE_COLOR = QColor(109, 185, 232);
     const QColor DARK_SQUARE_COLOR = QColor(32, 82, 168);

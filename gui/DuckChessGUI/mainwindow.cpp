@@ -101,7 +101,7 @@ void MainWindow::FenUpdateButtonPressed()
             DeselectSquare(selectedSquare);
             selectedSquare = Square::None;
         }
-        firstPhaseMove = true;
+        firstPhase = true;
 
         UpdateChessboard();
     }
@@ -114,6 +114,7 @@ void MainWindow::FenUpdateButtonPressed()
 void MainWindow::UpdateChessboard()
 {
     piecesLabels.clear();
+    duckOnTheBoard = false;
 
     BitPiece currentBitPiece;
 
@@ -131,6 +132,11 @@ void MainWindow::UpdateChessboard()
                 insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
                 insertedLabel->setScaledContents(true);
                 chessboardPanel->addWidget(insertedLabel.get(), 7 - y, x);
+
+                if (session->position.board.pieces[y][x].PieceType() == Piece::Type::Duck)
+                {
+                    duckOnTheBoard = true;
+                }
             }
         }
     }
@@ -146,20 +152,67 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         // MAKE A MOVE HERE!!!!
         // ...
 
-        int sourceSqaureX;
-        int sourceSqaureY;
+        int sourceSquareX;
+        int sourceSquareY;
+        SquareToBoardIndices(selectedSquare, sourceSquareY, sourceSquareX);
 
-        SquareToBoardIndices(selectedSquare, sourceSqaureY, sourceSqaureX);
-        DeselectSquare(sourceSqaureX, 7 - sourceSqaureY);
+        //////////////////////////////////////////////////////////////
+        // Remove label from source sqaure
+        PieceLabel* movingPieceLabel;
+
+        for (const std::unique_ptr<PieceLabel>& pieceLabel : piecesLabels)
+        {
+            if (sourceSquareX == pieceLabel->x && 7 - sourceSquareY == pieceLabel->y)
+            {
+                pieceLabel->x = x;
+                pieceLabel->y = y;
+                movingPieceLabel = pieceLabel.get();
+                break;
+            }
+        }
+
+        chessboardPanel->removeWidget(movingPieceLabel);
+
+        // Add label to target sqaure
+        chessboardPanel->addWidget(movingPieceLabel, y, x);
+
+        if (session->position.board.pieces[sourceSquareY][sourceSquareX].PieceType() != Piece::Type::Duck)
+        {
+            // MOVE ADDITIONAL INFO!!! - PROBABLY GO FOR MOVES GENERATOR VALIDATION
+            // I GUESS IT ONLY NEDDS CHESS MOVES AND THEN CHECK IF DUCK LANDING SQUARE IS EMPTY (with regards to just moved piece)
+            firstPhaseMove = Move(selectedSquare, BoardIndicesToSquare(7 - y, x));
+        }
+        else
+        {
+            session->MakeMove(FullMove(firstPhaseMove, selectedSquare, BoardIndicesToSquare(7 - y, x)));
+        }
+        //////////////////////////////////////////////////////////////
+
+        DeselectSquare(sourceSquareX, 7 - sourceSquareY);
         selectedSquare = Square::None;
-        firstPhaseMove = !firstPhaseMove;
+        firstPhase = !firstPhase;
     }
+    // It's first move, duck is not on the board, so just place it on the clicked square
+    else if (!duckOnTheBoard && !firstPhase)
+    {
+        //////////////////////////////////////////////////////////////
+        auto& duckLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, x, y));
+        duckLabel->setAlignment(Qt::AlignCenter);
+        duckLabel->setPixmap(piecesPixmaps.at((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both));
+        duckLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+        duckLabel->setScaledContents(true);
+        chessboardPanel->addWidget(duckLabel.get(), y, x);
+        //////////////////////////////////////////////////////////////
 
+        firstPhase = true;
+        duckOnTheBoard = true;
+
+        session->MakeMove(FullMove(firstPhaseMove, selectedSquare, BoardIndicesToSquare(7 - y, x)));
+    }
 }
 
 void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
 {
-    // THINK IF YOU WANT TO CLICK DUCK OR NOT EVERY TIME TO MOVE IT (IF NOT YOU NEED TO TAKE INTO ACCOUNT THAT IT'S NOT ALWAYS THERE)
     qDebug() << "Kliknieto figurke " + QString::number(x) + " " + QString::number(y);
 
     uint8_t clickedPieceColor = (uint8_t)session->position.board.pieces[7 - y][x].PieceColor();
@@ -168,32 +221,84 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
     if (selectedSquare == Square::None)
     {
         // Color of clicked piece matches player that is to move
-        if (firstPhaseMove && clickedPieceColor == (uint8_t)session->position.playerToMove)
+        if (firstPhase && clickedPieceColor == (uint8_t)session->position.playerToMove)
         {
             selectedSquare = BoardIndicesToSquare(7 - y, x);
             SelectSquare(x, y);
         }
         // Or it's duck move and duck was clicked
-        else if (!firstPhaseMove && clickedPieceColor == (uint8_t)Piece::Color::Both)
+        else if (!firstPhase && clickedPieceColor == (uint8_t)Piece::Color::Both)
         {
+            selectedSquare = BoardIndicesToSquare(7 - y, x);
             SelectSquare(x, y);
         }
     }
     // Piece was selected earlier and wants to land on a square that is occupied by some other piece
     else
     {
-        if (firstPhaseMove && clickedPieceColor != (uint8_t)session->position.playerToMove)
+        if (firstPhase)
         {
-            // MAKE A MOVE HERE!!!!
-            // ...
+            PlayerColor opponentsColor = session->position.playerToMove == PlayerColor::White ? PlayerColor::Black : PlayerColor::White;
 
-            int sourceSqaureX;
-            int sourceSqaureY;
+            // Selected piece wants to take enemy piece
+            if (clickedPieceColor == (uint8_t)opponentsColor)
+            {
+                // MAKE A MOVE HERE!!!!
+                // ...
 
-            SquareToBoardIndices(selectedSquare, sourceSqaureY, sourceSqaureX);
-            DeselectSquare(sourceSqaureX, 7 - sourceSqaureY);
-            selectedSquare = Square::None;
-            firstPhaseMove = false;
+                int sourceSquareX;
+                int sourceSquareY;
+                SquareToBoardIndices(selectedSquare, sourceSquareY, sourceSquareX);
+
+                //////////////////////////////////////////////////////////////
+                // Remove label from source sqaure and target square
+                PieceLabel* movingPieceLabel;
+                PieceLabel* takenPieceLabel;
+                unsigned int takenPieceIndex;
+                unsigned int breakChecker = 0;
+
+                for (int i = 0; i < piecesLabels.size() && breakChecker < 2; ++i)
+                {
+                    if (sourceSquareX == piecesLabels[i]->x && 7 - sourceSquareY == piecesLabels[i]->y)
+                    {
+                        piecesLabels[i]->x = x;
+                        piecesLabels[i]->y = y;
+                        movingPieceLabel = piecesLabels[i].get();
+                        ++breakChecker;
+                    }
+                    else if (x == piecesLabels[i]->x && y == piecesLabels[i]->y)
+                    {
+                        takenPieceIndex = i;
+                        takenPieceLabel = piecesLabels[i].get();
+                        ++breakChecker;
+                    }
+                }
+
+                piecesLabels.erase(piecesLabels.begin() + takenPieceIndex);
+                //chessboardPanel->removeWidget(movingPieceLabel);
+                chessboardPanel->removeWidget(takenPieceLabel);
+
+                // Add label to target sqaure
+                chessboardPanel->addWidget(movingPieceLabel, y, x);
+
+                firstPhaseMove = Move(selectedSquare, BoardIndicesToSquare(7 - y, x));
+                //////////////////////////////////////////////////////////////
+
+                DeselectSquare(sourceSquareX, 7 - sourceSquareY);
+                selectedSquare = Square::None;
+                firstPhase = false;
+            }
+            // Change selected piece
+            else if (clickedPieceColor == (uint8_t)session->position.playerToMove)
+            {
+                int sourceSqaureX;
+                int sourceSqaureY;
+                SquareToBoardIndices(selectedSquare, sourceSqaureY, sourceSqaureX);
+                DeselectSquare(sourceSqaureX, 7 - sourceSqaureY);
+
+                selectedSquare = BoardIndicesToSquare(7 - y, x);
+                SelectSquare(x, y);
+            }
         }
     }
 }
