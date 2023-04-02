@@ -22,7 +22,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(QWidget *parent = nullptr, Session* session = nullptr, FenParser* fenParser = nullptr);
     ~MainWindow();
 
     void OnEmptySquareClicked(unsigned int x, unsigned int y);
@@ -47,14 +47,16 @@ private:
     const QColor SELECTED_DARK_SQUARE_COLOR = QColor(32, 61, 109);
 
     // Engine stuff
-    FenParser fenParser;
-    Session session;
+    FenParser* fenParser;
+    Session* session;
 
     // Window methods
     void InitPiecesPixmaps();
     void UpdateChessboard();
     void SelectSquare(unsigned int x, unsigned int y);
+    void SelectSquare(Square square);
     void DeselectSquare(unsigned int x, unsigned int y);
+    void DeselectSquare(Square square);
 
 private slots:
     void FenUpdateButtonPressed();

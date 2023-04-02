@@ -3,14 +3,15 @@
 #include <QMouseEvent>
 
 #include "PieceLabel.h"
-#include "mainwindow.h"
+#include "mainWindow.h"
 
-PieceLabel::PieceLabel(QWidget* parent, unsigned int x, unsigned int y) :
+PieceLabel::PieceLabel(QWidget* parent, MainWindow* mainWindow, unsigned int x, unsigned int y) :
     QLabel(parent),
+    mainWindow(mainWindow),
     x(x),
     y(y) {}
 
 void PieceLabel::mousePressEvent(QMouseEvent *event)
 {
-    static_cast<MainWindow*>(parent())->OnPieceClicked(x, y);
+    mainWindow->OnPieceClicked(x, y);
 }

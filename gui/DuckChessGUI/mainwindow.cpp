@@ -6,8 +6,9 @@
 extern Square BoardIndicesToSquare(const unsigned& y, const unsigned& x);
 extern void SquareToBoardIndices(const Square& square, int& y, int& x);
 
-MainWindow::MainWindow(QWidget *parent) :
-    session(Position()),
+MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser) :
+    session(session),
+    fenParser(fenParser),
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
@@ -26,10 +27,9 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         for(int x = 0; x < 8; ++x)
         {
-            // Mixed x and y - I don't know why I have to do this
-            squareFrames[x][y].x = y;
-            squareFrames[x][y].y = x;
-            squareFrames[x][y].setParent(this);
+            squareFrames[x][y].x = x;
+            squareFrames[x][y].y = y;
+            squareFrames[x][y].mainWindow = this;
 
             if((x + y) % 2 == 0)
             {
@@ -44,7 +44,7 @@ MainWindow::MainWindow(QWidget *parent) :
             squareFrames[x][y].setMinimumSize(QSize(70, 70));
             squareFrames[x][y].setMaximumSize(QSize(70, 70));
 
-            chessboardPanel->addWidget(&squareFrames[x][y], x, y);
+            chessboardPanel->addWidget(&squareFrames[x][y], y, x);
         }
     }
 
@@ -79,7 +79,8 @@ MainWindow::MainWindow(QWidget *parent) :
     fenTextEdit = MainWindow::findChild<QTextEdit*>("fenTextEdit");
 
     // STARTING POSITION
-    session.position = fenParser.ParseFen(STARTING_POSITION_FEN);
+    session->position = fenParser->ParseFen(STARTING_POSITION_FEN);
+    session->position.materialDisparity = session->position.CountMaterial();
     UpdateChessboard();
 }
 
@@ -92,14 +93,22 @@ void MainWindow::FenUpdateButtonPressed()
 {
     try
     {
-        session.position = fenParser.ParseFen(fenTextEdit->toPlainText().toStdString());
+        session->position = fenParser->ParseFen(fenTextEdit->toPlainText().toStdString());
+        session->position.materialDisparity = session->position.CountMaterial();
+
+        if (selectedSquare != Square::None)
+        {
+            DeselectSquare(selectedSquare);
+            selectedSquare = Square::None;
+        }
+        firstPhaseMove = true;
+
+        UpdateChessboard();
     }
     catch (std::exception)
     {
         // Just don't update
     }
-
-    UpdateChessboard();
 }
 
 void MainWindow::UpdateChessboard()
@@ -112,11 +121,11 @@ void MainWindow::UpdateChessboard()
     {
         for (int x = 0; x < 8; ++x)
         {
-            currentBitPiece = session.position.board.pieces[y][x].GetBitPiece();
+            currentBitPiece = session->position.board.pieces[y][x].GetBitPiece();
 
             if (currentBitPiece != NO_PIECE)
             {
-                auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, x, 7 - y));
+                auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, x, 7 - y));
                 insertedLabel->setAlignment(Qt::AlignCenter);
                 insertedLabel->setPixmap(piecesPixmaps.at(currentBitPiece));
                 insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -141,8 +150,9 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         int sourceSqaureY;
 
         SquareToBoardIndices(selectedSquare, sourceSqaureY, sourceSqaureX);
-        DeselectSquare(x, 7 - y);
+        DeselectSquare(sourceSqaureX, 7 - sourceSqaureY);
         selectedSquare = Square::None;
+        firstPhaseMove = !firstPhaseMove;
     }
 
 }
@@ -152,13 +162,13 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
     // THINK IF YOU WANT TO CLICK DUCK OR NOT EVERY TIME TO MOVE IT (IF NOT YOU NEED TO TAKE INTO ACCOUNT THAT IT'S NOT ALWAYS THERE)
     qDebug() << "Kliknieto figurke " + QString::number(x) + " " + QString::number(y);
 
-    uint8_t clickedPieceColor = (uint8_t)session.position.board.pieces[7 - y][x].PieceColor();
+    uint8_t clickedPieceColor = (uint8_t)session->position.board.pieces[7 - y][x].PieceColor();
 
     // No piece was selected earlier
     if (selectedSquare == Square::None)
     {
         // Color of clicked piece matches player that is to move
-        if (firstPhaseMove && clickedPieceColor == (uint8_t)session.position.playerToMove)
+        if (firstPhaseMove && clickedPieceColor == (uint8_t)session->position.playerToMove)
         {
             selectedSquare = BoardIndicesToSquare(7 - y, x);
             SelectSquare(x, y);
@@ -172,7 +182,7 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
     // Piece was selected earlier and wants to land on a square that is occupied by some other piece
     else
     {
-        if (firstPhaseMove && clickedPieceColor != (uint8_t)session.position.playerToMove)
+        if (firstPhaseMove && clickedPieceColor != (uint8_t)session->position.playerToMove)
         {
             // MAKE A MOVE HERE!!!!
             // ...
@@ -181,8 +191,9 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
             int sourceSqaureY;
 
             SquareToBoardIndices(selectedSquare, sourceSqaureY, sourceSqaureX);
-            DeselectSquare(x, 7 - y);
+            DeselectSquare(sourceSqaureX, 7 - sourceSqaureY);
             selectedSquare = Square::None;
+            firstPhaseMove = false;
         }
     }
 }
@@ -191,13 +202,22 @@ void MainWindow::SelectSquare(unsigned int x, unsigned int y)
 {
     if ((x + y) % 2 == 0)
     {
-        qDebug() << "To jest jasne";
         squareFrames[x][y].setStyleSheet("background-color: " + SELECTED_LIGHT_SQUARE_COLOR.name());
     }
     else
     {
         squareFrames[x][y].setStyleSheet("background-color: " + SELECTED_DARK_SQUARE_COLOR.name());
     }
+}
+
+void MainWindow::SelectSquare(Square square)
+{
+    int x;
+    int y;
+
+    SquareToBoardIndices(square, y, x);
+
+    SelectSquare(x, 7 - y);
 }
 
 void MainWindow::DeselectSquare(unsigned int x, unsigned int y)
@@ -210,6 +230,16 @@ void MainWindow::DeselectSquare(unsigned int x, unsigned int y)
     {
         squareFrames[x][y].setStyleSheet("background-color: " + DARK_SQUARE_COLOR.name());
     }
+}
+
+void MainWindow::DeselectSquare(Square square)
+{
+    int x;
+    int y;
+
+    SquareToBoardIndices(square, y, x);
+
+    DeselectSquare(x, 7 - y);
 }
 
 void MainWindow::InitPiecesPixmaps()
