@@ -10,6 +10,7 @@
 
 #include "FenParser.h"
 #include "Session.h"
+#include "MovesGenerator.h"
 #include "PieceLabel.h"
 #include "SquareFrame.h"
 
@@ -22,7 +23,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr, Session* session = nullptr, FenParser* fenParser = nullptr);
+    MainWindow(QWidget *parent = nullptr, Session* session = nullptr, FenParser* fenParser = nullptr, MovesGenerator* movesGenerator = nullptr);
     ~MainWindow();
 
     void OnEmptySquareClicked(unsigned int x, unsigned int y);
@@ -42,6 +43,7 @@ private:
     Move firstPhaseMove;
     bool firstPhase = true; // Or duck move
     bool duckOnTheBoard;
+    std::unique_ptr<std::list<Move>> currentLegalChessMoves;
 
     const QColor LIGHT_SQUARE_COLOR = QColor(109, 185, 232);
     const QColor DARK_SQUARE_COLOR = QColor(32, 82, 168);
@@ -51,6 +53,7 @@ private:
     // Engine stuff
     FenParser* fenParser;
     Session* session;
+    MovesGenerator* movesGenerator;
 
     // Window methods
     void InitPiecesPixmaps();

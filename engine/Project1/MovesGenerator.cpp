@@ -40,10 +40,9 @@ MovesGenerator::MovesGenerator()
 	}
 }
 
-std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const Position& position)
+std::unique_ptr<std::list<Move>> MovesGenerator::GenerateLegalChessMoves(const Position& position, unsigned int& numberOfCaptureMoves)
 {
-	std::list<Move> legalPiecesMoves;
-	unsigned int numberOfCaptureMoves = 0;
+	std::unique_ptr<std::list<Move>> legalPiecesMoves = std::make_unique<std::list<Move>>();
 
 	for (unsigned y = (unsigned)Ranks::Rank1; y <= (unsigned)Ranks::Rank8; ++y)
 	{
@@ -66,25 +65,25 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
 			{
 				if (emptySquares.contains(squareKnightCanMoveTo))
 				{
-					legalPiecesMoves.emplace_back(Move(knightSquare, squareKnightCanMoveTo));
+					legalPiecesMoves->emplace_back(Move(knightSquare, squareKnightCanMoveTo));
 				}
 				else if (opponentPiecesSquares.contains(squareKnightCanMoveTo))
 				{
-					legalPiecesMoves.emplace_front(Move(knightSquare, squareKnightCanMoveTo, SquarePieceTypeToMoveInfo(squareKnightCanMoveTo, position.board)));
+					legalPiecesMoves->emplace_front(Move(knightSquare, squareKnightCanMoveTo, SquarePieceTypeToMoveInfo(squareKnightCanMoveTo, position.board)));
 					++numberOfCaptureMoves;
 				}
 			}
 		}
 	}
-	
+
 	// Bishops moves
-	GenerateLongRangePieceMoves(legalPiecesMoves, Piece::Type::Bishop, position.board, numberOfCaptureMoves);
-	
+	GenerateLongRangePieceMoves(*legalPiecesMoves, Piece::Type::Bishop, position.board, numberOfCaptureMoves);
+
 	// Rooks moves
-	GenerateLongRangePieceMoves(legalPiecesMoves, Piece::Type::Rook, position.board, numberOfCaptureMoves);
+	GenerateLongRangePieceMoves(*legalPiecesMoves, Piece::Type::Rook, position.board, numberOfCaptureMoves);
 
 	// Queen moves
-	GenerateLongRangePieceMoves(legalPiecesMoves, Piece::Type::Queen, position.board, numberOfCaptureMoves);
+	GenerateLongRangePieceMoves(*legalPiecesMoves, Piece::Type::Queen, position.board, numberOfCaptureMoves);
 
 	// King moves
 	Square squareInDirection;
@@ -100,11 +99,11 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
 			{
 				if (emptySquares.contains(squareInDirection))
 				{
-					legalPiecesMoves.emplace_back(Move(kingSquare, squareInDirection));
+					legalPiecesMoves->emplace_back(Move(kingSquare, squareInDirection));
 				}
 				else if (opponentPiecesSquares.contains(squareInDirection))
 				{
-					legalPiecesMoves.emplace_front(Move(kingSquare, squareInDirection, SquarePieceTypeToMoveInfo(squareInDirection, position.board)));
+					legalPiecesMoves->emplace_front(Move(kingSquare, squareInDirection, SquarePieceTypeToMoveInfo(squareInDirection, position.board)));
 					++numberOfCaptureMoves;
 				}
 			}
@@ -116,31 +115,39 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
 			if ((CastlingRights)((uint8_t)position.castlingRights & (uint8_t)CastlingRights::WhiteKingside) != CastlingRights::None &&
 				emptySquares.contains(Square::F1) && emptySquares.contains(Square::G1))
 			{
-				legalPiecesMoves.emplace_back(Move(kingSquare, Square::G1, Move::AdditionalInfo::WhiteKingsideCastle));
+				legalPiecesMoves->emplace_back(Move(kingSquare, Square::G1, Move::AdditionalInfo::WhiteKingsideCastle));
 			}
 			if ((CastlingRights)((uint8_t)position.castlingRights & (uint8_t)CastlingRights::WhiteQueenside) != CastlingRights::None &&
 				emptySquares.contains(Square::B1) && emptySquares.contains(Square::C1) && emptySquares.contains(Square::D1))
 			{
-				legalPiecesMoves.emplace_back(Move(kingSquare, Square::C1, Move::AdditionalInfo::WhiteQueensideCastle));
-			} 
+				legalPiecesMoves->emplace_back(Move(kingSquare, Square::C1, Move::AdditionalInfo::WhiteQueensideCastle));
+			}
 		}
 		else
 		{
 			if ((CastlingRights)((uint8_t)position.castlingRights & (uint8_t)CastlingRights::BlackKingside) != CastlingRights::None &&
 				emptySquares.contains(Square::F8) && emptySquares.contains(Square::G8))
 			{
-				legalPiecesMoves.emplace_back(Move(kingSquare, Square::G8, Move::AdditionalInfo::BlackKingsideCastle));
+				legalPiecesMoves->emplace_back(Move(kingSquare, Square::G8, Move::AdditionalInfo::BlackKingsideCastle));
 			}
 			if ((CastlingRights)((uint8_t)position.castlingRights & (uint8_t)CastlingRights::BlackQueenside) != CastlingRights::None &&
 				emptySquares.contains(Square::B8) && emptySquares.contains(Square::C8) && emptySquares.contains(Square::D8))
 			{
-				legalPiecesMoves.emplace_back(Move(kingSquare, Square::C8, Move::AdditionalInfo::BlackQueensideCastle));
+				legalPiecesMoves->emplace_back(Move(kingSquare, Square::C8, Move::AdditionalInfo::BlackQueensideCastle));
 			}
 		}
 	}
 
 	// Pawn moves
-	GeneratePawnsMoves(legalPiecesMoves, position, numberOfCaptureMoves);
+	GeneratePawnsMoves(*legalPiecesMoves, position, numberOfCaptureMoves);
+
+	return legalPiecesMoves;
+}
+
+std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const Position& position)
+{
+	unsigned int numberOfCaptureMoves = 0;
+	std::unique_ptr<std::list<Move>> legalPiecesMoves = GenerateLegalChessMoves(position, numberOfCaptureMoves);
 
 	//std::sort(legalPiecesMoves.begin(), legalPiecesMoves.end(),
 	//	[](const Move& move1, const Move& move2)
@@ -149,14 +156,14 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
 	//	});
 
 	auto legalMoves = std::make_unique<std::vector<FullMove>>();
-	(*legalMoves).reserve(legalPiecesMoves.size() * emptySquares.size() + numberOfCaptureMoves);
+	(*legalMoves).reserve(legalPiecesMoves->size() * emptySquares.size() + numberOfCaptureMoves);
 
 	//for (const Move& legalPieceMove : legalPiecesMoves)
 	//{
 	//	legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
 	//}
 
-	for (const Move& legalPieceMove : legalPiecesMoves)
+	for (const Move& legalPieceMove : *legalPiecesMoves)
 	{
 		switch (legalPieceMove.additionalInfo)
 		{

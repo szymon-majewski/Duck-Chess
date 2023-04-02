@@ -6,9 +6,10 @@
 extern Square BoardIndicesToSquare(const unsigned& y, const unsigned& x);
 extern void SquareToBoardIndices(const Square& square, int& y, int& x);
 
-MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser) :
+MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, MovesGenerator* movesGenerator) :
     session(session),
     fenParser(fenParser),
+    movesGenerator(movesGenerator),
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
@@ -81,6 +82,8 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser) 
     // STARTING POSITION
     session->position = fenParser->ParseFen(STARTING_POSITION_FEN);
     session->position.materialDisparity = session->position.CountMaterial();
+    unsigned int placeholder;
+    currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
     UpdateChessboard();
 }
 
@@ -95,6 +98,8 @@ void MainWindow::FenUpdateButtonPressed()
     {
         session->position = fenParser->ParseFen(fenTextEdit->toPlainText().toStdString());
         session->position.materialDisparity = session->position.CountMaterial();
+        unsigned int placeholder;
+        currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
 
         if (selectedSquare != Square::None)
         {
@@ -149,12 +154,69 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
     // Piece was selected earlier and wants to move to an empty square
     if (selectedSquare != Square::None)
     {
-        // MAKE A MOVE HERE!!!!
-        // ...
-
         int sourceSquareX;
         int sourceSquareY;
         SquareToBoardIndices(selectedSquare, sourceSquareY, sourceSquareX);
+        Square targetSquare = BoardIndicesToSquare(7 - y, x);
+
+        // MOVE ADDITIONAL INFO!!! - PROBABLY GO FOR MOVES GENERATOR VALIDATION
+        // I GUESS IT ONLY NEDDS CHESS MOVES AND THEN CHECK IF DUCK LANDING SQUARE IS EMPTY (with regards to just moved piece)
+        if (session->position.board.pieces[sourceSquareY][sourceSquareX].PieceType() != Piece::Type::Duck)
+        {
+            bool validMove = false;
+
+            for (const Move& move : *currentLegalChessMoves)
+            {
+                if (move.sourceSquare == selectedSquare &&  move.targetSquare == targetSquare)
+                {
+                    firstPhaseMove = move;
+                    validMove = true;
+                    break;
+                }
+            }
+
+            if (!validMove)
+            {
+                return;
+            }
+
+            // En passant - removing taken pawn label
+            if (firstPhaseMove.additionalInfo == Move::AdditionalInfo::EnPassant)
+            {
+                unsigned int takenPieceIndex;
+
+                if (session->position.playerToMove == PlayerColor::White)
+                {
+                    for (int i = 0; i < piecesLabels.size(); ++i)
+                    {
+                        if (x == piecesLabels[i]->x && y == piecesLabels[i]->y - 1)
+                        {
+                            takenPieceIndex = i;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < piecesLabels.size(); ++i)
+                    {
+                        if (x == piecesLabels[i]->x && y == piecesLabels[i]->y + 1)
+                        {
+                            takenPieceIndex = i;
+                            break;
+                        }
+                    }
+                }
+
+                piecesLabels.erase(piecesLabels.begin() + takenPieceIndex);
+            }
+        }
+        else
+        {
+            session->MakeMove(FullMove(firstPhaseMove, selectedSquare, targetSquare));
+            unsigned int placeholder;
+            currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
+        }
 
         //////////////////////////////////////////////////////////////
         // Remove label from source sqaure
@@ -170,22 +232,10 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
                 break;
             }
         }
-
         chessboardPanel->removeWidget(movingPieceLabel);
 
         // Add label to target sqaure
         chessboardPanel->addWidget(movingPieceLabel, y, x);
-
-        if (session->position.board.pieces[sourceSquareY][sourceSquareX].PieceType() != Piece::Type::Duck)
-        {
-            // MOVE ADDITIONAL INFO!!! - PROBABLY GO FOR MOVES GENERATOR VALIDATION
-            // I GUESS IT ONLY NEDDS CHESS MOVES AND THEN CHECK IF DUCK LANDING SQUARE IS EMPTY (with regards to just moved piece)
-            firstPhaseMove = Move(selectedSquare, BoardIndicesToSquare(7 - y, x));
-        }
-        else
-        {
-            session->MakeMove(FullMove(firstPhaseMove, selectedSquare, BoardIndicesToSquare(7 - y, x)));
-        }
         //////////////////////////////////////////////////////////////
 
         DeselectSquare(sourceSquareX, 7 - sourceSquareY);
@@ -208,6 +258,8 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         duckOnTheBoard = true;
 
         session->MakeMove(FullMove(firstPhaseMove, selectedSquare, BoardIndicesToSquare(7 - y, x)));
+        unsigned int placeholder;
+        currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
     }
 }
 
@@ -243,8 +295,23 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
             // Selected piece wants to take enemy piece
             if (clickedPieceColor == (uint8_t)opponentsColor)
             {
-                // MAKE A MOVE HERE!!!!
-                // ...
+                Square targetSquare = BoardIndicesToSquare(7 - y, x);
+                bool validMove = false;
+
+                for (const Move& move : *currentLegalChessMoves)
+                {
+                    if (move.sourceSquare == selectedSquare &&  move.targetSquare == targetSquare)
+                    {
+                        firstPhaseMove = move;
+                        validMove = true;
+                        break;
+                    }
+                }
+
+                if (!validMove)
+                {
+                    return;
+                }
 
                 int sourceSquareX;
                 int sourceSquareY;
@@ -253,7 +320,6 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
                 //////////////////////////////////////////////////////////////
                 // Remove label from source sqaure and target square
                 PieceLabel* movingPieceLabel;
-                PieceLabel* takenPieceLabel;
                 unsigned int takenPieceIndex;
                 unsigned int breakChecker = 0;
 
@@ -269,19 +335,14 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
                     else if (x == piecesLabels[i]->x && y == piecesLabels[i]->y)
                     {
                         takenPieceIndex = i;
-                        takenPieceLabel = piecesLabels[i].get();
                         ++breakChecker;
                     }
                 }
 
                 piecesLabels.erase(piecesLabels.begin() + takenPieceIndex);
-                //chessboardPanel->removeWidget(movingPieceLabel);
-                chessboardPanel->removeWidget(takenPieceLabel);
 
                 // Add label to target sqaure
                 chessboardPanel->addWidget(movingPieceLabel, y, x);
-
-                firstPhaseMove = Move(selectedSquare, BoardIndicesToSquare(7 - y, x));
                 //////////////////////////////////////////////////////////////
 
                 DeselectSquare(sourceSquareX, 7 - sourceSquareY);
