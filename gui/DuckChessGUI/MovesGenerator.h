@@ -24,7 +24,7 @@ public:
 
     MovesGenerator();
 
-    std::unique_ptr<std::list<Move>> GenerateLegalChessMoves(const Position& position, unsigned int& numberOfCaptureMoves);
+    std::unique_ptr<std::list<Move>> GenerateLegalChessMoves(const Position& position, unsigned int& numberOfCaptureMoves, bool calledByGenerteLegalMoves = false);
     std::unique_ptr<std::vector<FullMove>> GenerateLegalMoves(const Position& position);
     static std::unique_ptr<std::list<Square>> GenerateAllSquaresKnightMovesTo(const Square& startingSquare);
 

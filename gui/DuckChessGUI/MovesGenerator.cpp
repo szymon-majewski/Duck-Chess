@@ -40,7 +40,7 @@ MovesGenerator::MovesGenerator()
     }
 }
 
-std::unique_ptr<std::list<Move>> MovesGenerator::GenerateLegalChessMoves(const Position& position, unsigned int& numberOfCaptureMoves)
+std::unique_ptr<std::list<Move>> MovesGenerator::GenerateLegalChessMoves(const Position& position, unsigned int& numberOfCaptureMoves, bool calledByGenerateLegalMoves)
 {
     std::unique_ptr<std::list<Move>> legalPiecesMoves = std::make_unique<std::list<Move>>();
 
@@ -141,13 +141,22 @@ std::unique_ptr<std::list<Move>> MovesGenerator::GenerateLegalChessMoves(const P
     // Pawn moves
     GeneratePawnsMoves(*legalPiecesMoves, position, numberOfCaptureMoves);
 
+    if (!calledByGenerateLegalMoves)
+    {
+        emptySquares.clear();
+        playerPiecesSquares.clear();
+        opponentPiecesSquares.clear();
+        opponentPawnsSquares.clear();
+        duckSquare = Square::None;
+    }
+
     return legalPiecesMoves;
 }
 
 std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const Position& position)
 {
     unsigned int numberOfCaptureMoves = 0;
-    std::unique_ptr<std::list<Move>> legalPiecesMoves = GenerateLegalChessMoves(position, numberOfCaptureMoves);
+    std::unique_ptr<std::list<Move>> legalPiecesMoves = GenerateLegalChessMoves(position, numberOfCaptureMoves, true);
 
     //std::sort(legalPiecesMoves.begin(), legalPiecesMoves.end(),
     //	[](const Move& move1, const Move& move2)
@@ -286,12 +295,6 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
             }
         }
     }*/
-
-    emptySquares.clear();
-    playerPiecesSquares.clear();
-    opponentPiecesSquares.clear();
-    opponentPawnsSquares.clear();
-    duckSquare = Square::None;
 
     return legalMoves;
 }

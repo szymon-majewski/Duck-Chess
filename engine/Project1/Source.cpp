@@ -45,22 +45,26 @@ const std::string rokesFen = "8/r5RR/8/8/3R3k/1R3R2/3R4/3K4 w - - 0 1";
  
 int main(int argc, char** argv)
 {
-	Engine engine = Engine(STARTING_POSITION_FEN);
+	Engine engine = Engine(promotionFen);
 	engine.searchDepth = 3;
 
 	engine.Print();
 
-	//engine.playerColor = PlayerColor::White;
-	//engine.GameLoop();
+	// GAME LOOP PART
 
-	auto start = std::chrono::high_resolution_clock::now();
-	Engine::SearchInfo eval = *engine.Search();
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+	engine.playerColor = PlayerColor::White;
+	engine.GameLoop();
 
-	engine.PrintBestMoves(eval.movesPath);
-	engine.PrintEvaluation(eval.evaluation);
-	std::cout << "Execution time: " << duration << " ms" << std::endl;
+	// BEST MOVES PATH PART
+
+	//auto start = std::chrono::high_resolution_clock::now();
+	//Engine::SearchInfo eval = *engine.Search();
+	//auto end = std::chrono::high_resolution_clock::now();
+	//auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+	//engine.PrintBestMoves(eval.movesPath);
+	//engine.PrintEvaluation(eval.evaluation);
+	//std::cout << "Execution time: " << duration << " ms" << std::endl;
 
  	return 0;
 }

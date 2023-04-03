@@ -2,6 +2,7 @@
 
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
+#include <QDialog>
 
 extern Square BoardIndicesToSquare(const unsigned& y, const unsigned& x);
 extern void SquareToBoardIndices(const Square& square, int& y, int& x);
@@ -158,6 +159,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         int sourceSquareY;
         SquareToBoardIndices(selectedSquare, sourceSquareY, sourceSquareX);
         Square targetSquare = BoardIndicesToSquare(7 - y, x);
+        PlayerColor movingPieceColor = session->position.playerToMove;
 
         // MOVE ADDITIONAL INFO!!! - PROBABLY GO FOR MOVES GENERATOR VALIDATION
         // I GUESS IT ONLY NEDDS CHESS MOVES AND THEN CHECK IF DUCK LANDING SQUARE IS EMPTY (with regards to just moved piece)
@@ -185,7 +187,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
             {
                 unsigned int takenPieceIndex;
 
-                if (session->position.playerToMove == PlayerColor::White)
+                if (movingPieceColor == PlayerColor::White)
                 {
                     for (int i = 0; i < piecesLabels.size(); ++i)
                     {
@@ -210,6 +212,102 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
 
                 piecesLabels.erase(piecesLabels.begin() + takenPieceIndex);
             }
+
+            // Promotions
+            else if ((Move::AdditionalInfo)((uint16_t)firstPhaseMove.additionalInfo & (uint16_t)Move::promotionChecker) != Move::AdditionalInfo::None)
+            {
+                QDialog promotionDialog;
+                promotionDialog.setWindowFlags(Qt::CustomizeWindowHint /*| Qt::WindowTitleHint*/);
+                QGridLayout layout(&promotionDialog);
+                QPushButton promotionButtons[4];
+
+                for (int i = 0; i < 4; ++i)
+                {
+                    Piece::Type promotionPiece = promotionPieces[i];
+                    promotionButtons[i].setIcon(QIcon(piecesPixmaps.at((uint8_t)movingPieceColor | (uint8_t)promotionPiece)));
+                    promotionButtons[i].setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+                    promotionButtons[i].setMinimumSize(QSize(70, 70));
+                    promotionButtons[i].setMaximumSize(QSize(70, 70));
+                    promotionButtons[i].setIconSize(promotionButtons[i].size());
+                    layout.addWidget(promotionButtons + i, 0, i);
+                    connect(&promotionButtons[i], &QPushButton::clicked, this,
+                            [&, promotionPiece]()
+                            {
+                                PieceLabel* movingPieceLabel;
+
+                                for (const std::unique_ptr<PieceLabel>& pieceLabel : piecesLabels)
+                                {
+                                    if (sourceSquareX == pieceLabel->x && 7 - sourceSquareY == pieceLabel->y)
+                                    {
+                                        movingPieceLabel = pieceLabel.get();
+                                        break;
+                                    }
+                                }
+
+                                movingPieceLabel->setPixmap(piecesPixmaps.at((uint8_t)movingPieceColor | (uint8_t)promotionPiece));
+
+                                firstPhaseMove.additionalInfo = (Move::AdditionalInfo)((uint16_t)firstPhaseMove.additionalInfo & ~Move::promotionChecker);
+
+                                Move::AdditionalInfo promotionType;
+                                switch (promotionPiece)
+                                {
+                                    case Piece::Type::Queen:
+                                    {
+                                        promotionType = Move::AdditionalInfo::PromotionToQueen;
+                                        break;
+                                    }
+                                    case Piece::Type::Knight:
+                                    {
+                                        promotionType = Move::AdditionalInfo::PromotionToKnight;
+                                        break;
+                                    }
+                                    case Piece::Type::Rook:
+                                    {
+                                        promotionType = Move::AdditionalInfo::PromotionToRook;
+                                        break;
+                                    }
+                                    case Piece::Type::Bishop:
+                                    {
+                                        promotionType = Move::AdditionalInfo::PromotionToBishop;
+                                        break;
+                                    }
+                                }
+
+                                firstPhaseMove.additionalInfo = (Move::AdditionalInfo)((uint16_t)firstPhaseMove.additionalInfo | (uint16_t)promotionType);
+                                promotionDialog.accept();
+                            });
+                }
+
+                promotionDialog.exec();
+            }
+
+            // Castling
+            else if ((Move::AdditionalInfo)((uint16_t)firstPhaseMove.additionalInfo & (uint16_t)Move::castlingChecker) != Move::AdditionalInfo::None)
+            {
+                PieceLabel* rookLabel;
+                const auto& [rookSourceSquare, rookTargetSquare] = Move::ROOK_CASTLING_SQUARES.at(firstPhaseMove.additionalInfo);
+                int rookSourceY;
+                int rookSourceX;
+                int rookTargetY;
+                int rookTargetX;
+                SquareToBoardIndices(rookSourceSquare, rookSourceY, rookSourceX);
+                SquareToBoardIndices(rookTargetSquare, rookTargetY, rookTargetX);
+
+                for (const std::unique_ptr<PieceLabel>& pieceLabel : piecesLabels)
+                {
+                    if (rookSourceX == pieceLabel->x && 7 - rookSourceY == pieceLabel->y)
+                    {
+                        pieceLabel->x = rookTargetX;
+                        pieceLabel->y = 7 - rookTargetY;
+                        rookLabel = pieceLabel.get();
+                        break;
+                    }
+                }
+
+                chessboardPanel->removeWidget(rookLabel);
+                chessboardPanel->addWidget(rookLabel, 7 - rookTargetY, rookTargetX);
+            }
+
         }
         else
         {
@@ -290,7 +388,11 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
     {
         if (firstPhase)
         {
+            int sourceSquareX;
+            int sourceSquareY;
+            SquareToBoardIndices(selectedSquare, sourceSquareY, sourceSquareX);
             PlayerColor opponentsColor = session->position.playerToMove == PlayerColor::White ? PlayerColor::Black : PlayerColor::White;
+            PlayerColor movingPieceColor = session->position.playerToMove;
 
             // Selected piece wants to take enemy piece
             if (clickedPieceColor == (uint8_t)opponentsColor)
@@ -313,9 +415,73 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
                     return;
                 }
 
-                int sourceSquareX;
-                int sourceSquareY;
-                SquareToBoardIndices(selectedSquare, sourceSquareY, sourceSquareX);
+                // Promotions
+                if ((Move::AdditionalInfo)((uint16_t)firstPhaseMove.additionalInfo & (uint16_t)Move::promotionChecker) != Move::AdditionalInfo::None)
+                {
+                    QDialog promotionDialog;
+                    promotionDialog.setWindowFlags(Qt::CustomizeWindowHint /*| Qt::WindowTitleHint*/);
+                    QGridLayout layout(&promotionDialog);
+                    QPushButton promotionButtons[4];
+
+                    for (int i = 0; i < 4; ++i)
+                    {
+                        Piece::Type promotionPiece = promotionPieces[i];
+                        promotionButtons[i].setIcon(QIcon(piecesPixmaps.at((uint8_t)movingPieceColor | (uint8_t)promotionPiece)));
+                        promotionButtons[i].setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+                        promotionButtons[i].setMinimumSize(QSize(70, 70));
+                        promotionButtons[i].setMaximumSize(QSize(70, 70));
+                        promotionButtons[i].setIconSize(promotionButtons[i].size());
+                        layout.addWidget(promotionButtons + i, 0, i);
+                        connect(&promotionButtons[i], &QPushButton::clicked, this,
+                                [&, promotionPiece]()
+                                {
+                                    PieceLabel* movingPieceLabel;
+
+                                    for (const std::unique_ptr<PieceLabel>& pieceLabel : piecesLabels)
+                                    {
+                                        if (sourceSquareX == pieceLabel->x && 7 - sourceSquareY == pieceLabel->y)
+                                        {
+                                            movingPieceLabel = pieceLabel.get();
+                                            break;
+                                        }
+                                    }
+
+                                    movingPieceLabel->setPixmap(piecesPixmaps.at((uint8_t)movingPieceColor | (uint8_t)promotionPiece));
+
+                                    firstPhaseMove.additionalInfo = (Move::AdditionalInfo)((uint16_t)firstPhaseMove.additionalInfo & ~Move::promotionChecker);
+
+                                    Move::AdditionalInfo promotionType;
+                                    switch (promotionPiece)
+                                    {
+                                        case Piece::Type::Queen:
+                                        {
+                                            promotionType = Move::AdditionalInfo::PromotionToQueen;
+                                            break;
+                                        }
+                                        case Piece::Type::Knight:
+                                        {
+                                            promotionType = Move::AdditionalInfo::PromotionToKnight;
+                                            break;
+                                        }
+                                        case Piece::Type::Rook:
+                                        {
+                                            promotionType = Move::AdditionalInfo::PromotionToRook;
+                                            break;
+                                        }
+                                        case Piece::Type::Bishop:
+                                        {
+                                            promotionType = Move::AdditionalInfo::PromotionToBishop;
+                                            break;
+                                        }
+                                    }
+
+                                    firstPhaseMove.additionalInfo = (Move::AdditionalInfo)((uint16_t)firstPhaseMove.additionalInfo | (uint16_t)promotionType);
+                                    promotionDialog.accept();
+                                });
+                    }
+
+                    promotionDialog.exec();
+                }
 
                 //////////////////////////////////////////////////////////////
                 // Remove label from source sqaure and target square

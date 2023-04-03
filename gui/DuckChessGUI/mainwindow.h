@@ -29,6 +29,8 @@ public:
     void OnEmptySquareClicked(unsigned int x, unsigned int y);
     void OnPieceClicked(unsigned int x, unsigned int y);
 
+    std::unordered_map<BitPiece, QPixmap> piecesPixmaps;
+
 private:
     Ui::MainWindow *ui;
 
@@ -37,7 +39,7 @@ private:
     SquareFrame squareFrames[8][8];
     QTextEdit* fenTextEdit;
     std::vector<std::unique_ptr<PieceLabel>> piecesLabels;
-    std::unordered_map<BitPiece, QPixmap> piecesPixmaps;
+    const Piece::Type promotionPieces[4] = { Piece::Type::Queen, Piece::Type::Rook, Piece::Type::Knight, Piece::Type::Bishop };
 
     Square selectedSquare = Square::None;
     Move firstPhaseMove;
