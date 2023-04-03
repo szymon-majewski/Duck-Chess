@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>990</width>
+    <width>978</width>
     <height>741</height>
    </rect>
   </property>
@@ -115,23 +115,108 @@
       </layout>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="rightPanel" stretch="2,6,1">
+      <layout class="QVBoxLayout" name="rightPanel" stretch="3,5,1">
        <property name="sizeConstraint">
-        <enum>QLayout::SetDefaultConstraint</enum>
+        <enum>QLayout::SetFixedSize</enum>
        </property>
        <item>
-        <layout class="QHBoxLayout" name="enginePanel"/>
+        <layout class="QVBoxLayout" name="enginePanel">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetFixedSize</enum>
+         </property>
+         <item>
+          <layout class="QHBoxLayout" name="evaluationAndDepthLayout">
+           <item>
+            <widget class="QLabel" name="evaluationLabel">
+             <property name="text">
+              <string>0.0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="depthLabel">
+             <property name="text">
+              <string>Depth: </string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QLabel" name="bestMovesLabel">
+           <property name="text">
+            <string>-----</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="playerToMoveLabel">
+           <property name="text">
+            <string>White to move</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="movesNumbersLayout">
+           <item>
+            <widget class="QLabel" name="moveNumberLabel">
+             <property name="text">
+              <string>Move: 0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="rule50Label">
+             <property name="text">
+              <string>50 move rule status: </string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QLabel" name="castlingRightsLabel">
+           <property name="text">
+            <string>Castling Rights:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="castlingRightsWhiteLabel">
+           <property name="text">
+            <string>            White: -----</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="castlingRightsBlackLabel">
+           <property name="text">
+            <string>            Black: -----</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
-        <layout class="QGridLayout" name="movesPanel"/>
+        <layout class="QGridLayout" name="movesPanel">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetFixedSize</enum>
+         </property>
+        </layout>
        </item>
        <item>
         <layout class="QHBoxLayout" name="movesControllerPanel">
          <property name="sizeConstraint">
-          <enum>QLayout::SetMaximumSize</enum>
+          <enum>QLayout::SetFixedSize</enum>
          </property>
          <item>
           <widget class="QPushButton" name="fastBackwardsBtn">
+           <property name="minimumSize">
+            <size>
+             <width>82</width>
+             <height>24</height>
+            </size>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -139,6 +224,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="backwardsBtn">
+           <property name="minimumSize">
+            <size>
+             <width>82</width>
+             <height>24</height>
+            </size>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -146,6 +237,15 @@
          </item>
          <item>
           <widget class="QPushButton" name="forwardsBtn">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>82</width>
+             <height>24</height>
+            </size>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -153,6 +253,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="fastForwardsBtn">
+           <property name="minimumSize">
+            <size>
+             <width>82</width>
+             <height>24</height>
+            </size>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -170,7 +276,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>990</width>
+     <width>978</width>
      <height>21</height>
     </rect>
    </property>
