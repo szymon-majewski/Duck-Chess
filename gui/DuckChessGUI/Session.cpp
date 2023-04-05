@@ -14,3 +14,8 @@ void Session::UndoMove()
     position.UndoMove(moveMemento.RevertMove());
     winnerColor = PlayerColor::None;
 }
+
+void Session::Clear()
+{
+    moveMemento.Clear();
+}

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>978</width>
+    <width>929</width>
     <height>741</height>
    </rect>
   </property>
@@ -25,11 +25,11 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>971</width>
+      <width>911</width>
       <height>681</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="5,3">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0">
      <property name="spacing">
       <number>10</number>
      </property>
@@ -115,7 +115,7 @@
       </layout>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="rightPanel" stretch="3,5,1">
+      <layout class="QVBoxLayout" name="rightPanel" stretch="0,1,0">
        <property name="sizeConstraint">
         <enum>QLayout::SetFixedSize</enum>
        </property>
@@ -135,6 +135,12 @@
            </item>
            <item>
             <widget class="QLabel" name="depthLabel">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>Depth: </string>
              </property>
@@ -276,7 +282,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>978</width>
+     <width>929</width>
      <height>21</height>
     </rect>
    </property>

@@ -29,4 +29,5 @@ public:
 
     void SaveMove(FullMove move, Square enPassantTarget, uint8_t plyClock, CastlingRights castlingRights);
     PositionData RevertMove();
+    void Clear();
 };

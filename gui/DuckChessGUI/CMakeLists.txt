@@ -21,6 +21,12 @@ set(PROJECT_SOURCES
         PieceLabel.cpp
         SquareFrame.h
         SquareFrame.cpp
+        Engine.h
+        Engine.cpp
+        StandardPositionEvaluator.h
+        StandardPositionEvaluator.cpp
+        MaterialEvaluator.h
+        MaterialEvaluator.cpp
         Stack.h
         Session.h
         Session.cpp

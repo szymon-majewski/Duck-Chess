@@ -45,7 +45,7 @@ const std::string rokesFen = "8/r5RR/8/8/3R3k/1R3R2/3R4/3K4 w - - 0 1";
  
 int main(int argc, char** argv)
 {
-	Engine engine = Engine(promotionFen);
+	Engine engine = Engine(STARTING_POSITION_FEN);
 	engine.searchDepth = 3;
 
 	engine.Print();
@@ -54,6 +54,7 @@ int main(int argc, char** argv)
 
 	engine.playerColor = PlayerColor::White;
 	engine.GameLoop();
+
 
 	// BEST MOVES PATH PART
 

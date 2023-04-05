@@ -15,3 +15,8 @@ MoveMemento::PositionData MoveMemento::RevertMove()
 {
     return moveHistory.Pop();
 }
+
+void MoveMemento::Clear()
+{
+    moveHistory.Clear();
+}

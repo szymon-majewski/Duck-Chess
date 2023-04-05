@@ -32,7 +32,6 @@ Square BoardIndicesToSquare(const unsigned& y, const unsigned& x)
     return (Square)(y * Board::WIDTH + x + 1);
 }
 
-// Update: multiple pieces of same type in same row/file
 std::string MoveStringFormat(const FullMove& move, const Board& board)
 {
     std::string result;

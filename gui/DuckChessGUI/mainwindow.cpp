@@ -6,11 +6,13 @@
 
 extern Square BoardIndicesToSquare(const unsigned& y, const unsigned& x);
 extern void SquareToBoardIndices(const Square& square, int& y, int& x);
+extern std::string MoveStringFormat(const FullMove& move, const Board& board);
 
-MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, MovesGenerator* movesGenerator) :
+MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, MovesGenerator* movesGenerator, Engine* engine) :
     session(session),
     fenParser(fenParser),
     movesGenerator(movesGenerator),
+    engine(engine),
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
@@ -56,6 +58,17 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
         chessboardPanel->setColumnStretch(i, 1);
     }
 
+    // ENGINE PANEL
+    evaluationLabel = MainWindow::findChild<QLabel*>("evaluationLabel");
+    depthLabel = MainWindow::findChild<QLabel*>("depthLabel");
+    depthLabel->setText("Depth: " + QString::number(engine->searchDepth));
+    bestMovesLabel = MainWindow::findChild<QLabel*>("bestMovesLabel");
+    moveNumberLabel = MainWindow::findChild<QLabel*>("moveNumberLabel");
+    rule50Label = MainWindow::findChild<QLabel*>("rule50Label");
+    playerToMoveLabel = MainWindow::findChild<QLabel*>("playerToMoveLabel");
+    castlingRightsWhiteLabel = MainWindow::findChild<QLabel*>("castlingRightsWhiteLabel");
+    castlingRightsBlackLabel = MainWindow::findChild<QLabel*>("castlingRightsBlackLabel");
+
     // MOVES BUTTONS
     QPixmap forwardsPixmap(":/rsc/img/ui/forward.jpg");
     QPixmap fastForwardsPixmap(":/rsc/img/ui/fast_forward.jpg");
@@ -83,8 +96,14 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     // STARTING POSITION
     session->position = fenParser->ParseFen(STARTING_POSITION_FEN);
     session->position.materialDisparity = session->position.CountMaterial();
+    UpdatePositionLabels();
     unsigned int placeholder;
     currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
+
+    auto searchInfo = engine->Search(session->position);
+    UpdateEvaluationLabel(searchInfo->evaluation);
+    UpdateBestMovesLabel(searchInfo->movesPath);
+
     UpdateChessboard();
 }
 
@@ -97,10 +116,17 @@ void MainWindow::FenUpdateButtonPressed()
 {
     try
     {
+        session->Clear();
+        movesMade = 0;
         session->position = fenParser->ParseFen(fenTextEdit->toPlainText().toStdString());
         session->position.materialDisparity = session->position.CountMaterial();
+        UpdatePositionLabels();
         unsigned int placeholder;
         currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
+
+        auto searchInfo = engine->Search(session->position);
+        UpdateEvaluationLabel(searchInfo->evaluation);
+        UpdateBestMovesLabel(searchInfo->movesPath);
 
         if (selectedSquare != Square::None)
         {
@@ -312,8 +338,14 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         else
         {
             session->MakeMove(FullMove(firstPhaseMove, selectedSquare, targetSquare));
+            ++movesMade;
+            UpdatePositionLabels();
             unsigned int placeholder;
             currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
+
+            auto searchInfo = engine->Search(session->position);
+            UpdateEvaluationLabel(searchInfo->evaluation);
+            UpdateBestMovesLabel(searchInfo->movesPath);
         }
 
         //////////////////////////////////////////////////////////////
@@ -356,8 +388,14 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         duckOnTheBoard = true;
 
         session->MakeMove(FullMove(firstPhaseMove, selectedSquare, BoardIndicesToSquare(7 - y, x)));
+        UpdatePositionLabels();
+        ++movesMade;
         unsigned int placeholder;
         currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
+
+        auto searchInfo = engine->Search(session->position);
+        UpdateEvaluationLabel(searchInfo->evaluation);
+        UpdateBestMovesLabel(searchInfo->movesPath);
     }
 }
 
@@ -572,6 +610,130 @@ void MainWindow::DeselectSquare(Square square)
     SquareToBoardIndices(square, y, x);
 
     DeselectSquare(x, 7 - y);
+}
+
+void MainWindow::UpdateEvaluationLabel(Evaluation evaluation)
+{
+    QString newText = "Evaluation: ";
+
+    if (evaluation == POSITIVE_INFINITY_EVALUATION)
+    {
+        newText.append("1-0");
+    }
+    else if (evaluation == NEGATIVE_INFINITY_EVALUATION)
+    {
+        newText.append("0-1");
+    }
+    else
+    {
+        if (evaluation > 0)
+        {
+            newText.append('+');
+        }
+        newText.append(QString::number(evaluation / 100.0, 'f', 2));
+    }
+
+    evaluationLabel->setText(newText);
+}
+
+void MainWindow::UpdateBestMovesLabel(std::list<FullMove>& bestMovesList)
+{
+    if (!bestMovesList.size())
+    {
+        return;
+    }
+
+    std::vector<FullMove> bestMovesVector(std::begin(bestMovesList), std::end(bestMovesList));
+    QString newText = QString::number(session->position.fullMovesCount) + '.';
+    unsigned int movesWritten = 0;
+    unsigned int additionalMoveNumber = 0;
+
+    if (session->position.playerToMove == PlayerColor::White)
+    {
+        newText.append(' ' + QString::fromStdString(MoveStringFormat(bestMovesVector[0], session->position.board)));
+        session->MakeMove(bestMovesVector[0]);
+        ++movesWritten;
+
+        if (bestMovesVector.size() > 1)
+        {
+            newText.append(' ' + QString::fromStdString(MoveStringFormat(bestMovesVector[1], session->position.board)));
+            session->MakeMove(bestMovesVector[1]);
+            ++movesWritten;
+        }
+
+        for (; movesWritten < bestMovesVector.size(); ++movesWritten)
+        {
+            if (movesWritten % 2 == 0)
+            {
+                newText.append(' ' + QString::number(session->position.fullMovesCount + additionalMoveNumber) + '.');
+                ++additionalMoveNumber;
+            }
+
+            newText.append(' ' + QString::fromStdString(MoveStringFormat(bestMovesVector[movesWritten], session->position.board)));
+            session->MakeMove(bestMovesVector[movesWritten]);
+        }
+    }
+    else
+    {
+        newText.append(" ... " + QString::fromStdString(MoveStringFormat(bestMovesVector[0], session->position.board)));
+        session->MakeMove(bestMovesVector[0]);
+        ++movesWritten;
+        ++additionalMoveNumber;
+
+        for (; movesWritten < bestMovesVector.size(); ++movesWritten)
+        {
+            if (movesWritten % 2 == 1)
+            {
+                newText.append(' ' + QString::number(session->position.fullMovesCount + movesWritten / 2) + '.');
+                ++additionalMoveNumber;
+            }
+
+            newText.append(' ' + QString::fromStdString(MoveStringFormat(bestMovesVector[movesWritten], session->position.board)));
+            session->MakeMove(bestMovesVector[movesWritten]);
+        }
+    }
+
+    for (int i = 0; i < bestMovesVector.size(); ++i)
+    {
+        session->UndoMove();
+    }
+
+    bestMovesLabel->setText(newText);
+}
+
+void MainWindow::UpdatePositionLabels()
+{
+    moveNumberLabel->setText("Move: " + QString::number(session->position.fullMovesCount));
+    rule50Label->setText("50 move rule status: " + QString::number(session->position.plyClock));
+    playerToMoveLabel->setText(QString(session->position.playerToMove == PlayerColor::White ? "White" : "Black") + " to move");
+
+    uint8_t whiteKingside = (uint8_t) session->position.castlingRights & (uint8_t)CastlingRights::WhiteKingside;
+    uint8_t whiteQueenside = (uint8_t)session->position.castlingRights & (uint8_t)CastlingRights::WhiteQueenside;
+    uint8_t blackKingside = (uint8_t) session->position.castlingRights & (uint8_t)CastlingRights::BlackKingside;
+    uint8_t blackQueenside = (uint8_t)session->position.castlingRights & (uint8_t)CastlingRights::BlackQueenside;
+
+    SetCastlingRightsLabel(castlingRightsWhiteLabel, "White", whiteKingside, whiteQueenside);
+    SetCastlingRightsLabel(castlingRightsBlackLabel, "Black", blackKingside, blackQueenside);
+}
+
+void MainWindow::SetCastlingRightsLabel(QLabel* label, QString textToSet, const uint8_t kingside, const uint8_t queenside)
+{
+    textToSet.append(": ");
+
+    if (!(kingside || queenside))
+    {
+        textToSet.append("-----");
+    }
+
+    if (kingside) { textToSet.append("Kingside"); }
+    if (queenside)
+    {
+        if (kingside) { textToSet.append(", "); }
+
+        textToSet.append("Queenside");
+    }
+
+    label->setText(textToSet);
 }
 
 void MainWindow::InitPiecesPixmaps()

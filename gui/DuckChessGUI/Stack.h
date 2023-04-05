@@ -16,6 +16,7 @@ public:
 
     void Push(T element);
     T Pop();
+    void Clear();
 };
 
 template<typename T, unsigned int N>
@@ -32,4 +33,10 @@ inline T Stack<T, N>::Pop()
     --headIndex;
 
     return popped;
+}
+
+template<typename T, unsigned int N>
+inline void Stack<T, N>::Clear()
+{
+    headIndex = -1;
 }

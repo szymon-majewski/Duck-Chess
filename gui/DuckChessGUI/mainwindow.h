@@ -11,6 +11,7 @@
 #include "FenParser.h"
 #include "Session.h"
 #include "MovesGenerator.h"
+#include "Engine.h"
 #include "PieceLabel.h"
 #include "SquareFrame.h"
 
@@ -23,7 +24,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr, Session* session = nullptr, FenParser* fenParser = nullptr, MovesGenerator* movesGenerator = nullptr);
+    MainWindow(QWidget *parent = nullptr, Session* session = nullptr, FenParser* fenParser = nullptr, MovesGenerator* movesGenerator = nullptr, Engine* engine = nullptr);
     ~MainWindow();
 
     void OnEmptySquareClicked(unsigned int x, unsigned int y);
@@ -38,6 +39,14 @@ private:
     QGridLayout* chessboardPanel;
     SquareFrame squareFrames[8][8];
     QTextEdit* fenTextEdit;
+    QLabel* evaluationLabel;
+    QLabel* depthLabel;
+    QLabel* bestMovesLabel;
+    QLabel* moveNumberLabel;
+    QLabel* rule50Label;
+    QLabel* playerToMoveLabel;
+    QLabel* castlingRightsWhiteLabel;
+    QLabel* castlingRightsBlackLabel;
     std::vector<std::unique_ptr<PieceLabel>> piecesLabels;
     const Piece::Type promotionPieces[4] = { Piece::Type::Queen, Piece::Type::Rook, Piece::Type::Knight, Piece::Type::Bishop };
 
@@ -53,9 +62,11 @@ private:
     const QColor SELECTED_DARK_SQUARE_COLOR = QColor(32, 61, 109);
 
     // Engine stuff
+    Engine* engine;
     FenParser* fenParser;
     Session* session;
     MovesGenerator* movesGenerator;
+    unsigned int movesMade = 0;
 
     // Window methods
     void InitPiecesPixmaps();
@@ -64,6 +75,10 @@ private:
     void SelectSquare(Square square);
     void DeselectSquare(unsigned int x, unsigned int y);
     void DeselectSquare(Square square);
+    void UpdateEvaluationLabel(Evaluation evaluation);
+    void UpdateBestMovesLabel(std::list<FullMove>& bestMovesList);
+    void UpdatePositionLabels();
+    void SetCastlingRightsLabel(QLabel* label, QString textToSet, const uint8_t kingside, const uint8_t queenside);
 
 private slots:
     void FenUpdateButtonPressed();

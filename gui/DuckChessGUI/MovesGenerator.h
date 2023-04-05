@@ -37,6 +37,6 @@ public:
 private:
 
     void AssignSquare(Piece const* piece, unsigned& y, unsigned& x, PlayerColor movingPlayerColor);
-    void GenerateLongRangePieceMoves(std::list<Move>& legalMoves, Piece::Type pieceType, const Board& board, unsigned int& numberOfCaptureMoves);
-    void GeneratePawnsMoves(std::list<Move>& legalPiecesMoves, const Position& position, unsigned int& numberOfCaptureMoves);
+    void GenerateLongRangePieceMoves(std::unique_ptr<std::list<Move>>& legalMoves, Piece::Type pieceType, const Board& board, unsigned int& numberOfCaptureMoves);
+    void GeneratePawnsMoves(std::unique_ptr<std::list<Move>>& legalPiecesMoves, const Position& position, unsigned int& numberOfCaptureMoves);
 };

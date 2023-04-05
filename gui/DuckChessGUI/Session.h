@@ -19,4 +19,5 @@ public:
 
     void MakeMove(const FullMove& move);
     void UndoMove();
+    void Clear();
 };
