@@ -23,6 +23,8 @@ set(PROJECT_SOURCES
         SquareFrame.cpp
         Engine.h
         Engine.cpp
+        EngineWorker.h
+        EngineWorker.cpp
         StandardPositionEvaluator.h
         StandardPositionEvaluator.cpp
         MaterialEvaluator.h

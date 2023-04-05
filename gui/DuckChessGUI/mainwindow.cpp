@@ -8,11 +8,11 @@ extern Square BoardIndicesToSquare(const unsigned& y, const unsigned& x);
 extern void SquareToBoardIndices(const Square& square, int& y, int& x);
 extern std::string MoveStringFormat(const FullMove& move, const Board& board);
 
-MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, MovesGenerator* movesGenerator, Engine* engine) :
+MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, MovesGenerator* movesGenerator, EngineWorker* engineWorker) :
     session(session),
     fenParser(fenParser),
     movesGenerator(movesGenerator),
-    engine(engine),
+    engineWorker(engineWorker),
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
@@ -23,6 +23,11 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
 
     // INIT
     InitPiecesPixmaps();
+    engineThread = std::make_unique<QThread>();
+    engineWorker->moveToThread(engineThread.get());
+    connect(engineWorker, SIGNAL(ResultReady(Engine::SearchInfo)), this, SLOT(HandleEngineResult(Engine::SearchInfo)));
+    connect(this, SIGNAL(StartEngine(Position)), engineWorker, SLOT(Search(Position)));
+    engineThread->start(QThread::TimeCriticalPriority);
 
     // CHESSBOARD
     chessboardPanel = MainWindow::findChild<QGridLayout*>("chessboardPanel");
@@ -61,7 +66,7 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     // ENGINE PANEL
     evaluationLabel = MainWindow::findChild<QLabel*>("evaluationLabel");
     depthLabel = MainWindow::findChild<QLabel*>("depthLabel");
-    depthLabel->setText("Depth: " + QString::number(engine->searchDepth));
+    depthLabel->setText("Depth: " + QString::number(engineWorker->Depth()));
     bestMovesLabel = MainWindow::findChild<QLabel*>("bestMovesLabel");
     moveNumberLabel = MainWindow::findChild<QLabel*>("moveNumberLabel");
     rule50Label = MainWindow::findChild<QLabel*>("rule50Label");
@@ -100,9 +105,7 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     unsigned int placeholder;
     currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
 
-    auto searchInfo = engine->Search(session->position);
-    UpdateEvaluationLabel(searchInfo->evaluation);
-    UpdateBestMovesLabel(searchInfo->movesPath);
+    emit StartEngine(session->position);
 
     UpdateChessboard();
 }
@@ -124,9 +127,7 @@ void MainWindow::FenUpdateButtonPressed()
         unsigned int placeholder;
         currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
 
-        auto searchInfo = engine->Search(session->position);
-        UpdateEvaluationLabel(searchInfo->evaluation);
-        UpdateBestMovesLabel(searchInfo->movesPath);
+        emit StartEngine(session->position);
 
         if (selectedSquare != Square::None)
         {
@@ -172,6 +173,12 @@ void MainWindow::UpdateChessboard()
             }
         }
     }
+}
+
+void MainWindow::HandleEngineResult(const Engine::SearchInfo& result)
+{
+    UpdateEvaluationLabel(result.evaluation);
+    UpdateBestMovesLabel(result.movesPath);
 }
 
 void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
@@ -343,9 +350,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
             unsigned int placeholder;
             currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
 
-            auto searchInfo = engine->Search(session->position);
-            UpdateEvaluationLabel(searchInfo->evaluation);
-            UpdateBestMovesLabel(searchInfo->movesPath);
+            emit StartEngine(session->position);
         }
 
         //////////////////////////////////////////////////////////////
@@ -393,9 +398,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         unsigned int placeholder;
         currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
 
-        auto searchInfo = engine->Search(session->position);
-        UpdateEvaluationLabel(searchInfo->evaluation);
-        UpdateBestMovesLabel(searchInfo->movesPath);
+        emit StartEngine(session->position);
     }
 }
 
@@ -612,7 +615,7 @@ void MainWindow::DeselectSquare(Square square)
     DeselectSquare(x, 7 - y);
 }
 
-void MainWindow::UpdateEvaluationLabel(Evaluation evaluation)
+void MainWindow::UpdateEvaluationLabel(const Evaluation evaluation)
 {
     QString newText = "Evaluation: ";
 
@@ -636,7 +639,7 @@ void MainWindow::UpdateEvaluationLabel(Evaluation evaluation)
     evaluationLabel->setText(newText);
 }
 
-void MainWindow::UpdateBestMovesLabel(std::list<FullMove>& bestMovesList)
+void MainWindow::UpdateBestMovesLabel(const std::list<FullMove>& bestMovesList)
 {
     if (!bestMovesList.size())
     {

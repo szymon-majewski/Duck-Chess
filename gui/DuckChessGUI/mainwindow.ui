@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>929</width>
-    <height>741</height>
+    <width>931</width>
+    <height>685</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,7 +26,7 @@
       <x>0</x>
       <y>0</y>
       <width>911</width>
-      <height>681</height>
+      <height>631</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0">
@@ -208,6 +208,22 @@
          <property name="sizeConstraint">
           <enum>QLayout::SetFixedSize</enum>
          </property>
+         <item row="0" column="0">
+          <widget class="QFrame" name="frame">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
        <item>
@@ -282,7 +298,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>929</width>
+     <width>931</width>
      <height>21</height>
     </rect>
    </property>

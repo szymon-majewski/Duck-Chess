@@ -5,13 +5,14 @@
 #include <QGridLayout>
 #include <QTextEdit>
 #include <QLabel>
+#include <QThread>
 
 #include <memory>
 
 #include "FenParser.h"
 #include "Session.h"
 #include "MovesGenerator.h"
-#include "Engine.h"
+#include "EngineWorker.h"
 #include "PieceLabel.h"
 #include "SquareFrame.h"
 
@@ -24,7 +25,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr, Session* session = nullptr, FenParser* fenParser = nullptr, MovesGenerator* movesGenerator = nullptr, Engine* engine = nullptr);
+    MainWindow(QWidget *parent = nullptr, Session* session = nullptr, FenParser* fenParser = nullptr, MovesGenerator* movesGenerator = nullptr, EngineWorker* engineWorker = nullptr);
     ~MainWindow();
 
     void OnEmptySquareClicked(unsigned int x, unsigned int y);
@@ -62,7 +63,8 @@ private:
     const QColor SELECTED_DARK_SQUARE_COLOR = QColor(32, 61, 109);
 
     // Engine stuff
-    Engine* engine;
+    EngineWorker* engineWorker;
+    std::unique_ptr<QThread> engineThread;
     FenParser* fenParser;
     Session* session;
     MovesGenerator* movesGenerator;
@@ -75,12 +77,16 @@ private:
     void SelectSquare(Square square);
     void DeselectSquare(unsigned int x, unsigned int y);
     void DeselectSquare(Square square);
-    void UpdateEvaluationLabel(Evaluation evaluation);
-    void UpdateBestMovesLabel(std::list<FullMove>& bestMovesList);
+    void UpdateEvaluationLabel(const Evaluation evaluation);
+    void UpdateBestMovesLabel(const std::list<FullMove>& bestMovesList);
     void UpdatePositionLabels();
     void SetCastlingRightsLabel(QLabel* label, QString textToSet, const uint8_t kingside, const uint8_t queenside);
 
 private slots:
     void FenUpdateButtonPressed();
+    void HandleEngineResult(const Engine::SearchInfo& result);
+
+signals:
+    void StartEngine(const Position& position);
 };
 #endif // MAINWINDOW_H

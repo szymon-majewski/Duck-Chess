@@ -2,7 +2,7 @@
 #include "FenParser.h"
 #include "Session.h"
 #include "MovesGenerator.h"
-#include "Engine.h"
+#include "EngineWorker.h"
 
 #include <QApplication>
 
@@ -13,9 +13,9 @@ int main(int argc, char *argv[])
     Session session = Session(Position());
     FenParser fenParser;
     MovesGenerator movesGenerator;
-    Engine engine;
+    EngineWorker engineWorker;
 
-    MainWindow w(nullptr, &session, &fenParser, &movesGenerator, &engine);
+    MainWindow w(nullptr, &session, &fenParser, &movesGenerator, &engineWorker);
 
     w.show();
 

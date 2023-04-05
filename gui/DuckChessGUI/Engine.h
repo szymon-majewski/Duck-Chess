@@ -15,7 +15,7 @@ private: /*DEBUG ->*/ public:
     std::unique_ptr<PositionEvaluator> evaluator;
 
     unsigned searchDepth;
-    const unsigned DEFAULT_SEARCH_DEPTH = 3;
+    const unsigned DEFAULT_SEARCH_DEPTH = 4;
 
 public:
     class SearchInfo
