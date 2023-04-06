@@ -6,6 +6,7 @@
 #include <QTextEdit>
 #include <QLabel>
 #include <QThread>
+#include <QScrollArea>
 
 #include <memory>
 
@@ -49,6 +50,9 @@ private:
     QLabel* playerToMoveLabel;
     QLabel* castlingRightsWhiteLabel;
     QLabel* castlingRightsBlackLabel;
+    QScrollArea* movesScrollArea;
+    std::unique_ptr<QWidget> scrollWidget;
+    std::unique_ptr<QGridLayout> movesGridLayout;
     std::vector<std::unique_ptr<PieceLabel>> piecesLabels;
     const Piece::Type promotionPieces[4] = { Piece::Type::Queen, Piece::Type::Rook, Piece::Type::Knight, Piece::Type::Bishop };
 
@@ -84,6 +88,7 @@ private:
     void UpdateBestMovesLabel(const std::list<FullMove>& bestMovesList);
     void UpdatePositionLabels();
     void SetCastlingRightsLabel(QLabel* label, QString textToSet, const uint8_t kingside, const uint8_t queenside);
+    void AddMoveToList(const FullMove& move);
 
 private slots:
     void FenUpdateButtonPressed();

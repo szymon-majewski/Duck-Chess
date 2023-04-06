@@ -1,4 +1,5 @@
 #include <QLabel>
+#include <QScrollBar>
 
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
@@ -19,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     ui->setupUi(this);
     setWindowTitle("Duck Chess Engine");
     setWindowIcon(QIcon(":/rsc/img/pieces/duck.png"));
-    setFixedSize(950, 650);
+    setFixedSize(900, 650);
 
     // INIT
     InitPiecesPixmaps();
@@ -74,6 +75,20 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     playerToMoveLabel = MainWindow::findChild<QLabel*>("playerToMoveLabel");
     castlingRightsWhiteLabel = MainWindow::findChild<QLabel*>("castlingRightsWhiteLabel");
     castlingRightsBlackLabel = MainWindow::findChild<QLabel*>("castlingRightsBlackLabel");
+
+    // MOVES PANEL
+    movesScrollArea = MainWindow::findChild<QScrollArea*>("movesScrollArea");
+    scrollWidget = std::make_unique<QWidget>();
+    movesGridLayout = std::make_unique<QGridLayout>();
+    movesGridLayout->setAlignment(Qt::AlignTop);
+    movesScrollArea->setWidget(scrollWidget.get());
+    scrollWidget->setLayout(movesGridLayout.get());
+    movesScrollArea->setWidgetResizable(true);
+    movesScrollArea->setWidget(scrollWidget.get());
+
+    movesGridLayout->setColumnStretch(0, 1);
+    movesGridLayout->setColumnStretch(1, 1);
+    movesGridLayout->setColumnStretch(2, 1);
 
     // MOVES BUTTONS
     QPixmap forwardsPixmap(":/rsc/img/ui/forward.jpg");
@@ -471,6 +486,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         else
         {
             auto newMove = FullMove(firstPhaseMove, selectedSquare, targetSquare);
+            AddMoveToList(newMove);
             session->MakeMove(newMove);
             emit StartEngine(session->position);
 
@@ -482,6 +498,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
 
             movesMade.emplace_back(newMove);
             ++currentMoveIndex;
+
             UpdatePositionLabels();
             unsigned int placeholder;
             currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
@@ -527,6 +544,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         duckOnTheBoard = true;
 
         auto newMove = FullMove(firstPhaseMove, selectedSquare, BoardIndicesToSquare(7 - y, x));
+        AddMoveToList(newMove);
         session->MakeMove(newMove);
         emit StartEngine(session->position);
 
@@ -536,9 +554,10 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
             movesMade.erase(movesMade.begin() + currentMoveIndex + 1, movesMade.end());
         }
 
-        UpdatePositionLabels();
         movesMade.emplace_back(newMove);
         ++currentMoveIndex;
+
+        UpdatePositionLabels();
         unsigned int placeholder;
         currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
     }
@@ -730,6 +749,31 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
             }
         }
     }
+}
+
+void MainWindow::AddMoveToList(const FullMove& move)
+{
+    QLabel* moveLabel = new QLabel();
+    moveLabel->setText(QString::fromStdString(MoveStringFormat(move, session->position.board)));
+    moveLabel->setAlignment(Qt::AlignLeft);
+    unsigned int rowIndex = movesMade.size() / 2;
+
+    if (session->position.playerToMove == PlayerColor::White)
+    {
+        QLabel* moveNumberScrollAreaLabel = new QLabel();
+        moveNumberScrollAreaLabel->setText(QString::number(session->position.fullMovesCount) + '.');
+        moveNumberScrollAreaLabel->setAlignment(Qt::AlignLeft);
+        movesGridLayout->addWidget(moveNumberScrollAreaLabel, rowIndex, 0);
+
+        movesGridLayout->addWidget(moveLabel, rowIndex, 1);
+    }
+    else
+    {
+        movesGridLayout->addWidget(moveLabel, rowIndex, 2);
+    }
+
+    QScrollBar* verticalScrollBar = movesScrollArea->verticalScrollBar();
+    verticalScrollBar->setValue(verticalScrollBar->maximum());
 }
 
 void MainWindow::SelectSquare(unsigned int x, unsigned int y)
