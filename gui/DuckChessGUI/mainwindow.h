@@ -53,6 +53,7 @@ private:
     QScrollArea* movesScrollArea;
     std::unique_ptr<QWidget> scrollWidget;
     std::unique_ptr<QGridLayout> movesGridLayout;
+    QLabel* lastMovePlayedScrollAreaLabel = nullptr;
     std::vector<std::unique_ptr<PieceLabel>> piecesLabels;
     const Piece::Type promotionPieces[4] = { Piece::Type::Queen, Piece::Type::Rook, Piece::Type::Knight, Piece::Type::Bishop };
 

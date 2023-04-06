@@ -774,6 +774,14 @@ void MainWindow::AddMoveToList(const FullMove& move)
 
     QScrollBar* verticalScrollBar = movesScrollArea->verticalScrollBar();
     verticalScrollBar->setValue(verticalScrollBar->maximum());
+
+    if (lastMovePlayedScrollAreaLabel)
+    {
+        lastMovePlayedScrollAreaLabel->setStyleSheet("");
+    }
+
+    moveLabel->setStyleSheet("background-color: #cccccc");
+    lastMovePlayedScrollAreaLabel = moveLabel;
 }
 
 void MainWindow::SelectSquare(unsigned int x, unsigned int y)
