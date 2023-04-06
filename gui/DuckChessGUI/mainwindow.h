@@ -71,6 +71,7 @@ private:
     MovesGenerator* movesGenerator;
     bool gameEnded = false;
     std::vector<FullMove> movesMade;
+    int currentMoveIndex = -1;
 
     // Window methods
     void InitPiecesPixmaps();

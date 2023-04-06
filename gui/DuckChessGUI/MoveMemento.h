@@ -21,7 +21,7 @@ public:
         PositionData(FullMove move, Square enPassantTarget, uint8_t plyClock, CastlingRights castlingRights);
     };
 
-private: /*DEBUG*/ public:
+private:
 
     Stack<PositionData, MAX_GAME_LENGTH> moveHistory;
 

@@ -30,8 +30,6 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     connect(this, SIGNAL(StartEngine(Position)), engineWorker, SLOT(Search(Position)));
     engineThread->start(QThread::TimeCriticalPriority);
 
-    movesStack = &session->moveMemento.moveHistory;
-
     // CHESSBOARD
     chessboardPanel = MainWindow::findChild<QGridLayout*>("chessboardPanel");
 
@@ -125,21 +123,11 @@ void MainWindow::FenUpdateButtonPressed()
     try
     {
         session->Clear();
-        movesMade = 0;
+        movesMade.clear();
+        currentMoveIndex = -1;
         gameEnded = false;
         session->position = fenParser->ParseFen(fenTextEdit->toPlainText().toStdString());
         session->position.materialDisparity = session->position.CountMaterial();
-        emit StartEngine(session->position);
-        UpdatePositionLabels();
-        unsigned int placeholder;
-        currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
-
-        if (selectedSquare != Square::None)
-        {
-            DeselectSquare(selectedSquare);
-            selectedSquare = Square::None;
-        }
-        firstPhase = true;
 
         UpdateChessboard();
     }
@@ -151,6 +139,18 @@ void MainWindow::FenUpdateButtonPressed()
 
 void MainWindow::UpdateChessboard()
 {
+    emit StartEngine(session->position);
+    UpdatePositionLabels();
+    unsigned int placeholder;
+    currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
+
+    if (selectedSquare != Square::None)
+    {
+        DeselectSquare(selectedSquare);
+        selectedSquare = Square::None;
+    }
+    firstPhase = true;
+
     piecesLabels.clear();
     duckOnTheBoard = false;
 
@@ -191,18 +191,23 @@ void MainWindow::HandleEngineResult(const Engine::SearchInfo& result)
 
 void MainWindow::OnBackwardsButtonPressed()
 {
+    if (currentMoveIndex < 0)
+    {
+        return;
+    }
+
+    PlayerColor opponentsColor = session->position.playerToMove == PlayerColor::White ? PlayerColor::Black : PlayerColor::White;
+    PieceLabel* movingPieceLabel;
+    int sourceSquareX;
+    int sourceSquareY;
+    int targetSquareX;
+    int targetSquareY;
+
+    SquareToBoardIndices(firstPhaseMove.sourceSquare, sourceSquareY, sourceSquareX);
+    SquareToBoardIndices(firstPhaseMove.targetSquare, targetSquareY, targetSquareX);
+
     if (gameEnded)
     {
-        PieceLabel* movingPieceLabel;
-        unsigned int takenPieceIndex;
-        unsigned int breakChecker = 0;
-        int sourceSquareX;
-        int sourceSquareY;
-        int targetSquareX;
-        int targetSquareY;
-        SquareToBoardIndices(firstPhaseMove.sourceSquare, sourceSquareY, sourceSquareX);
-        SquareToBoardIndices(firstPhaseMove.targetSquare, targetSquareY, targetSquareX);
-
         // Piece which took the king
         for (const std::unique_ptr<PieceLabel>& pieceLabel : piecesLabels)
         {
@@ -219,24 +224,144 @@ void MainWindow::OnBackwardsButtonPressed()
         chessboardPanel->addWidget(movingPieceLabel, 7 - sourceSquareY, sourceSquareX);
 
         // King itself
-        PlayerColor kingsColor = session->position.playerToMove == PlayerColor::White ? PlayerColor::Black : PlayerColor::White;
-
         auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, targetSquareX, 7 - targetSquareY));
         insertedLabel->setAlignment(Qt::AlignCenter);
-        insertedLabel->setPixmap(piecesPixmaps.at((uint8_t)Piece::Type::King | (uint8_t)kingsColor));
+        insertedLabel->setPixmap(piecesPixmaps.at((uint8_t)Piece::Type::King | (uint8_t)opponentsColor));
         insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
         insertedLabel->setScaledContents(true);
         chessboardPanel->addWidget(insertedLabel.get(), 7 - targetSquareY, targetSquareX);
 
         emit StartEngine(session->position);
 
-        firstPhase = true;
         gameEnded = false;
     }
     else
     {
+//        int duckSourceSquareX;
+//        int duckSourceSquareY;
+//        int duckTargetSquareX;
+//        int duckTargetSquareY;
 
+//        SquareToBoardIndices(movesMade[currentMoveIndex].sourceDuckSquare, duckSourceSquareY, duckSourceSquareX);
+//        SquareToBoardIndices(movesMade[currentMoveIndex].targetDuckSquare, duckTargetSquareY, duckTargetSquareX);
+
+//        // Clear duck square
+//        PieceLabel* duckLabel;
+
+//        for (const std::unique_ptr<PieceLabel>& pieceLabel : piecesLabels)
+//        {
+//            if (targetSquareX == pieceLabel->x && 7 - targetSquareY == pieceLabel->y)
+//            {
+//                pieceLabel->x = sourceSquareX;
+//                pieceLabel->y = 7 - sourceSquareY;
+//                movingPieceLabel = pieceLabel.get();
+//            }
+//            else if (duckTargetSquareX == pieceLabel->x && 7 - duckTargetSquareY == pieceLabel->y)
+//            {
+//                pieceLabel->x = duckSourceSquareX;
+//                pieceLabel->y = 7 - duckSourceSquareY;
+//                duckLabel = pieceLabel.get();
+//            }
+//        }
+
+//        chessboardPanel->removeWidget(duckLabel);
+//        chessboardPanel->addWidget(duckLabel, 7 - duckSourceSquareY, duckSourceSquareX);
+
+//        chessboardPanel->removeWidget(movingPieceLabel);
+//        chessboardPanel->addWidget(movingPieceLabel, 7 - sourceSquareY, sourceSquareX);
+
+//        // Check if any piece was taken
+//        Move::AdditionalInfo captureAdditionalInfo;
+
+//        if ((captureAdditionalInfo = (Move::AdditionalInfo)((uint16_t)movesMade[currentMoveIndex].additionalInfo & (uint16_t)Move::captureChecker)) != Move::AdditionalInfo::None)
+//        {
+//            Piece::Type capturedPieceType;
+
+//            switch (captureAdditionalInfo)
+//            {
+//                case Move::AdditionalInfo::CapturedPawn: { capturedPieceType = Piece::Type::Pawn; break; }
+//                case Move::AdditionalInfo::CapturedBishop: { capturedPieceType = Piece::Type::Bishop; break; }
+//                case Move::AdditionalInfo::CapturedKnight: { capturedPieceType = Piece::Type::Knight; break; }
+//                case Move::AdditionalInfo::CapturedRook: { capturedPieceType = Piece::Type::Rook; break; }
+//                case Move::AdditionalInfo::CapturedQueen: { capturedPieceType = Piece::Type::Queen; break; }
+//                case Move::AdditionalInfo::CapturedKing: { capturedPieceType = Piece::Type::King; break; }
+//                default: { capturedPieceType = Piece::Type::None; }
+//            }
+
+//            auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, targetSquareX, 7 - targetSquareY));
+//            insertedLabel->setAlignment(Qt::AlignCenter);
+//            insertedLabel->setPixmap(piecesPixmaps.at((uint8_t)capturedPieceType | (uint8_t)opponentsColor));
+//            insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+//            insertedLabel->setScaledContents(true);
+//            chessboardPanel->addWidget(insertedLabel.get(), 7 - targetSquareY, targetSquareX);
+//        }
+
+//        // En passant
+//        if ((Move::AdditionalInfo)((uint16_t)movesMade[currentMoveIndex].additionalInfo & (uint16_t)Move::AdditionalInfo::EnPassant) != Move::AdditionalInfo::None)
+//        {
+//            if (session->position.playerToMove == PlayerColor::White)
+//            {
+//                auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, targetSquareX, 7 - targetSquareY - 1));
+//                insertedLabel->setAlignment(Qt::AlignCenter);
+//                insertedLabel->setPixmap(piecesPixmaps.at((uint8_t)Piece::Type::Pawn | (uint8_t)opponentsColor));
+//                insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+//                insertedLabel->setScaledContents(true);
+//                chessboardPanel->addWidget(insertedLabel.get(), 7 - targetSquareY - 1, targetSquareX);
+//            }
+//            else
+//            {
+//                auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, targetSquareX, 7 - targetSquareY + 1));
+//                insertedLabel->setAlignment(Qt::AlignCenter);
+//                insertedLabel->setPixmap(piecesPixmaps.at((uint8_t)Piece::Type::Pawn | (uint8_t)opponentsColor));
+//                insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+//                insertedLabel->setScaledContents(true);
+//                chessboardPanel->addWidget(insertedLabel.get(), 7 - targetSquareY + 1, targetSquareX);
+//            }
+
+//        }
+
+//        // Promotions
+//        if ((Move::AdditionalInfo)((uint16_t)movesMade[currentMoveIndex].additionalInfo & (uint16_t)Move::promotionChecker) != Move::AdditionalInfo::None)
+//        {
+//            movingPieceLabel->setPixmap(piecesPixmaps.at((uint8_t)Piece::Type::Pawn | (uint8_t)session->position.playerToMove));
+//        }
+//        // Castling
+//        Move::AdditionalInfo castlingAdditionalInfo;
+
+//        if ((castlingAdditionalInfo = (Move::AdditionalInfo)((uint16_t)movesMade[currentMoveIndex].additionalInfo & (uint16_t)Move::castlingChecker)) != Move::AdditionalInfo::None)
+//        {
+//            const auto& [rookSourceSquare, rookTargetSquare] = Move::ROOK_CASTLING_SQUARES.at(castlingAdditionalInfo);
+
+//            PieceLabel* rookLabel;
+//            int rookSourceSquareX;
+//            int rookSourceSquareY;
+//            int rookTargetSquareX;
+//            int rookTargetSquareY;
+
+//            SquareToBoardIndices(rookSourceSquare, rookSourceSquareY, rookSourceSquareX);
+//            SquareToBoardIndices(rookTargetSquare, rookTargetSquareY, rookTargetSquareX);
+
+//            for (const std::unique_ptr<PieceLabel>& pieceLabel : piecesLabels)
+//            {
+//                if (rookTargetSquareX == pieceLabel->x && 7 - rookTargetSquareY == pieceLabel->y)
+//                {
+//                    pieceLabel->x = sourceSquareX;
+//                    pieceLabel->y = 7 - sourceSquareY;
+//                    rookLabel = pieceLabel.get();
+//                    break;
+//                }
+//            }
+
+//            chessboardPanel->removeWidget(rookLabel);
+//            chessboardPanel->addWidget(rookLabel, 7 - rookSourceSquareY, rookSourceSquareX);
+//        }
+
+        session->UndoMove();
+        UpdateChessboard();
     }
+
+    --currentMoveIndex;
+    firstPhase = true;
 }
 
 void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
@@ -407,9 +532,11 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         }
         else
         {
-            session->MakeMove(FullMove(firstPhaseMove, selectedSquare, targetSquare));
+            auto newMove = FullMove(firstPhaseMove, selectedSquare, targetSquare);
+            session->MakeMove(newMove);
             emit StartEngine(session->position);
-            ++movesMade;
+            movesMade.emplace_back(newMove);
+            ++currentMoveIndex;
             UpdatePositionLabels();
             unsigned int placeholder;
             currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
@@ -454,10 +581,12 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         firstPhase = true;
         duckOnTheBoard = true;
 
-        session->MakeMove(FullMove(firstPhaseMove, selectedSquare, BoardIndicesToSquare(7 - y, x)));
+        auto newMove = FullMove(firstPhaseMove, selectedSquare, BoardIndicesToSquare(7 - y, x));
+        session->MakeMove(newMove);
         emit StartEngine(session->position);
         UpdatePositionLabels();
-        ++movesMade;
+        movesMade.emplace_back(newMove);
+        ++currentMoveIndex;
         unsigned int placeholder;
         currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
     }
@@ -592,6 +721,8 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
 
                 if ((Move::AdditionalInfo)((uint16_t)firstPhaseMove.additionalInfo & (uint16_t)Move::AdditionalInfo::CapturedKing) != Move::AdditionalInfo::None)
                 {
+                    movesMade.emplace_back(FullMove(firstPhaseMove, Square::None, Square::None));
+                    ++currentMoveIndex;
                     gameEnded = true;
                     bestMovesLabel->setText("-----");
                 }
