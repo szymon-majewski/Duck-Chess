@@ -6,6 +6,11 @@
 
 #include <QApplication>
 
+/* TODO:
+ * Some kind of bug with long ranged pieces - invisible walls
+ * moves buttons
+ * moves list
+*/
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);

@@ -5,7 +5,7 @@
 template<typename T, unsigned int N>
 class Stack
 {
-private:
+private: /*DEBUG*/ public:
 
     T elements[N];
 

@@ -15,6 +15,7 @@
 #include "EngineWorker.h"
 #include "PieceLabel.h"
 #include "SquareFrame.h"
+#include "Stack"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -68,7 +69,8 @@ private:
     FenParser* fenParser;
     Session* session;
     MovesGenerator* movesGenerator;
-    unsigned int movesMade = 0;
+    bool gameEnded = false;
+    std::vector<FullMove> movesMade;
 
     // Window methods
     void InitPiecesPixmaps();
@@ -85,6 +87,7 @@ private:
 private slots:
     void FenUpdateButtonPressed();
     void HandleEngineResult(const Engine::SearchInfo& result);
+    void OnBackwardsButtonPressed();
 
 signals:
     void StartEngine(const Position& position);

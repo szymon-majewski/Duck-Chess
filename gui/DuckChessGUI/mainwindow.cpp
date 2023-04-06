@@ -19,15 +19,18 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     ui->setupUi(this);
     setWindowTitle("Duck Chess Engine");
     setWindowIcon(QIcon(":/rsc/img/pieces/duck.png"));
-    setFixedSize(1000, 650);
+    setFixedSize(950, 650);
 
     // INIT
     InitPiecesPixmaps();
+
     engineThread = std::make_unique<QThread>();
     engineWorker->moveToThread(engineThread.get());
     connect(engineWorker, SIGNAL(ResultReady(Engine::SearchInfo)), this, SLOT(HandleEngineResult(Engine::SearchInfo)));
     connect(this, SIGNAL(StartEngine(Position)), engineWorker, SLOT(Search(Position)));
     engineThread->start(QThread::TimeCriticalPriority);
+
+    movesStack = &session->moveMemento.moveHistory;
 
     // CHESSBOARD
     chessboardPanel = MainWindow::findChild<QGridLayout*>("chessboardPanel");
@@ -90,6 +93,8 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     backwardsBtn->setIcon(QIcon(backwardsPixmap));
     fastBackwardsBtn->setIcon(QIcon(fastbBackwardsPixmap));
 
+    connect(backwardsBtn, SIGNAL(released()), this, SLOT(OnBackwardsButtonPressed()));
+
     // FEN
     //// BUTTON
     QPushButton* fenUpdateBtn = MainWindow::findChild<QPushButton*>("updateFenBtn");
@@ -101,17 +106,17 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     // STARTING POSITION
     session->position = fenParser->ParseFen(STARTING_POSITION_FEN);
     session->position.materialDisparity = session->position.CountMaterial();
+    emit StartEngine(session->position);
     UpdatePositionLabels();
     unsigned int placeholder;
     currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
-
-    emit StartEngine(session->position);
 
     UpdateChessboard();
 }
 
 MainWindow::~MainWindow()
 {
+    engineThread->exit();
     delete ui;
 }
 
@@ -121,13 +126,13 @@ void MainWindow::FenUpdateButtonPressed()
     {
         session->Clear();
         movesMade = 0;
+        gameEnded = false;
         session->position = fenParser->ParseFen(fenTextEdit->toPlainText().toStdString());
         session->position.materialDisparity = session->position.CountMaterial();
+        emit StartEngine(session->position);
         UpdatePositionLabels();
         unsigned int placeholder;
         currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
-
-        emit StartEngine(session->position);
 
         if (selectedSquare != Square::None)
         {
@@ -177,13 +182,71 @@ void MainWindow::UpdateChessboard()
 
 void MainWindow::HandleEngineResult(const Engine::SearchInfo& result)
 {
-    UpdateEvaluationLabel(result.evaluation);
-    UpdateBestMovesLabel(result.movesPath);
+    if (!gameEnded)
+    {
+        UpdateEvaluationLabel(result.evaluation);
+        UpdateBestMovesLabel(result.movesPath);
+    }
+}
+
+void MainWindow::OnBackwardsButtonPressed()
+{
+    if (gameEnded)
+    {
+        PieceLabel* movingPieceLabel;
+        unsigned int takenPieceIndex;
+        unsigned int breakChecker = 0;
+        int sourceSquareX;
+        int sourceSquareY;
+        int targetSquareX;
+        int targetSquareY;
+        SquareToBoardIndices(firstPhaseMove.sourceSquare, sourceSquareY, sourceSquareX);
+        SquareToBoardIndices(firstPhaseMove.targetSquare, targetSquareY, targetSquareX);
+
+        // Piece which took the king
+        for (const std::unique_ptr<PieceLabel>& pieceLabel : piecesLabels)
+        {
+            if (targetSquareX == pieceLabel->x && 7 - targetSquareY == pieceLabel->y)
+            {
+                pieceLabel->x = sourceSquareX;
+                pieceLabel->y = 7 - sourceSquareY;
+                movingPieceLabel = pieceLabel.get();
+                break;
+            }
+        }
+
+        chessboardPanel->removeWidget(movingPieceLabel);
+        chessboardPanel->addWidget(movingPieceLabel, 7 - sourceSquareY, sourceSquareX);
+
+        // King itself
+        PlayerColor kingsColor = session->position.playerToMove == PlayerColor::White ? PlayerColor::Black : PlayerColor::White;
+
+        auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, targetSquareX, 7 - targetSquareY));
+        insertedLabel->setAlignment(Qt::AlignCenter);
+        insertedLabel->setPixmap(piecesPixmaps.at((uint8_t)Piece::Type::King | (uint8_t)kingsColor));
+        insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+        insertedLabel->setScaledContents(true);
+        chessboardPanel->addWidget(insertedLabel.get(), 7 - targetSquareY, targetSquareX);
+
+        emit StartEngine(session->position);
+
+        firstPhase = true;
+        gameEnded = false;
+    }
+    else
+    {
+
+    }
 }
 
 void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
 {
     qDebug() << "Kliknieto puste pole " + QString::number(x) + " " + QString::number(y);
+
+    if (gameEnded)
+    {
+        return;
+    }
 
     // Piece was selected earlier and wants to move to an empty square
     if (selectedSquare != Square::None)
@@ -345,12 +408,11 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         else
         {
             session->MakeMove(FullMove(firstPhaseMove, selectedSquare, targetSquare));
+            emit StartEngine(session->position);
             ++movesMade;
             UpdatePositionLabels();
             unsigned int placeholder;
             currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
-
-            emit StartEngine(session->position);
         }
 
         //////////////////////////////////////////////////////////////
@@ -393,18 +455,22 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         duckOnTheBoard = true;
 
         session->MakeMove(FullMove(firstPhaseMove, selectedSquare, BoardIndicesToSquare(7 - y, x)));
+        emit StartEngine(session->position);
         UpdatePositionLabels();
         ++movesMade;
         unsigned int placeholder;
         currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
-
-        emit StartEngine(session->position);
     }
 }
 
 void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
 {
     qDebug() << "Kliknieto figurke " + QString::number(x) + " " + QString::number(y);
+
+    if (gameEnded)
+    {
+        return;
+    }
 
     uint8_t clickedPieceColor = (uint8_t)session->position.board.pieces[7 - y][x].PieceColor();
 
@@ -524,6 +590,12 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
                     promotionDialog.exec();
                 }
 
+                if ((Move::AdditionalInfo)((uint16_t)firstPhaseMove.additionalInfo & (uint16_t)Move::AdditionalInfo::CapturedKing) != Move::AdditionalInfo::None)
+                {
+                    gameEnded = true;
+                    bestMovesLabel->setText("-----");
+                }
+
                 //////////////////////////////////////////////////////////////
                 // Remove label from source sqaure and target square
                 PieceLabel* movingPieceLabel;
@@ -621,11 +693,11 @@ void MainWindow::UpdateEvaluationLabel(const Evaluation evaluation)
 
     if (evaluation == POSITIVE_INFINITY_EVALUATION)
     {
-        newText.append("1-0");
+        newText.append("1 - 0");
     }
     else if (evaluation == NEGATIVE_INFINITY_EVALUATION)
     {
-        newText.append("0-1");
+        newText.append("0 - 1");
     }
     else
     {
@@ -668,7 +740,7 @@ void MainWindow::UpdateBestMovesLabel(const std::list<FullMove>& bestMovesList)
         {
             if (movesWritten % 2 == 0)
             {
-                newText.append(' ' + QString::number(session->position.fullMovesCount + additionalMoveNumber) + '.');
+                newText.append("  " + QString::number(session->position.fullMovesCount + additionalMoveNumber) + '.');
                 ++additionalMoveNumber;
             }
 
@@ -691,7 +763,7 @@ void MainWindow::UpdateBestMovesLabel(const std::list<FullMove>& bestMovesList)
                 ++additionalMoveNumber;
             }
 
-            newText.append(' ' + QString::fromStdString(MoveStringFormat(bestMovesVector[movesWritten], session->position.board)));
+            newText.append("  " + QString::fromStdString(MoveStringFormat(bestMovesVector[movesWritten], session->position.board)));
             session->MakeMove(bestMovesVector[movesWritten]);
         }
     }
