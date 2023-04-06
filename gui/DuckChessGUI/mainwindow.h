@@ -89,6 +89,7 @@ private slots:
     void FenUpdateButtonPressed();
     void HandleEngineResult(const Engine::SearchInfo& result);
     void OnBackwardsButtonPressed();
+    void OnForwardsButtonPressed();
 
 signals:
     void StartEngine(const Position& position);
