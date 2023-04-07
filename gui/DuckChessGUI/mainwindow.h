@@ -16,7 +16,6 @@
 #include "EngineWorker.h"
 #include "PieceLabel.h"
 #include "SquareFrame.h"
-#include "Stack"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -98,6 +97,6 @@ private slots:
     void OnForwardsButtonPressed();
 
 signals:
-    void StartEngine(const Position& position);
+    void StartEngine(Position position);
 };
 #endif // MAINWINDOW_H

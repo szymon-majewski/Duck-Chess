@@ -18,7 +18,7 @@ private:
     std::unordered_set<Square> opponentPiecesSquares;
     std::unordered_set<Square> opponentPawnsSquares;
     std::unordered_set<Square> emptySquares;
-    Square duckSquare;
+    Square duckSquare = Square::None;
 
 public:
 

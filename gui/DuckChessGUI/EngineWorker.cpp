@@ -3,7 +3,7 @@
 EngineWorker::EngineWorker(QObject* parent) :
     QObject(parent) {}
 
-void EngineWorker::Search(const Position& position)
+void EngineWorker::Search(Position position)
 {
     auto result = *engine.Search(position);
     emit ResultReady(result);

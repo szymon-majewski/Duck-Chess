@@ -17,7 +17,7 @@ public:
     unsigned int Depth();
 
 public slots:
-    void Search(const Position& position);
+    void Search(Position position);
 
 signals:
     void ResultReady(const Engine::SearchInfo& result);

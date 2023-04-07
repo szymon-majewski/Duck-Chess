@@ -131,6 +131,21 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
 MainWindow::~MainWindow()
 {
     engineThread->exit();
+
+    for (int row = (movesMade.size() - 1) / 2; row >= 0; --row)
+    {
+        for (int col = 0; col < 3; ++col)
+        {
+            QLayoutItem* layoutItem = movesGridLayout->itemAtPosition(row, col);
+            if (layoutItem)
+            {
+                QLabel* label = qobject_cast<QLabel*>(layoutItem->widget());
+                movesGridLayout->removeWidget(label);
+                delete label;
+            }
+        }
+    }
+
     delete ui;
 }
 
@@ -138,9 +153,24 @@ void MainWindow::FenUpdateButtonPressed()
 {
     try
     {
+        for (int row = (movesMade.size() - 1) / 2; row >= 0; --row)
+        {
+            for (int col = 0; col < 3; ++col)
+            {
+                QLayoutItem* layoutItem = movesGridLayout->itemAtPosition(row, col);
+                if (layoutItem)
+                {
+                    QLabel* label = qobject_cast<QLabel*>(layoutItem->widget());
+                    movesGridLayout->removeWidget(label);
+                    delete label;
+                }
+            }
+        }
+
         session->Clear();
         movesMade.clear();
         currentMoveIndex = -1;
+
         gameEnded = false;
         session->position = fenParser->ParseFen(fenTextEdit->toPlainText().toStdString());
         session->position.materialDisparity = session->position.CountMaterial();
@@ -517,6 +547,31 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
             // Delete the moves made after current time in game if there are any
             if (currentMoveIndex != movesMade.size() - 1)
             {
+                for (int row = (movesMade.size() - 1) / 2; row > currentMoveIndex / 2; --row)
+                {
+                    for (int col = 0; col < 3; ++col)
+                    {
+                        QLayoutItem* layoutItem = movesGridLayout->itemAtPosition(row, col);
+                        if (layoutItem)
+                        {
+                            QLabel* label = qobject_cast<QLabel*>(layoutItem->widget());
+                            movesGridLayout->removeWidget(label);
+                            delete label;
+                        }
+                    }
+                }
+
+                // Before making a move it's black turn, so we want to delete blacks' move from the list
+                if (session->position.playerToMove == PlayerColor::White)
+                {
+                    QLayoutItem* layoutItem = movesGridLayout->itemAtPosition(currentMoveIndex / 2, 2);
+                    if (layoutItem)
+                    {
+                        movesGridLayout->removeWidget(layoutItem->widget());
+                        delete layoutItem->widget();
+                    }
+                }
+
                 movesMade.erase(movesMade.begin() + currentMoveIndex + 1, movesMade.end());
             }
 
@@ -568,15 +623,30 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         duckOnTheBoard = true;
 
         auto newMove = FullMove(firstPhaseMove, selectedSquare, BoardIndicesToSquare(7 - y, x));
-        AddMoveToList(newMove);
-        session->MakeMove(newMove);
-        emit StartEngine(session->position);
 
         // Delete the moves made after current time in game if there are any
         if (currentMoveIndex != movesMade.size() - 1)
         {
+            for (int row = (movesMade.size() - 1) / 2; row >= 0; --row)
+            {
+                for (int col = 0; col < 3; ++col)
+                {
+                    QLayoutItem* layoutItem = movesGridLayout->itemAtPosition(row, col);
+                    if (layoutItem)
+                    {
+                        QLabel* label = qobject_cast<QLabel*>(layoutItem->widget());
+                        movesGridLayout->removeWidget(label);
+                        delete label;
+                    }
+                }
+            }
+
             movesMade.erase(movesMade.begin() + currentMoveIndex + 1, movesMade.end());
         }
+
+        AddMoveToList(newMove);
+        session->MakeMove(newMove);
+        emit StartEngine(session->position);
 
         movesMade.emplace_back(newMove);
         ++currentMoveIndex;
@@ -719,6 +789,31 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
                     // Delete the moves made after current time in game if there are any
                     if (currentMoveIndex != movesMade.size() - 1)
                     {
+                        for (int row = (movesMade.size() - 1) / 2; row > currentMoveIndex / 2; --row)
+                        {
+                            for (int col = 0; col < 3; ++col)
+                            {
+                                QLayoutItem* layoutItem = movesGridLayout->itemAtPosition(row, col);
+                                if (layoutItem)
+                                {
+                                    QLabel* label = qobject_cast<QLabel*>(layoutItem->widget());
+                                    movesGridLayout->removeWidget(label);
+                                    delete label;
+                                }
+                            }
+                        }
+
+                        // Before making a move it's black turn, so we want to delete blacks' move from the list
+                        if (session->position.playerToMove == PlayerColor::White)
+                        {
+                            QLayoutItem* layoutItem = movesGridLayout->itemAtPosition(currentMoveIndex / 2, 2);
+                            if (layoutItem)
+                            {
+                                movesGridLayout->removeWidget(layoutItem->widget());
+                                delete layoutItem->widget();
+                            }
+                        }
+
                         movesMade.erase(movesMade.begin() + currentMoveIndex + 1, movesMade.end());
                     }
 
@@ -780,7 +875,7 @@ void MainWindow::AddMoveToList(const FullMove& move)
     QLabel* moveLabel = new QLabel();
     moveLabel->setText(QString::fromStdString(MoveStringFormat(move, session->position.board)));
     moveLabel->setAlignment(Qt::AlignLeft);
-    unsigned int rowIndex = movesMade.size() / 2;
+    unsigned int rowIndex = (currentMoveIndex + 1) / 2;
 
     if (session->position.playerToMove == PlayerColor::White)
     {
@@ -794,6 +889,19 @@ void MainWindow::AddMoveToList(const FullMove& move)
     else
     {
         movesGridLayout->addWidget(moveLabel, rowIndex, 2);
+
+        if (movesMade.empty())
+        {
+            QLabel* moveNumberScrollAreaLabel = new QLabel();
+            moveNumberScrollAreaLabel->setText(QString::number(session->position.fullMovesCount) + '.');
+            moveNumberScrollAreaLabel->setAlignment(Qt::AlignLeft);
+            movesGridLayout->addWidget(moveNumberScrollAreaLabel, rowIndex, 0);
+
+            QLabel* whiteNonExistantMoveLabel = new QLabel();
+            whiteNonExistantMoveLabel->setText("-----");
+            whiteNonExistantMoveLabel->setAlignment(Qt::AlignLeft);
+            movesGridLayout->addWidget(whiteNonExistantMoveLabel, rowIndex, 1);
+        }
     }
 
     QScrollBar* verticalScrollBar = movesScrollArea->verticalScrollBar();
