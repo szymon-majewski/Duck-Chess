@@ -259,6 +259,20 @@ void MainWindow::OnBackwardsButtonPressed()
 
     --currentMoveIndex;
     firstPhase = true;
+
+    // Changing highlited move
+    lastMovePlayedScrollAreaLabel->setStyleSheet("");
+
+    if (currentMoveIndex == -1)
+    {
+        lastMovePlayedScrollAreaLabel = nullptr;
+    }
+    else
+    {
+        QLabel* currentMove = qobject_cast<QLabel*>(movesGridLayout->itemAtPosition(currentMoveIndex / 2, (currentMoveIndex % 2) + 1)->widget());
+        currentMove->setStyleSheet("background-color: #cccccc");
+        lastMovePlayedScrollAreaLabel = currentMove;
+    }
 }
 
 void MainWindow::OnForwardsButtonPressed()
@@ -315,6 +329,16 @@ void MainWindow::OnForwardsButtonPressed()
         session->MakeMove(movesMade[currentMoveIndex]);
         UpdateChessboard();
     }
+
+    // Changing highlited move
+    if (lastMovePlayedScrollAreaLabel)
+    {
+        lastMovePlayedScrollAreaLabel->setStyleSheet("");
+    }
+
+    QLabel* currentMove = qobject_cast<QLabel*>(movesGridLayout->itemAtPosition(currentMoveIndex / 2, (currentMoveIndex % 2) + 1)->widget());
+    currentMove->setStyleSheet("background-color: #cccccc");
+    lastMovePlayedScrollAreaLabel = currentMove;
 }
 
 void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
