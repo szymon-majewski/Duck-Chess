@@ -18,9 +18,8 @@ int main(int argc, char *argv[])
     Session session = Session(Position());
     FenParser fenParser;
     MovesGenerator movesGenerator;
-    EngineWorker engineWorker;
 
-    MainWindow w(nullptr, &session, &fenParser, &movesGenerator, &engineWorker);
+    MainWindow w(nullptr, &session, &fenParser, &movesGenerator);
 
     w.show();
 

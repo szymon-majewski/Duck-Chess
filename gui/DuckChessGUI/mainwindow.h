@@ -7,6 +7,7 @@
 #include <QLabel>
 #include <QThread>
 #include <QScrollArea>
+#include <QAtomicInt>
 
 #include <memory>
 
@@ -26,7 +27,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr, Session* session = nullptr, FenParser* fenParser = nullptr, MovesGenerator* movesGenerator = nullptr, EngineWorker* engineWorker = nullptr);
+    MainWindow(QWidget *parent = nullptr, Session* session = nullptr, FenParser* fenParser = nullptr, MovesGenerator* movesGenerator = nullptr);
     ~MainWindow();
 
     void OnEmptySquareClicked(unsigned int x, unsigned int y);
@@ -69,8 +70,9 @@ private:
     const QColor SELECTED_DARK_SQUARE_COLOR = QColor(32, 61, 109);
 
     // Engine stuff
-    EngineWorker* engineWorker;
+    std::unique_ptr<EngineWorker> engineWorker;
     std::unique_ptr<QThread> engineThread;
+    int signalsSentWithoutResponse = 0;
     FenParser* fenParser;
     Session* session;
     MovesGenerator* movesGenerator;
@@ -90,6 +92,7 @@ private:
     void UpdatePositionLabels();
     void SetCastlingRightsLabel(QLabel* label, QString textToSet, const uint8_t kingside, const uint8_t queenside);
     void AddMoveToList(const FullMove& move);
+    void emitStartEngine(const Position& position);
 
 private slots:
     void FenUpdateButtonPressed();

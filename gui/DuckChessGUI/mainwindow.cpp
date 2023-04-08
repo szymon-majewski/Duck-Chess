@@ -9,11 +9,10 @@ extern Square BoardIndicesToSquare(const unsigned& y, const unsigned& x);
 extern void SquareToBoardIndices(const Square& square, int& y, int& x);
 extern std::string MoveStringFormat(const FullMove& move, const Board& board);
 
-MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, MovesGenerator* movesGenerator, EngineWorker* engineWorker) :
+MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, MovesGenerator* movesGenerator) :
     session(session),
     fenParser(fenParser),
     movesGenerator(movesGenerator),
-    engineWorker(engineWorker),
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
@@ -25,10 +24,11 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     // INIT
     InitPiecesPixmaps();
 
+    engineWorker = std::make_unique<EngineWorker>(&signalsSentWithoutResponse);
     engineThread = std::make_unique<QThread>();
     engineWorker->moveToThread(engineThread.get());
-    connect(engineWorker, SIGNAL(ResultReady(Engine::SearchInfo)), this, SLOT(HandleEngineResult(Engine::SearchInfo)));
-    connect(this, SIGNAL(StartEngine(Position)), engineWorker, SLOT(Search(Position)));
+    connect(engineWorker.get(), SIGNAL(ResultReady(Engine::SearchInfo)), this, SLOT(HandleEngineResult(Engine::SearchInfo)));
+    connect(this, SIGNAL(StartEngine(Position)), engineWorker.get(), SLOT(Search(Position)));
     engineThread->start(QThread::TimeCriticalPriority);
 
     // CHESSBOARD
@@ -120,12 +120,10 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     // STARTING POSITION
     session->position = fenParser->ParseFen(STARTING_POSITION_FEN);
     session->position.materialDisparity = session->position.CountMaterial();
-    emit StartEngine(session->position);
-    UpdatePositionLabels();
+    UpdateChessboard();
+
     unsigned int placeholder;
     currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
-
-    UpdateChessboard();
 }
 
 MainWindow::~MainWindow()
@@ -188,7 +186,7 @@ void MainWindow::FenUpdateButtonPressed()
 
 void MainWindow::UpdateChessboard()
 {
-    emit StartEngine(session->position);
+    emitStartEngine(session->position);
     UpdatePositionLabels();
     unsigned int placeholder;
     currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
@@ -231,6 +229,8 @@ void MainWindow::UpdateChessboard()
 
 void MainWindow::HandleEngineResult(const Engine::SearchInfo& result)
 {
+    --signalsSentWithoutResponse;
+
     if (!gameEnded)
     {
         UpdateEvaluationLabel(result.evaluation);
@@ -280,7 +280,7 @@ void MainWindow::OnBackwardsButtonPressed()
         insertedLabel->setScaledContents(true);
         chessboardPanel->addWidget(insertedLabel.get(), 7 - targetSquareY, targetSquareX);
 
-        emit StartEngine(session->position);
+        emitStartEngine(session->position);
 
         gameEnded = false;
     }
@@ -549,7 +549,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
             auto newMove = FullMove(firstPhaseMove, selectedSquare, targetSquare);
             AddMoveToList(newMove);
             session->MakeMove(newMove);
-            emit StartEngine(session->position);
+            emitStartEngine(session->position);
 
             // Delete the moves made after current time in game if there are any
             if (currentMoveIndex != movesMade.size() - 1)
@@ -657,7 +657,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
 
         AddMoveToList(newMove);
         session->MakeMove(newMove);
-        emit StartEngine(session->position);
+        emitStartEngine(session->position);
 
         movesMade.emplace_back(newMove);
         ++currentMoveIndex;
@@ -1098,6 +1098,12 @@ void MainWindow::SetCastlingRightsLabel(QLabel* label, QString textToSet, const 
     }
 
     label->setText(textToSet);
+}
+
+void MainWindow::emitStartEngine(const Position& position)
+{
+    ++signalsSentWithoutResponse;
+    emit StartEngine(session->position);
 }
 
 void MainWindow::InitPiecesPixmaps()

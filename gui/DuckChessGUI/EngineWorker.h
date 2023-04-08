@@ -10,9 +10,10 @@ class EngineWorker : public QObject
 
 private:
     Engine engine;
+    int* windowSignalsSentWithoutResponse;
 
 public:
-    explicit EngineWorker(QObject* parent = nullptr);
+    explicit EngineWorker(int* windowSignalsSentWithoutResponse, QObject* parent = nullptr);
 
     unsigned int Depth();
 
