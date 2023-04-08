@@ -167,6 +167,8 @@ void MainWindow::FenUpdateButtonPressed()
             }
         }
 
+        lastMovePlayedScrollAreaLabel = nullptr;
+
         session->Clear();
         movesMade.clear();
         currentMoveIndex = -1;
@@ -174,6 +176,7 @@ void MainWindow::FenUpdateButtonPressed()
         gameEnded = false;
         session->position = fenParser->ParseFen(fenTextEdit->toPlainText().toStdString());
         session->position.materialDisparity = session->position.CountMaterial();
+        startingPlayer = session->position.playerToMove;
 
         UpdateChessboard();
     }
@@ -299,7 +302,9 @@ void MainWindow::OnBackwardsButtonPressed()
     }
     else
     {
-        QLabel* currentMove = qobject_cast<QLabel*>(movesGridLayout->itemAtPosition(currentMoveIndex / 2, (currentMoveIndex % 2) + 1)->widget());
+        int newHighlightedMoveColumn = startingPlayer == PlayerColor::White ? (currentMoveIndex % 2) + 1 : 2 - (currentMoveIndex % 2);
+        int newHighlightedMoveRow = startingPlayer == PlayerColor::White ? currentMoveIndex / 2 : (currentMoveIndex + 1) / 2;
+        QLabel* currentMove = qobject_cast<QLabel*>(movesGridLayout->itemAtPosition(newHighlightedMoveRow, newHighlightedMoveColumn)->widget());
         currentMove->setStyleSheet("background-color: #cccccc");
         lastMovePlayedScrollAreaLabel = currentMove;
     }
@@ -366,7 +371,9 @@ void MainWindow::OnForwardsButtonPressed()
         lastMovePlayedScrollAreaLabel->setStyleSheet("");
     }
 
-    QLabel* currentMove = qobject_cast<QLabel*>(movesGridLayout->itemAtPosition(currentMoveIndex / 2, (currentMoveIndex % 2) + 1)->widget());
+    int newHighlightedMoveColumn = startingPlayer == PlayerColor::White ? (currentMoveIndex % 2) + 1 : 2 - (currentMoveIndex % 2);
+    int newHighlightedMoveRow = startingPlayer == PlayerColor::White ? currentMoveIndex / 2 : (currentMoveIndex + 1) / 2;
+    QLabel* currentMove = qobject_cast<QLabel*>(movesGridLayout->itemAtPosition(newHighlightedMoveRow, newHighlightedMoveColumn)->widget());
     currentMove->setStyleSheet("background-color: #cccccc");
     lastMovePlayedScrollAreaLabel = currentMove;
 }
@@ -547,7 +554,9 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
             // Delete the moves made after current time in game if there are any
             if (currentMoveIndex != movesMade.size() - 1)
             {
-                for (int row = (movesMade.size() - 1) / 2; row > currentMoveIndex / 2; --row)
+                int startRow = startingPlayer == PlayerColor::White ? (movesMade.size() - 1) / 2 : movesMade.size() / 2;
+                int endRow = startingPlayer == PlayerColor::White ? currentMoveIndex / 2 : (currentMoveIndex + 1) / 2;
+                for (int row = startRow; row > endRow; --row)
                 {
                     for (int col = 0; col < 3; ++col)
                     {
@@ -564,7 +573,8 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
                 // Before making a move it's black turn, so we want to delete blacks' move from the list
                 if (session->position.playerToMove == PlayerColor::White)
                 {
-                    QLayoutItem* layoutItem = movesGridLayout->itemAtPosition(currentMoveIndex / 2, 2);
+                    int rowToDeleteIndex = startingPlayer == PlayerColor::White ? currentMoveIndex / 2 : currentMoveIndex / 2 + 1;
+                    QLayoutItem* layoutItem = movesGridLayout->itemAtPosition(rowToDeleteIndex, 2);
                     if (layoutItem)
                     {
                         movesGridLayout->removeWidget(layoutItem->widget());
@@ -627,7 +637,8 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         // Delete the moves made after current time in game if there are any
         if (currentMoveIndex != movesMade.size() - 1)
         {
-            for (int row = (movesMade.size() - 1) / 2; row >= 0; --row)
+            int startRow = startingPlayer == PlayerColor::White ? (movesMade.size() - 1) / 2 : movesMade.size() / 2;
+            for (int row = startRow; row >= 0; --row)
             {
                 for (int col = 0; col < 3; ++col)
                 {
@@ -789,7 +800,9 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
                     // Delete the moves made after current time in game if there are any
                     if (currentMoveIndex != movesMade.size() - 1)
                     {
-                        for (int row = (movesMade.size() - 1) / 2; row > currentMoveIndex / 2; --row)
+                        int startRow = startingPlayer == PlayerColor::White ? (movesMade.size() - 1) / 2 : movesMade.size() / 2;
+                        int endRow = startingPlayer == PlayerColor::White ? currentMoveIndex / 2 : (currentMoveIndex + 1) / 2;
+                        for (int row = startRow; row > endRow; --row)
                         {
                             for (int col = 0; col < 3; ++col)
                             {
@@ -806,7 +819,8 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
                         // Before making a move it's black turn, so we want to delete blacks' move from the list
                         if (session->position.playerToMove == PlayerColor::White)
                         {
-                            QLayoutItem* layoutItem = movesGridLayout->itemAtPosition(currentMoveIndex / 2, 2);
+                            int rowToDeleteIndex = startingPlayer == PlayerColor::White ? currentMoveIndex / 2 : currentMoveIndex / 2 + 1;
+                            QLayoutItem* layoutItem = movesGridLayout->itemAtPosition(rowToDeleteIndex, 2);
                             if (layoutItem)
                             {
                                 movesGridLayout->removeWidget(layoutItem->widget());
@@ -875,7 +889,9 @@ void MainWindow::AddMoveToList(const FullMove& move)
     QLabel* moveLabel = new QLabel();
     moveLabel->setText(QString::fromStdString(MoveStringFormat(move, session->position.board)));
     moveLabel->setAlignment(Qt::AlignLeft);
-    unsigned int rowIndex = (currentMoveIndex + 1) / 2;
+    unsigned int rowIndex = ((startingPlayer == PlayerColor::White) ?
+                                 (currentMoveIndex + 1) / 2 :
+                                 (currentMoveIndex + 2) / 2);
 
     if (session->position.playerToMove == PlayerColor::White)
     {
