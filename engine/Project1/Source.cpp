@@ -23,7 +23,7 @@ const std::string bugHuntFen = "@7/8/8/8/8/6k1/5b2/7K w - - 0 1";
 const std::string myGameFenRev = "r2qkb1r/1p1n1p2/p4npp/1Npp4/2@1b3/1P5P/PBPPQPP1/2KNRB1R b kq - 0 1";
 
 const std::string enPassantWhiteFen = "1k6/8/8/4pP2/8/8/8/1K6 w - e6 0 1";
-const std::string enPassantBlackFen = "4k3/8/8/8/4pP2/8/8/1K6 b - f3 0 1";
+const std::string enPassantBlackFen = "4k3/8/8/8/4pP2/8/8/1K6 b - f3 0 15";
 const std::string enPassant2Fen = "4k3/8/8/8/pP6/8/8/1K6 b - b3 0 1";
 const std::string enPassant3Fen = "4k3/8/8/8/p7/8/1P6/1K6 w - - 0 1";
 

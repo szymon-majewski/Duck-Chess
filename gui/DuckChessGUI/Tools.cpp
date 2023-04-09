@@ -88,8 +88,15 @@ std::string MoveStringFormat(const FullMove& move, const Board& board)
                 }
             }
 
-            result += Piece::FindPieceSymbol((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both);
-            result += SquareStringFormat(move.targetDuckSquare, true);
+            if (move.targetDuckSquare != Square::None)
+            {
+                result += Piece::FindPieceSymbol((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both);
+                result += SquareStringFormat(move.targetDuckSquare, true);
+            }
+            else
+            {
+                result += '#';
+            }
 
             return result;
         }
@@ -107,8 +114,15 @@ std::string MoveStringFormat(const FullMove& move, const Board& board)
                     result += QUEENSIDE_CASTLING_SYMBOL;
                 }
 
-                result += Piece::FindPieceSymbol((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both);
-                result += SquareStringFormat(move.targetDuckSquare, true);
+                if (move.targetDuckSquare != Square::None)
+                {
+                    result += Piece::FindPieceSymbol((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both);
+                    result += SquareStringFormat(move.targetDuckSquare, true);
+                }
+                else
+                {
+                    result += '#';
+                }
 
                 return result;
             }
@@ -163,8 +177,16 @@ std::string MoveStringFormat(const FullMove& move, const Board& board)
     }
 
     result += SquareStringFormat(move.targetSquare, true);
-    result += Piece::FindPieceSymbol((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both);
-    result += SquareStringFormat(move.targetDuckSquare, true);
+
+    if (move.targetDuckSquare != Square::None)
+    {
+        result += Piece::FindPieceSymbol((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both);
+        result += SquareStringFormat(move.targetDuckSquare, true);
+    }
+    else
+    {
+        result += '#';
+    }
 
     return result;
 }

@@ -555,7 +555,17 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
             if (currentMoveIndex != movesMade.size() - 1)
             {
                 int startRow = startingPlayer == PlayerColor::White ? (movesMade.size() - 1) / 2 : movesMade.size() / 2;
-                int endRow = startingPlayer == PlayerColor::White ? currentMoveIndex / 2 : (currentMoveIndex + 1) / 2;
+                int endRow;
+
+                if (currentMoveIndex != -1)
+                {
+                    endRow = startingPlayer == PlayerColor::White ? currentMoveIndex / 2 : (currentMoveIndex + 1) / 2;
+                }
+                else
+                {
+                    endRow = -1;
+                }
+
                 for (int row = startRow; row > endRow; --row)
                 {
                     for (int col = 0; col < 3; ++col)
@@ -801,7 +811,17 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
                     if (currentMoveIndex != movesMade.size() - 1)
                     {
                         int startRow = startingPlayer == PlayerColor::White ? (movesMade.size() - 1) / 2 : movesMade.size() / 2;
-                        int endRow = startingPlayer == PlayerColor::White ? currentMoveIndex / 2 : (currentMoveIndex + 1) / 2;
+                        int endRow;
+
+                        if (currentMoveIndex != -1)
+                        {
+                            endRow = startingPlayer == PlayerColor::White ? currentMoveIndex / 2 : (currentMoveIndex + 1) / 2;
+                        }
+                        else
+                        {
+                            endRow = -1;
+                        }
+
                         for (int row = startRow; row > endRow; --row)
                         {
                             for (int col = 0; col < 3; ++col)
@@ -831,7 +851,9 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
                         movesMade.erase(movesMade.begin() + currentMoveIndex + 1, movesMade.end());
                     }
 
-                    movesMade.emplace_back(FullMove(firstPhaseMove, Square::None, Square::None));
+                    auto newMove = FullMove(firstPhaseMove, Square::None, Square::None);
+                    AddMoveToList(newMove);
+                    movesMade.emplace_back(newMove);
                     ++currentMoveIndex;
                     gameEnded = true;
                     bestMovesLabel->setText("-----");
@@ -906,7 +928,7 @@ void MainWindow::AddMoveToList(const FullMove& move)
     {
         movesGridLayout->addWidget(moveLabel, rowIndex, 2);
 
-        if (movesMade.empty())
+        if (currentMoveIndex == -1)
         {
             QLabel* moveNumberScrollAreaLabel = new QLabel();
             moveNumberScrollAreaLabel->setText(QString::number(session->position.fullMovesCount) + '.');
