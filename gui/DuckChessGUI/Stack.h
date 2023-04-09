@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Definitions.h"
-
 template<typename T, unsigned int N>
 class Stack
 {

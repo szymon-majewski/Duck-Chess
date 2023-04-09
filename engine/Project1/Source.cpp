@@ -11,6 +11,7 @@ const std::string someFen = "rnbqkb1r/ppppp1PP/3pn3/8/8/8/PPPPPP2/RNBQKBNR w KQk
 const std::string mateInTwoFen = "rn2kb1r/p1p1p2p/b4pp1/8/4PP1P/4nNP1/P4K1R/2q5 b kq - 3 18";
 const std::string simpleDuckFen = "3k4/5@2/8/8/2B5/8/8/5K2 w - - 0 1";
 const std::string duckChessPuzzleFen = "8/5Q1p/7k/5@1p/4Bn2/6q1/6P1/7K w - - 0 1";
+const std::string duckBlackChessPuzzleFen = "8/5q1P/7K/5@1P/4bN2/6Q1/6p1/7k b - - 0 1";
 const std::string myGameFen = "r2qkb1r/1p1n1p2/p4npp/1Npp4/2@1b3/1P5P/PBPPQPP1/2KNRB1R w kq - 0 1";
 const std::string myGameFen2 = "r2qkb1r/1p1n@p2/p2N1npp/2pp4/4b3/1P5P/PBPPQPP1/2KNRB1R b kq - 1 1";
 const std::string myGameFen3 = "r2qkb1r/1p1n1p2/p2N1npp/2pp4/8/1P5P/PBPPQPb1/@1KNRB1R w kq - 1 1";

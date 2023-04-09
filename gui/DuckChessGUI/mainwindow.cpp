@@ -108,6 +108,8 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
 
     connect(backwardsBtn, SIGNAL(released()), this, SLOT(OnBackwardsButtonPressed()));
     connect(forwardsBtn, SIGNAL(released()), this, SLOT(OnForwardsButtonPressed()));
+    connect(fastForwardsBtn, SIGNAL(released()), this, SLOT(OnFastForwardsButtonPressed()));
+    connect(fastBackwardsBtn, SIGNAL(released()), this, SLOT(OnFastBackwardsButtonPressed()));
 
     // FEN
     //// BUTTON
@@ -364,6 +366,108 @@ void MainWindow::OnForwardsButtonPressed()
         session->MakeMove(movesMade[currentMoveIndex]);
         UpdateChessboard();
     }
+
+    // Changing highlited move
+    if (lastMovePlayedScrollAreaLabel)
+    {
+        lastMovePlayedScrollAreaLabel->setStyleSheet("");
+    }
+
+    int newHighlightedMoveColumn = startingPlayer == PlayerColor::White ? (currentMoveIndex % 2) + 1 : 2 - (currentMoveIndex % 2);
+    int newHighlightedMoveRow = startingPlayer == PlayerColor::White ? currentMoveIndex / 2 : (currentMoveIndex + 1) / 2;
+    QLabel* currentMove = qobject_cast<QLabel*>(movesGridLayout->itemAtPosition(newHighlightedMoveRow, newHighlightedMoveColumn)->widget());
+    currentMove->setStyleSheet("background-color: #cccccc");
+    lastMovePlayedScrollAreaLabel = currentMove;
+}
+
+void MainWindow::OnFastBackwardsButtonPressed()
+{
+    if (currentMoveIndex < 0)
+    {
+        return;
+    }
+
+    if (gameEnded)
+    {
+        --currentMoveIndex;
+        gameEnded = false;
+    }
+
+    for (int i = currentMoveIndex; i >= 0; --i)
+    {
+        session->UndoMove();
+    }
+
+    currentMoveIndex = -1;
+    firstPhase = true;
+    lastMovePlayedScrollAreaLabel->setStyleSheet("");
+    lastMovePlayedScrollAreaLabel = nullptr;
+
+    UpdateChessboard();
+}
+
+void MainWindow::OnFastForwardsButtonPressed()
+{
+    if (currentMoveIndex >= movesMade.size() - 1 && !(currentMoveIndex == -1 && movesMade.size() > 0))
+    {
+        return;
+    }
+
+    for (int i = currentMoveIndex + 1; i < movesMade.size() - 1; ++i)
+    {
+        session->MakeMove(movesMade[i]);
+    }
+
+    int lastMoveIndex = movesMade.size() - 1;
+
+    // It's a game ending move
+    if (movesMade[lastMoveIndex].targetDuckSquare == Square::None)
+    {
+        UpdateChessboard();
+
+        PieceLabel* movingPieceLabel;
+        unsigned int takenPieceIndex;
+        unsigned int breakChecker = 0;
+        int sourceSquareX;
+        int sourceSquareY;
+        int targetSquareX;
+        int targetSquareY;
+
+        SquareToBoardIndices(movesMade[lastMoveIndex].sourceSquare, sourceSquareY, sourceSquareX);
+        SquareToBoardIndices(movesMade[lastMoveIndex].targetSquare, targetSquareY, targetSquareX);
+
+        // Piece which will take the king
+        for (int i = 0; i < piecesLabels.size() && breakChecker < 2; ++i)
+        {
+            if (sourceSquareX == piecesLabels[i]->x && 7 - sourceSquareY == piecesLabels[i]->y)
+            {
+                piecesLabels[i]->x = targetSquareX;
+                piecesLabels[i]->y = 7 - targetSquareY;
+                movingPieceLabel = piecesLabels[i].get();
+                ++breakChecker;
+            }
+            else if (targetSquareX == piecesLabels[i]->x && 7 - targetSquareY == piecesLabels[i]->y)
+            {
+                takenPieceIndex = i;
+                ++breakChecker;
+            }
+        }
+
+        piecesLabels.erase(piecesLabels.begin() + takenPieceIndex);
+
+        chessboardPanel->removeWidget(movingPieceLabel);
+        chessboardPanel->addWidget(movingPieceLabel, 7 - targetSquareY, targetSquareX);
+
+        bestMovesLabel->setText("-----");
+        gameEnded = true;
+    }
+    else
+    {
+        session->MakeMove(movesMade[lastMoveIndex]);
+        UpdateChessboard();
+    }
+
+    currentMoveIndex = lastMoveIndex;
 
     // Changing highlited move
     if (lastMovePlayedScrollAreaLabel)

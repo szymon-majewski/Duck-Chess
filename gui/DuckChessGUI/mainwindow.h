@@ -99,6 +99,8 @@ private slots:
     void HandleEngineResult(const Engine::SearchInfo& result);
     void OnBackwardsButtonPressed();
     void OnForwardsButtonPressed();
+    void OnFastBackwardsButtonPressed();
+    void OnFastForwardsButtonPressed();
 
 signals:
     void StartEngine(Position position);
