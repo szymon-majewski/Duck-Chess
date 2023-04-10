@@ -1,5 +1,3 @@
-#include <QMimeData>
-#include <QDrag>
 #include <QMouseEvent>
 
 #include "PieceLabel.h"

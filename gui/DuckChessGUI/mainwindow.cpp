@@ -77,6 +77,15 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     playerToMoveLabel = MainWindow::findChild<QLabel*>("playerToMoveLabel");
     castlingRightsWhiteLabel = MainWindow::findChild<QLabel*>("castlingRightsWhiteLabel");
     castlingRightsBlackLabel = MainWindow::findChild<QLabel*>("castlingRightsBlackLabel");
+    gameModeBtn = MainWindow::findChild<QPushButton*>("gameModeBtn");
+    MainWindow::findChild<QHBoxLayout*>("gameModePanel")->setAlignment(Qt::AlignLeft);
+    connect(gameModeBtn, SIGNAL(released()), this, SLOT(OnGameModeButtonPressed()));
+    playerColorLabel = MainWindow::findChild<QLabel*>("playerColorLabel");
+    playerColorLabel->setVisible(false);
+    playerColorLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    playerColorLabel->setScaledContents(true);
+    playerColorStringLabel = MainWindow::findChild<QLabel*>("playerColorStringLabel");
+    playerColorStringLabel->setVisible(false);
 
     // MOVES PANEL
     movesScrollArea = MainWindow::findChild<QScrollArea*>("movesScrollArea");
@@ -84,6 +93,7 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     movesGridLayout = std::make_unique<QGridLayout>();
     movesGridLayout->setAlignment(Qt::AlignTop);
     movesScrollArea->setWidget(scrollWidget.get());
+    movesScrollArea->setStyleSheet("QScrollArea {border: 1px solid black; border-radius: 0px; background-color: white; margin: 0px; padding: 0px;}");
     scrollWidget->setLayout(movesGridLayout.get());
     movesScrollArea->setWidgetResizable(true);
     movesScrollArea->setWidget(scrollWidget.get());
@@ -98,10 +108,10 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     QPixmap backwardsPixmap(":/rsc/img/ui/backward.jpg");
     QPixmap fastbBackwardsPixmap(":/rsc/img/ui/fast_backward.jpg");
 
-    QPushButton* forwardsBtn = MainWindow::findChild<QPushButton*>("forwardsBtn");
-    QPushButton* fastForwardsBtn = MainWindow::findChild<QPushButton*>("fastForwardsBtn");
-    QPushButton* backwardsBtn = MainWindow::findChild<QPushButton*>("backwardsBtn");
-    QPushButton* fastBackwardsBtn = MainWindow::findChild<QPushButton*>("fastBackwardsBtn");
+    forwardsBtn = MainWindow::findChild<QPushButton*>("forwardsBtn");
+    fastForwardsBtn = MainWindow::findChild<QPushButton*>("fastForwardsBtn");
+    backwardsBtn = MainWindow::findChild<QPushButton*>("backwardsBtn");
+    fastBackwardsBtn = MainWindow::findChild<QPushButton*>("fastBackwardsBtn");
 
     forwardsBtn->setIcon(QIcon(forwardsPixmap));
     fastForwardsBtn->setIcon(QIcon(fastForwardsPixmap));
@@ -115,7 +125,7 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
 
     // FEN
     //// BUTTON
-    QPushButton* fenUpdateBtn = MainWindow::findChild<QPushButton*>("updateFenBtn");
+    fenUpdateBtn = MainWindow::findChild<QPushButton*>("updateFenBtn");
     connect(fenUpdateBtn, SIGNAL(released()), this, SLOT(FenUpdateButtonPressed()));
 
     //// TEXT EDIT
@@ -237,9 +247,69 @@ void MainWindow::HandleEngineResult(const Engine::SearchInfo& result, long long 
 
     if (!gameEnded)
     {
-        UpdateEvaluationLabel(result.evaluation);
-        UpdateTimeLabel(time);
-        UpdateBestMovesLabel(result.movesPath);
+        if (!gameMode)
+        {
+            UpdateEvaluationLabel(result.evaluation);
+            UpdateTimeLabel(time);
+            UpdateBestMovesLabel(result.movesPath);
+        }
+        else if (gameModePlayerColor != session->position.playerToMove)
+        {
+            auto bestMove = result.movesPath.front();
+            if ((Move::AdditionalInfo)((uint16_t)bestMove.additionalInfo & (uint16_t)Move::AdditionalInfo::CapturedKing) != Move::AdditionalInfo::None)
+            {
+                bestMove.sourceDuckSquare = bestMove.targetDuckSquare = Square::None;
+                AddMoveToList(bestMove);
+                movesMade.emplace_back(bestMove);
+                ++currentMoveIndex;
+
+                PieceLabel* movingPieceLabel;
+                unsigned int takenPieceIndex;
+                unsigned int breakChecker = 0;
+                int sourceSquareX;
+                int sourceSquareY;
+                int targetSquareX;
+                int targetSquareY;
+
+                SquareToBoardIndices(bestMove.sourceSquare, sourceSquareY, sourceSquareX);
+                SquareToBoardIndices(bestMove.targetSquare, targetSquareY, targetSquareX);
+
+                // Piece which will take the king
+                for (int i = 0; i < piecesLabels.size() && breakChecker < 2; ++i)
+                {
+                    if (sourceSquareX == piecesLabels[i]->x && 7 - sourceSquareY == piecesLabels[i]->y)
+                    {
+                        piecesLabels[i]->x = targetSquareX;
+                        piecesLabels[i]->y = 7 - targetSquareY;
+                        movingPieceLabel = piecesLabels[i].get();
+                        ++breakChecker;
+                    }
+                    else if (targetSquareX == piecesLabels[i]->x && 7 - targetSquareY == piecesLabels[i]->y)
+                    {
+                        takenPieceIndex = i;
+                        ++breakChecker;
+                    }
+                }
+
+                piecesLabels.erase(piecesLabels.begin() + takenPieceIndex);
+
+                chessboardPanel->removeWidget(movingPieceLabel);
+                chessboardPanel->addWidget(movingPieceLabel, 7 - targetSquareY, targetSquareX);
+
+                gameEnded = true;
+            }
+            else
+            {
+                AddMoveToList(result.movesPath.front());
+                session->MakeMove(result.movesPath.front());
+                movesMade.emplace_back(result.movesPath.front());
+                ++currentMoveIndex;
+
+                UpdateChessboard();
+            }
+
+            UpdateTimeLabel(time);
+        }
     }
 }
 
@@ -489,7 +559,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
 {
     qDebug() << "Kliknieto puste pole " + QString::number(x) + " " + QString::number(y);
 
-    if (gameEnded)
+    if (gameEnded || (gameMode && gameModePlayerColor != session->position.playerToMove))
     {
         return;
     }
@@ -789,7 +859,7 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
 {
     qDebug() << "Kliknieto figurke " + QString::number(x) + " " + QString::number(y);
 
-    if (gameEnded)
+    if (gameEnded || (gameMode && gameModePlayerColor != session->position.playerToMove))
     {
         return;
     }
@@ -1232,6 +1302,77 @@ void MainWindow::SetCastlingRightsLabel(QLabel* label, QString textToSet, const 
     }
 
     label->setText(textToSet);
+}
+
+void MainWindow::OnGameModeButtonPressed()
+{
+    if (gameMode)
+    {
+        gameMode = false;
+        gameModePlayerColor = PlayerColor::None;
+        gameModeBtn->setText("Game mode: Off");
+
+        if (!gameEnded)
+        {
+            emitStartEngine(session->position);
+            UpdateChessboard();
+        }
+
+        forwardsBtn->setEnabled(true);
+        fastForwardsBtn->setEnabled(true);
+        backwardsBtn->setEnabled(true);
+        fastBackwardsBtn->setEnabled(true);
+        fenUpdateBtn->setEnabled(true);
+        playerColorLabel->setVisible(false);
+        playerColorStringLabel->setVisible(false);
+    }
+    else
+    {
+        QDialog gameModeDialog;
+        gameModeDialog.setWindowFlags(Qt::CustomizeWindowHint /*| Qt::WindowTitleHint*/);
+        QGridLayout layout(&gameModeDialog);
+        QPushButton colorButtons[2];
+
+        for (int i = 0; i < 2; ++i)
+        {
+            uint8_t buttonColor = (uint8_t)PlayerColor::White << i;
+            colorButtons[i].setIcon(QIcon(piecesPixmaps.at(buttonColor | (uint8_t)Piece::Type::King)));
+            colorButtons[i].setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+            colorButtons[i].setMinimumSize(QSize(70, 70));
+            colorButtons[i].setMaximumSize(QSize(70, 70));
+            colorButtons[i].setIconSize(colorButtons[i].size());
+            layout.addWidget(colorButtons + i, 0, i);
+            connect(&colorButtons[i], &QPushButton::clicked, this,
+                    [&, buttonColor]()
+                    {
+                        playerColorLabel->setPixmap(piecesPixmaps.at(buttonColor | (uint8_t)Piece::Type::King));
+                        gameModePlayerColor = (PlayerColor)buttonColor;
+                        gameModeDialog.accept();
+                    });
+        }
+
+        gameModeDialog.exec();
+
+        gameMode = true;
+        playerColorLabel->setVisible(true);
+        playerColorStringLabel->setVisible(true);
+        gameModeBtn->setText("Game mode: On");
+        evaluationLabel ->setText("Evaluation: -----");
+        bestMovesLabel ->setText("-----");
+
+        if (gameModePlayerColor != session->position.playerToMove)
+        {
+            emitStartEngine(session->position);
+        }
+
+        UpdateChessboard();
+
+        forwardsBtn->setEnabled(false);
+        fastForwardsBtn->setEnabled(false);
+        backwardsBtn->setEnabled(false);
+        fastBackwardsBtn->setEnabled(false);
+        fenUpdateBtn->setEnabled(false);
+    }
 }
 
 void MainWindow::emitStartEngine(const Position& position)

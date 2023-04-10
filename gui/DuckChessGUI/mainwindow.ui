@@ -208,10 +208,68 @@
            </property>
           </widget>
          </item>
+         <item>
+          <layout class="QHBoxLayout" name="gameModePanel" stretch="1,1,0">
+           <item>
+            <widget class="QPushButton" name="gameModeBtn">
+             <property name="minimumSize">
+              <size>
+               <width>24</width>
+               <height>24</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>120</width>
+               <height>24</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Game mode: Off</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="playerColorStringLabel">
+             <property name="maximumSize">
+              <size>
+               <width>90</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Player color:</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="playerColorLabel">
+             <property name="maximumSize">
+              <size>
+               <width>24</width>
+               <height>24</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
         </layout>
        </item>
        <item>
         <widget class="QScrollArea" name="movesScrollArea">
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
          <property name="widgetResizable">
           <bool>true</bool>
          </property>
@@ -221,7 +279,7 @@
             <x>0</x>
             <y>0</y>
             <width>436</width>
-            <height>440</height>
+            <height>374</height>
            </rect>
           </property>
          </widget>
@@ -300,7 +358,7 @@
      <x>0</x>
      <y>0</y>
      <width>931</width>
-     <height>21</height>
+     <height>25</height>
     </rect>
    </property>
   </widget>

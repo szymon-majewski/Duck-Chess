@@ -8,6 +8,7 @@
 #include <QThread>
 #include <QScrollArea>
 #include <QAtomicInt>
+#include <QPushButton>
 
 #include <memory>
 
@@ -47,10 +48,18 @@ private:
     QLabel* timeLabel;
     QLabel* bestMovesLabel;
     QLabel* moveNumberLabel;
+    QPushButton* fenUpdateBtn;
     QLabel* rule50Label;
     QLabel* playerToMoveLabel;
     QLabel* castlingRightsWhiteLabel;
     QLabel* castlingRightsBlackLabel;
+    QPushButton* gameModeBtn;
+    QLabel* playerColorLabel;
+    QLabel* playerColorStringLabel;
+    QPushButton* forwardsBtn;
+    QPushButton* fastForwardsBtn ;
+    QPushButton* backwardsBtn;
+    QPushButton* fastBackwardsBtn;
     QScrollArea* movesScrollArea;
     std::unique_ptr<QWidget> scrollWidget;
     std::unique_ptr<QGridLayout> movesGridLayout;
@@ -64,6 +73,8 @@ private:
     bool firstPhase = true; // Or duck move
     bool duckOnTheBoard;
     std::unique_ptr<std::list<Move>> currentLegalChessMoves;
+    bool gameMode = false;
+    PlayerColor gameModePlayerColor = PlayerColor::None;
 
     const QColor LIGHT_SQUARE_COLOR = QColor(109, 185, 232);
     const QColor DARK_SQUARE_COLOR = QColor(32, 82, 168);
@@ -103,6 +114,7 @@ private slots:
     void OnForwardsButtonPressed();
     void OnFastBackwardsButtonPressed();
     void OnFastForwardsButtonPressed();
+    void OnGameModeButtonPressed();
 
 signals:
     void StartEngine(Position position);
