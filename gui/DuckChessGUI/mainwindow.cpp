@@ -27,7 +27,7 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     engineWorker = std::make_unique<EngineWorker>(&signalsSentWithoutResponse);
     engineThread = std::make_unique<QThread>();
     engineWorker->moveToThread(engineThread.get());
-    connect(engineWorker.get(), SIGNAL(ResultReady(Engine::SearchInfo)), this, SLOT(HandleEngineResult(Engine::SearchInfo)));
+    connect(engineWorker.get(), SIGNAL(ResultReady(Engine::SearchInfo, long long)), this, SLOT(HandleEngineResult(Engine::SearchInfo, long long)));
     connect(this, SIGNAL(StartEngine(Position)), engineWorker.get(), SLOT(Search(Position)));
     engineThread->start(QThread::TimeCriticalPriority);
 
@@ -69,6 +69,8 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     evaluationLabel = MainWindow::findChild<QLabel*>("evaluationLabel");
     depthLabel = MainWindow::findChild<QLabel*>("depthLabel");
     depthLabel->setText("Depth: " + QString::number(engineWorker->Depth()));
+    depthLabel->setAlignment(Qt::AlignCenter);
+    timeLabel = MainWindow::findChild<QLabel*>("timeLabel");
     bestMovesLabel = MainWindow::findChild<QLabel*>("bestMovesLabel");
     moveNumberLabel = MainWindow::findChild<QLabel*>("moveNumberLabel");
     rule50Label = MainWindow::findChild<QLabel*>("rule50Label");
@@ -229,13 +231,14 @@ void MainWindow::UpdateChessboard()
     }
 }
 
-void MainWindow::HandleEngineResult(const Engine::SearchInfo& result)
+void MainWindow::HandleEngineResult(const Engine::SearchInfo& result, long long time)
 {
     --signalsSentWithoutResponse;
 
     if (!gameEnded)
     {
         UpdateEvaluationLabel(result.evaluation);
+        UpdateTimeLabel(time);
         UpdateBestMovesLabel(result.movesPath);
     }
 }
@@ -1124,6 +1127,11 @@ void MainWindow::UpdateEvaluationLabel(const Evaluation evaluation)
     }
 
     evaluationLabel->setText(newText);
+}
+
+void MainWindow::UpdateTimeLabel(long long time)
+{
+    timeLabel->setText("Time: " + QString::number(time) + " ms");
 }
 
 void MainWindow::UpdateBestMovesLabel(const std::list<FullMove>& bestMovesList)

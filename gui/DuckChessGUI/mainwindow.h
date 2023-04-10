@@ -44,6 +44,7 @@ private:
     QTextEdit* fenTextEdit;
     QLabel* evaluationLabel;
     QLabel* depthLabel;
+    QLabel* timeLabel;
     QLabel* bestMovesLabel;
     QLabel* moveNumberLabel;
     QLabel* rule50Label;
@@ -88,6 +89,7 @@ private:
     void DeselectSquare(unsigned int x, unsigned int y);
     void DeselectSquare(Square square);
     void UpdateEvaluationLabel(const Evaluation evaluation);
+    void UpdateTimeLabel(long long time);
     void UpdateBestMovesLabel(const std::list<FullMove>& bestMovesList);
     void UpdatePositionLabels();
     void SetCastlingRightsLabel(QLabel* label, QString textToSet, const uint8_t kingside, const uint8_t queenside);
@@ -96,7 +98,7 @@ private:
 
 private slots:
     void FenUpdateButtonPressed();
-    void HandleEngineResult(const Engine::SearchInfo& result);
+    void HandleEngineResult(const Engine::SearchInfo& result, long long time);
     void OnBackwardsButtonPressed();
     void OnForwardsButtonPressed();
     void OnFastBackwardsButtonPressed();

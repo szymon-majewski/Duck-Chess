@@ -1,3 +1,4 @@
+#include <chrono>
 #include "EngineWorker.h"
 
 EngineWorker::EngineWorker(int* windowSignalsSentWithoutResponse, QObject* parent) :
@@ -13,7 +14,10 @@ void EngineWorker::Search(Position position)
         return;
     }
 
+    auto start = std::chrono::high_resolution_clock::now();
     auto result = *engine.Search(position);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
     // There came signals during this search, so results of this search are deprecated
     if (*windowSignalsSentWithoutResponse > 1)
@@ -22,7 +26,7 @@ void EngineWorker::Search(Position position)
         return;
     }
 
-    emit ResultReady(result);
+    emit ResultReady(result, duration);
 }
 
 unsigned int EngineWorker::Depth()

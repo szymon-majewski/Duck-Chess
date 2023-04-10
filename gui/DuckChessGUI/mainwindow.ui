@@ -125,7 +125,7 @@
           <enum>QLayout::SetFixedSize</enum>
          </property>
          <item>
-          <layout class="QHBoxLayout" name="evaluationAndDepthLayout">
+          <layout class="QHBoxLayout" name="evaluationAndDepthLayout" stretch="1,1,0">
            <item>
             <widget class="QLabel" name="evaluationLabel">
              <property name="text">
@@ -143,6 +143,13 @@
              </property>
              <property name="text">
               <string>Depth: </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="timeLabel">
+             <property name="text">
+              <string>Time: 0 ms</string>
              </property>
             </widget>
            </item>

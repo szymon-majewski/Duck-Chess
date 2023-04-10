@@ -21,5 +21,5 @@ public slots:
     void Search(Position position);
 
 signals:
-    void ResultReady(const Engine::SearchInfo& result);
+    void ResultReady(const Engine::SearchInfo& result, long long time);
 };
