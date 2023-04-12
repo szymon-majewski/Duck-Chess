@@ -70,6 +70,7 @@ private:
     PlayerColor startingPlayer = PlayerColor::White;
     std::vector<std::unique_ptr<PieceLabel>> piecesLabels;
     const Piece::Type promotionPieces[4] = { Piece::Type::Queen, Piece::Type::Rook, Piece::Type::Knight, Piece::Type::Bishop };
+    std::pair<int, int> (MainWindow::*coordsByPerspective)(int, int);
 
     Square selectedSquare = Square::None;
     Move firstPhaseMove;
@@ -110,6 +111,8 @@ private:
     void SetCastlingRightsLabel(QLabel* label, QString textToSet, const uint8_t kingside, const uint8_t queenside);
     void AddMoveToList(const FullMove& move);
     void emitStartEngine(const Position& position);
+    std::pair<int, int> whitesPerspectiveCoords(const int x, const int y);
+    std::pair<int, int> blacksPerspectiveCoords(const int x, const int y);
 
 private slots:
     void FenUpdateButtonPressed();

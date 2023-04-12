@@ -32,6 +32,8 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     connect(this, SIGNAL(StartEngine(Position)), engineWorker.get(), SLOT(Search(Position)));
     engineThread->start(QThread::TimeCriticalPriority);
 
+    coordsByPerspective = &MainWindow::whitesPerspectiveCoords;
+
     // CHESSBOARD
     chessboardPanel = MainWindow::findChild<QGridLayout*>("chessboardPanel");
 
@@ -258,12 +260,13 @@ void MainWindow::UpdateChessboard()
 
             if (currentBitPiece != NO_PIECE)
             {
-                auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, x, 7 - y));
+                auto [labelX, labelY] = (this->*coordsByPerspective)(x, y);
+                auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, labelX, labelY));
                 insertedLabel->setAlignment(Qt::AlignCenter);
                 insertedLabel->setPixmap(piecesPixmaps.at(currentBitPiece));
                 insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
                 insertedLabel->setScaledContents(true);
-                chessboardPanel->addWidget(insertedLabel.get(), 7 - y, x);
+                chessboardPanel->addWidget(insertedLabel.get(), labelY, labelX);
 
                 if (session->position.board.pieces[y][x].PieceType() == Piece::Type::Duck)
                 {
@@ -307,17 +310,20 @@ void MainWindow::HandleEngineResult(const Engine::SearchInfo& result, long long 
                 SquareToBoardIndices(bestMove.sourceSquare, sourceSquareY, sourceSquareX);
                 SquareToBoardIndices(bestMove.targetSquare, targetSquareY, targetSquareX);
 
+                auto [guiSourceX, guiSourceY] = (this->*coordsByPerspective)(sourceSquareX, sourceSquareY);
+                auto [guiTargetX, guiTargetY] = (this->*coordsByPerspective)(targetSquareX, targetSquareY);
+
                 // Piece which will take the king
                 for (int i = 0; i < piecesLabels.size() && breakChecker < 2; ++i)
                 {
-                    if (sourceSquareX == piecesLabels[i]->x && 7 - sourceSquareY == piecesLabels[i]->y)
+                    if (guiSourceX == piecesLabels[i]->x && guiSourceY == piecesLabels[i]->y)
                     {
-                        piecesLabels[i]->x = targetSquareX;
-                        piecesLabels[i]->y = 7 - targetSquareY;
+                        piecesLabels[i]->x = guiTargetX;
+                        piecesLabels[i]->y = guiTargetY;
                         movingPieceLabel = piecesLabels[i].get();
                         ++breakChecker;
                     }
-                    else if (targetSquareX == piecesLabels[i]->x && 7 - targetSquareY == piecesLabels[i]->y)
+                    else if (guiTargetX == piecesLabels[i]->x && guiTargetY == piecesLabels[i]->y)
                     {
                         takenPieceIndex = i;
                         ++breakChecker;
@@ -327,7 +333,7 @@ void MainWindow::HandleEngineResult(const Engine::SearchInfo& result, long long 
                 piecesLabels.erase(piecesLabels.begin() + takenPieceIndex);
 
                 chessboardPanel->removeWidget(movingPieceLabel);
-                chessboardPanel->addWidget(movingPieceLabel, 7 - targetSquareY, targetSquareX);
+                chessboardPanel->addWidget(movingPieceLabel, guiTargetY, guiTargetX);
 
                 gameEnded = true;
             }
@@ -365,28 +371,31 @@ void MainWindow::OnBackwardsButtonPressed()
         SquareToBoardIndices(movesMade[currentMoveIndex].sourceSquare, sourceSquareY, sourceSquareX);
         SquareToBoardIndices(movesMade[currentMoveIndex].targetSquare, targetSquareY, targetSquareX);
 
+        auto [guiSourceX, guiSourceY] = (this->*coordsByPerspective)(sourceSquareX, sourceSquareY);
+        auto [guiTargetX, guiTargetY] = (this->*coordsByPerspective)(targetSquareX, targetSquareY);
+
         // Piece which took the king
         for (const std::unique_ptr<PieceLabel>& pieceLabel : piecesLabels)
         {
-            if (targetSquareX == pieceLabel->x && 7 - targetSquareY == pieceLabel->y)
+            if (guiTargetX == pieceLabel->x && guiTargetY == pieceLabel->y)
             {
-                pieceLabel->x = sourceSquareX;
-                pieceLabel->y = 7 - sourceSquareY;
+                pieceLabel->x = guiSourceX;
+                pieceLabel->y = guiSourceY;
                 movingPieceLabel = pieceLabel.get();
                 break;
             }
         }
 
         chessboardPanel->removeWidget(movingPieceLabel);
-        chessboardPanel->addWidget(movingPieceLabel, 7 - sourceSquareY, sourceSquareX);
+        chessboardPanel->addWidget(movingPieceLabel, guiSourceY, guiSourceX);
 
         // King itself
-        auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, targetSquareX, 7 - targetSquareY));
+        auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, guiTargetX, guiTargetY));
         insertedLabel->setAlignment(Qt::AlignCenter);
         insertedLabel->setPixmap(piecesPixmaps.at((uint8_t)Piece::Type::King | (uint8_t)opponentsColor));
         insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
         insertedLabel->setScaledContents(true);
-        chessboardPanel->addWidget(insertedLabel.get(), 7 - targetSquareY, targetSquareX);
+        chessboardPanel->addWidget(insertedLabel.get(), guiTargetY, guiTargetX);
 
         emitStartEngine(session->position);
 
@@ -442,17 +451,20 @@ void MainWindow::OnForwardsButtonPressed()
         SquareToBoardIndices(movesMade[currentMoveIndex].sourceSquare, sourceSquareY, sourceSquareX);
         SquareToBoardIndices(movesMade[currentMoveIndex].targetSquare, targetSquareY, targetSquareX);
 
+        auto [guiSourceX, guiSourceY] = (this->*coordsByPerspective)(sourceSquareX, sourceSquareY);
+        auto [guiTargetX, guiTargetY] = (this->*coordsByPerspective)(targetSquareX, targetSquareY);
+
         // Piece which will take the king
         for (int i = 0; i < piecesLabels.size() && breakChecker < 2; ++i)
         {
-            if (sourceSquareX == piecesLabels[i]->x && 7 - sourceSquareY == piecesLabels[i]->y)
+            if (guiSourceX == piecesLabels[i]->x && guiSourceY == piecesLabels[i]->y)
             {
-                piecesLabels[i]->x = targetSquareX;
-                piecesLabels[i]->y = 7 - targetSquareY;
+                piecesLabels[i]->x = guiTargetX;
+                piecesLabels[i]->y = guiTargetY;
                 movingPieceLabel = piecesLabels[i].get();
                 ++breakChecker;
             }
-            else if (targetSquareX == piecesLabels[i]->x && 7 - targetSquareY == piecesLabels[i]->y)
+            else if (guiTargetX == piecesLabels[i]->x && guiTargetY == piecesLabels[i]->y)
             {
                 takenPieceIndex = i;
                 ++breakChecker;
@@ -462,7 +474,7 @@ void MainWindow::OnForwardsButtonPressed()
         piecesLabels.erase(piecesLabels.begin() + takenPieceIndex);
 
         chessboardPanel->removeWidget(movingPieceLabel);
-        chessboardPanel->addWidget(movingPieceLabel, 7 - targetSquareY, targetSquareX);
+        chessboardPanel->addWidget(movingPieceLabel, guiTargetY, guiTargetX);
 
         bestMovesLabel->setText("-----");
         gameEnded = true;
@@ -542,17 +554,20 @@ void MainWindow::OnFastForwardsButtonPressed()
         SquareToBoardIndices(movesMade[lastMoveIndex].sourceSquare, sourceSquareY, sourceSquareX);
         SquareToBoardIndices(movesMade[lastMoveIndex].targetSquare, targetSquareY, targetSquareX);
 
+        auto [guiSourceX, guiSourceY] = (this->*coordsByPerspective)(sourceSquareX, sourceSquareY);
+        auto [guiTargetX, guiTargetY] = (this->*coordsByPerspective)(targetSquareX, targetSquareY);
+
         // Piece which will take the king
         for (int i = 0; i < piecesLabels.size() && breakChecker < 2; ++i)
         {
-            if (sourceSquareX == piecesLabels[i]->x && 7 - sourceSquareY == piecesLabels[i]->y)
+            if (guiSourceX == piecesLabels[i]->x && guiSourceY == piecesLabels[i]->y)
             {
-                piecesLabels[i]->x = targetSquareX;
-                piecesLabels[i]->y = 7 - targetSquareY;
+                piecesLabels[i]->x = guiTargetX;
+                piecesLabels[i]->y = guiTargetY;
                 movingPieceLabel = piecesLabels[i].get();
                 ++breakChecker;
             }
-            else if (targetSquareX == piecesLabels[i]->x && 7 - targetSquareY == piecesLabels[i]->y)
+            else if (guiTargetX == piecesLabels[i]->x && guiTargetY == piecesLabels[i]->y)
             {
                 takenPieceIndex = i;
                 ++breakChecker;
@@ -562,7 +577,7 @@ void MainWindow::OnFastForwardsButtonPressed()
         piecesLabels.erase(piecesLabels.begin() + takenPieceIndex);
 
         chessboardPanel->removeWidget(movingPieceLabel);
-        chessboardPanel->addWidget(movingPieceLabel, 7 - targetSquareY, targetSquareX);
+        chessboardPanel->addWidget(movingPieceLabel, guiTargetY, guiTargetX);
 
         bestMovesLabel->setText("-----");
         gameEnded = true;
@@ -603,11 +618,12 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         int sourceSquareX;
         int sourceSquareY;
         SquareToBoardIndices(selectedSquare, sourceSquareY, sourceSquareX);
+
+        auto [guiSourceX, guiSourceY] = (this->*coordsByPerspective)(sourceSquareX, sourceSquareY);
+
         Square targetSquare = BoardIndicesToSquare(7 - y, x);
         PlayerColor movingPieceColor = session->position.playerToMove;
 
-        // MOVE ADDITIONAL INFO!!! - PROBABLY GO FOR MOVES GENERATOR VALIDATION
-        // I GUESS IT ONLY NEDDS CHESS MOVES AND THEN CHECK IF DUCK LANDING SQUARE IS EMPTY (with regards to just moved piece)
         if (session->position.board.pieces[sourceSquareY][sourceSquareX].PieceType() != Piece::Type::Duck)
         {
             bool validMove = false;
@@ -1454,6 +1470,7 @@ void MainWindow::OnGameModeButtonPressed()
 
 void MainWindow::OnFlipBoardButtonPressed()
 {
+    // Flipping ranks and files symbols
     for (int i = 0; i < 8; ++i)
     {
         QLabel* fileLetter = qobject_cast<QLabel*>(filesLettersLayout->itemAtPosition(0, i)->widget());
@@ -1464,6 +1481,39 @@ void MainWindow::OnFlipBoardButtonPressed()
         fileLetter->setText(QString::fromLatin1(&newFileLetter, 1));
         rankNumber->setText(QString::fromLatin1(&newRankNumber, 1));
     }
+
+    // Flipping squares coords
+    for (int x = 0; x < 8; ++x)
+    {
+        for (int y = 0; y < 8; ++y)
+        {
+            squareFrames[x][y].x = 7 - squareFrames[x][y].x;
+            squareFrames[x][y].y = 7 - squareFrames[x][y].y;
+        }
+    }
+
+    if (whitesPerspective)
+    {
+        coordsByPerspective = &MainWindow::blacksPerspectiveCoords;
+        whitesPerspective = false;
+    }
+    else
+    {
+        coordsByPerspective = &MainWindow::whitesPerspectiveCoords;
+        whitesPerspective = true;
+    }
+
+    UpdateChessboard();
+}
+
+std::pair<int, int> MainWindow::whitesPerspectiveCoords(const int x, const int y)
+{
+    return std::make_pair(x, 7 - y);
+}
+
+std::pair<int, int> MainWindow::blacksPerspectiveCoords(const int x, const int y)
+{
+    return std::make_pair(7 - x, y);
 }
 
 void MainWindow::emitStartEngine(const Position& position)
