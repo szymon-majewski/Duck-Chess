@@ -17,5 +17,6 @@
         <file>img/pieces/white_queen.png</file>
         <file>img/pieces/white_rook.png</file>
         <file>img/pieces/duck.png</file>
+        <file>img/ui/flipBoard.jpg</file>
     </qresource>
 </RCC>

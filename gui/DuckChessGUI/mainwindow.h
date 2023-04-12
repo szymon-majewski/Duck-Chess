@@ -42,6 +42,9 @@ private:
     // UI stuff
     QGridLayout* chessboardPanel;
     SquareFrame squareFrames[8][8];
+    QGridLayout* filesLettersLayout;
+    QGridLayout* ranksNumbersLayout;
+    QPushButton* flipBoardButton;
     QTextEdit* fenTextEdit;
     QLabel* evaluationLabel;
     QLabel* depthLabel;

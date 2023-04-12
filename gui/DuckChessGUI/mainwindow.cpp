@@ -19,7 +19,8 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     ui->setupUi(this);
     setWindowTitle("Duck Chess Engine");
     setWindowIcon(QIcon(":/rsc/img/pieces/duck.png"));
-    setFixedSize(900, 650);
+//    setFixedSize(900, 650);
+    setFixedSize(935, 670);
 
     // INIT
     InitPiecesPixmaps();
@@ -64,6 +65,37 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
         chessboardPanel->setRowStretch(i, 1);
         chessboardPanel->setColumnStretch(i, 1);
     }
+
+    // FILES AND RANKS
+    filesLettersLayout = MainWindow::findChild<QGridLayout*>("filesLettersLayout");
+    ranksNumbersLayout  = MainWindow::findChild<QGridLayout*>("ranksNumbersLayout");
+
+    QFont font;
+    font.setPointSize(10);
+    font.setBold(true);
+
+    for (int i = 0; i < 8; i++)
+    {
+        auto* fileLetter = new QLabel(QChar('A' + i));
+        auto* rankNumber = new QLabel(QString::number(8 - i));
+
+        fileLetter->setFont(font);
+        fileLetter->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        fileLetter->setMinimumSize(QSize(70, 20));
+        fileLetter->setMaximumSize(QSize(70, 20));
+        fileLetter->setAlignment(Qt::AlignCenter);
+
+        rankNumber->setFont(font);
+        rankNumber->setAlignment(Qt::AlignCenter);
+
+        filesLettersLayout->addWidget(fileLetter, 0, i);
+        ranksNumbersLayout->addWidget(rankNumber, i, 0);
+    }
+
+    // FLIP BUTTON
+    flipBoardButton = MainWindow::findChild<QPushButton*>("flipBoardBtn");
+    QPixmap flipBoardPixmap(":/rsc/img/ui/flipBoard.jpg");
+    flipBoardButton->setIcon(QIcon(flipBoardPixmap));
 
     // ENGINE PANEL
     evaluationLabel = MainWindow::findChild<QLabel*>("evaluationLabel");

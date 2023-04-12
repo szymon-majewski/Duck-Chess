@@ -37,10 +37,10 @@
       <enum>QLayout::SetFixedSize</enum>
      </property>
      <property name="leftMargin">
-      <number>10</number>
+      <number>7</number>
      </property>
      <property name="topMargin">
-      <number>10</number>
+      <number>13</number>
      </property>
      <property name="rightMargin">
       <number>10</number>
@@ -49,18 +49,74 @@
       <number>10</number>
      </property>
      <item>
-      <layout class="QVBoxLayout" name="leftPanel" stretch="8,1">
+      <layout class="QVBoxLayout" name="leftPanel" stretch="1,1,1">
        <property name="spacing">
-        <number>7</number>
+        <number>0</number>
        </property>
        <property name="sizeConstraint">
         <enum>QLayout::SetDefaultConstraint</enum>
        </property>
        <item>
-        <layout class="QGridLayout" name="chessboardPanel" rowstretch="0" columnstretch="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <property name="spacing">
+          <number>5</number>
+         </property>
+         <property name="sizeConstraint">
+          <enum>QLayout::SetFixedSize</enum>
+         </property>
+         <item>
+          <layout class="QGridLayout" name="ranksNumbersLayout">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+          </layout>
+         </item>
+         <item>
+          <layout class="QGridLayout" name="chessboardPanel">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetFixedSize</enum>
+           </property>
+           <property name="spacing">
+            <number>0</number>
+           </property>
+          </layout>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
          <property name="spacing">
           <number>0</number>
          </property>
+         <property name="sizeConstraint">
+          <enum>QLayout::SetMinimumSize</enum>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>25</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <layout class="QGridLayout" name="filesLettersLayout">
+           <property name="topMargin">
+            <number>5</number>
+           </property>
+           <property name="spacing">
+            <number>0</number>
+           </property>
+          </layout>
+         </item>
         </layout>
        </item>
        <item>
@@ -72,10 +128,10 @@
           <enum>QLayout::SetDefaultConstraint</enum>
          </property>
          <property name="leftMargin">
-          <number>7</number>
+          <number>10</number>
          </property>
          <property name="topMargin">
-          <number>20</number>
+          <number>15</number>
          </property>
          <property name="rightMargin">
           <number>7</number>
@@ -267,6 +323,18 @@
        </item>
        <item>
         <widget class="QScrollArea" name="movesScrollArea">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>380</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>500</width>
+           <height>380</height>
+          </size>
+         </property>
          <property name="styleSheet">
           <string notr="true"/>
          </property>
@@ -278,8 +346,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>436</width>
-            <height>374</height>
+            <width>438</width>
+            <height>378</height>
            </rect>
           </property>
          </widget>
@@ -291,11 +359,30 @@
           <enum>QLayout::SetFixedSize</enum>
          </property>
          <item>
+          <widget class="QPushButton" name="flipBoardBtn">
+           <property name="minimumSize">
+            <size>
+             <width>30</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>30</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="fastBackwardsBtn">
            <property name="minimumSize">
             <size>
-             <width>70</width>
-             <height>24</height>
+             <width>60</width>
+             <height>30</height>
             </size>
            </property>
            <property name="text">
@@ -307,8 +394,8 @@
           <widget class="QPushButton" name="backwardsBtn">
            <property name="minimumSize">
             <size>
-             <width>70</width>
-             <height>24</height>
+             <width>60</width>
+             <height>30</height>
             </size>
            </property>
            <property name="text">
@@ -323,8 +410,8 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>70</width>
-             <height>24</height>
+             <width>60</width>
+             <height>30</height>
             </size>
            </property>
            <property name="text">
@@ -336,8 +423,8 @@
           <widget class="QPushButton" name="fastForwardsBtn">
            <property name="minimumSize">
             <size>
-             <width>70</width>
-             <height>24</height>
+             <width>60</width>
+             <height>30</height>
             </size>
            </property>
            <property name="text">
@@ -358,7 +445,7 @@
      <x>0</x>
      <y>0</y>
      <width>931</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
