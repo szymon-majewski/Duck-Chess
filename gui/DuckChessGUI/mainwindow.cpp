@@ -96,6 +96,7 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     flipBoardButton = MainWindow::findChild<QPushButton*>("flipBoardBtn");
     QPixmap flipBoardPixmap(":/rsc/img/ui/flipBoard.jpg");
     flipBoardButton->setIcon(QIcon(flipBoardPixmap));
+    connect(flipBoardButton, SIGNAL(released()), this, SLOT(OnFlipBoardButtonPressed()));
 
     // ENGINE PANEL
     evaluationLabel = MainWindow::findChild<QLabel*>("evaluationLabel");
@@ -1448,6 +1449,20 @@ void MainWindow::OnGameModeButtonPressed()
 
             movesMade.erase(movesMade.begin() + currentMoveIndex + 1, movesMade.end());
         }
+    }
+}
+
+void MainWindow::OnFlipBoardButtonPressed()
+{
+    for (int i = 0; i < 8; ++i)
+    {
+        QLabel* fileLetter = qobject_cast<QLabel*>(filesLettersLayout->itemAtPosition(0, i)->widget());
+        QLabel* rankNumber = qobject_cast<QLabel*>(ranksNumbersLayout->itemAtPosition(i, 0)->widget());
+        char newFileLetter = 137 - fileLetter->text()[0].toLatin1();
+        char newRankNumber = 105 - rankNumber->text()[0].toLatin1();
+
+        fileLetter->setText(QString::fromLatin1(&newFileLetter, 1));
+        rankNumber->setText(QString::fromLatin1(&newRankNumber, 1));
     }
 }
 

@@ -78,6 +78,7 @@ private:
     std::unique_ptr<std::list<Move>> currentLegalChessMoves;
     bool gameMode = false;
     PlayerColor gameModePlayerColor = PlayerColor::None;
+    bool whitesPerspective = true;
 
     const QColor LIGHT_SQUARE_COLOR = QColor(109, 185, 232);
     const QColor DARK_SQUARE_COLOR = QColor(32, 82, 168);
@@ -118,6 +119,7 @@ private slots:
     void OnFastBackwardsButtonPressed();
     void OnFastForwardsButtonPressed();
     void OnGameModeButtonPressed();
+    void OnFlipBoardButtonPressed();
 
 signals:
     void StartEngine(Position position);
