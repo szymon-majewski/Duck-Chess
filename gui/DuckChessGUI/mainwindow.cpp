@@ -1372,6 +1372,50 @@ void MainWindow::OnGameModeButtonPressed()
         backwardsBtn->setEnabled(false);
         fastBackwardsBtn->setEnabled(false);
         fenUpdateBtn->setEnabled(false);
+
+        // Delete the moves made after current time in game if there are any
+        if (currentMoveIndex != movesMade.size() - 1)
+        {
+            int startRow = startingPlayer == PlayerColor::White ? (movesMade.size() - 1) / 2 : movesMade.size() / 2;
+            int endRow;
+
+            if (currentMoveIndex != -1)
+            {
+                endRow = startingPlayer == PlayerColor::White ? currentMoveIndex / 2 : (currentMoveIndex + 1) / 2;
+            }
+            else
+            {
+                endRow = -1;
+            }
+
+            for (int row = startRow; row > endRow; --row)
+            {
+                for (int col = 0; col < 3; ++col)
+                {
+                    QLayoutItem* layoutItem = movesGridLayout->itemAtPosition(row, col);
+                    if (layoutItem)
+                    {
+                        QLabel* label = qobject_cast<QLabel*>(layoutItem->widget());
+                        movesGridLayout->removeWidget(label);
+                        delete label;
+                    }
+                }
+            }
+
+            // Before making a move it's black turn, so we want to delete blacks' move from the list
+            if (session->position.playerToMove == PlayerColor::White)
+            {
+                int rowToDeleteIndex = startingPlayer == PlayerColor::White ? currentMoveIndex / 2 : currentMoveIndex / 2 + 1;
+                QLayoutItem* layoutItem = movesGridLayout->itemAtPosition(rowToDeleteIndex, 2);
+                if (layoutItem)
+                {
+                    movesGridLayout->removeWidget(layoutItem->widget());
+                    delete layoutItem->widget();
+                }
+            }
+
+            movesMade.erase(movesMade.begin() + currentMoveIndex + 1, movesMade.end());
+        }
     }
 }
 
