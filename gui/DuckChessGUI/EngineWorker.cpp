@@ -33,3 +33,8 @@ unsigned int EngineWorker::Depth()
 {
     return engine.searchDepth;
 }
+
+void EngineWorker::SetDepth(unsigned int depth)
+{
+    engine.searchDepth = depth;
+}

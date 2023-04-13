@@ -9,6 +9,7 @@
 #include <QScrollArea>
 #include <QAtomicInt>
 #include <QPushButton>
+#include <QSpinBox>
 
 #include <memory>
 
@@ -47,7 +48,7 @@ private:
     QPushButton* flipBoardButton;
     QTextEdit* fenTextEdit;
     QLabel* evaluationLabel;
-    QLabel* depthLabel;
+    QSpinBox* depthSpinBox;
     QLabel* timeLabel;
     QLabel* bestMovesLabel;
     QLabel* moveNumberLabel;
@@ -123,6 +124,7 @@ private slots:
     void OnFastForwardsButtonPressed();
     void OnGameModeButtonPressed();
     void OnFlipBoardButtonPressed();
+    void OnDepthSpinBoxValueChanged(int newDepth);
 
 signals:
     void StartEngine(Position position);

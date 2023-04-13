@@ -102,9 +102,11 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
 
     // ENGINE PANEL
     evaluationLabel = MainWindow::findChild<QLabel*>("evaluationLabel");
-    depthLabel = MainWindow::findChild<QLabel*>("depthLabel");
-    depthLabel->setText("Depth: " + QString::number(engineWorker->Depth()));
-    depthLabel->setAlignment(Qt::AlignCenter);
+
+    depthSpinBox = MainWindow::findChild<QSpinBox*>("depthSpinBox");
+    depthSpinBox->setValue(engineWorker->Depth());
+    connect(depthSpinBox, SIGNAL(valueChanged(int)), this, SLOT(OnDepthSpinBoxValueChanged(int)));
+
     timeLabel = MainWindow::findChild<QLabel*>("timeLabel");
     bestMovesLabel = MainWindow::findChild<QLabel*>("bestMovesLabel");
     moveNumberLabel = MainWindow::findChild<QLabel*>("moveNumberLabel");
@@ -1602,6 +1604,16 @@ void MainWindow::emitStartEngine(const Position& position)
 {
     ++signalsSentWithoutResponse;
     emit StartEngine(session->position);
+}
+
+void MainWindow::OnDepthSpinBoxValueChanged(int newDepth)
+{
+    engineWorker->SetDepth(newDepth);
+
+    if (!gameEnded)
+    {
+        emitStartEngine(session->position);
+    }
 }
 
 void MainWindow::InitPiecesPixmaps()

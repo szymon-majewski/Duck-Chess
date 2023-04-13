@@ -16,6 +16,7 @@ public:
     explicit EngineWorker(int* windowSignalsSentWithoutResponse, QObject* parent = nullptr);
 
     unsigned int Depth();
+    void SetDepth(unsigned int depth);
 
 public slots:
     void Search(Position position);
