@@ -1547,6 +1547,45 @@ void MainWindow::OnFlipBoardButtonPressed()
             }
         }
     }
+
+    if (gameEnded)
+    {
+        PieceLabel* movingPieceLabel;
+        unsigned int takenPieceIndex;
+        unsigned int breakChecker = 0;
+        int sourceSquareX;
+        int sourceSquareY;
+        int targetSquareX;
+        int targetSquareY;
+
+        SquareToBoardIndices(movesMade[currentMoveIndex].sourceSquare, sourceSquareY, sourceSquareX);
+        SquareToBoardIndices(movesMade[currentMoveIndex].targetSquare, targetSquareY, targetSquareX);
+
+        auto [guiSourceX, guiSourceY] = (this->*coordsByPerspective)(sourceSquareX, sourceSquareY);
+        auto [guiTargetX, guiTargetY] = (this->*coordsByPerspective)(targetSquareX, targetSquareY);
+
+        // Piece which will take the king
+        for (int i = 0; i < piecesLabels.size() && breakChecker < 2; ++i)
+        {
+            if (guiSourceX == piecesLabels[i]->x && guiSourceY == piecesLabels[i]->y)
+            {
+                piecesLabels[i]->x = guiTargetX;
+                piecesLabels[i]->y = guiTargetY;
+                movingPieceLabel = piecesLabels[i].get();
+                ++breakChecker;
+            }
+            else if (guiTargetX == piecesLabels[i]->x && guiTargetY == piecesLabels[i]->y)
+            {
+                takenPieceIndex = i;
+                ++breakChecker;
+            }
+        }
+
+        piecesLabels.erase(piecesLabels.begin() + takenPieceIndex);
+
+        chessboardPanel->removeWidget(movingPieceLabel);
+        chessboardPanel->addWidget(movingPieceLabel, guiTargetY, guiTargetX);
+    }
 }
 
 std::pair<int, int> MainWindow::whitesPerspectiveCoords(const int x, const int y)

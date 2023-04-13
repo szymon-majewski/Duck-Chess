@@ -236,7 +236,7 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
         }
     }
 
-    //std::shuffle((*legalMoves).begin(), (*legalMoves).end(), std::default_random_engine());
+    std::shuffle((*legalMoves).begin(), (*legalMoves).end(), std::default_random_engine());
 
     /*for (const Square& emptySquare : emptySquares)
     {
