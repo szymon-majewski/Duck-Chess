@@ -959,7 +959,7 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
             // Selected piece wants to take enemy piece
             if (clickedPieceColor == (uint8_t)opponentsColor)
             {
-                Square targetSquare = BoardIndicesToSquare(guiSourceY, guiSourceX);
+                Square targetSquare = BoardIndicesToSquare(engineTargetY, engineTargetX);
                 bool validMove = false;
 
                 for (const Move& move : *currentLegalChessMoves)
