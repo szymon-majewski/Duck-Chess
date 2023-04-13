@@ -612,6 +612,8 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         return;
     }
 
+    auto [engineTargetX, engineTargetY] = (this->*coordsByPerspective)(x, y);
+
     // Piece was selected earlier and wants to move to an empty square
     if (selectedSquare != Square::None)
     {
@@ -619,9 +621,11 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         int sourceSquareY;
         SquareToBoardIndices(selectedSquare, sourceSquareY, sourceSquareX);
 
-        auto [guiSourceX, guiSourceY] = (this->*coordsByPerspective)(sourceSquareX, sourceSquareY);
+        auto guiSourceCoords = (this->*coordsByPerspective)(sourceSquareX, sourceSquareY);
+        auto guiSourceX = guiSourceCoords.first;
+        auto guiSourceY = guiSourceCoords.second;
 
-        Square targetSquare = BoardIndicesToSquare(7 - y, x);
+        Square targetSquare = BoardIndicesToSquare(engineTargetY, engineTargetX);
         PlayerColor movingPieceColor = session->position.playerToMove;
 
         if (session->position.board.pieces[sourceSquareY][sourceSquareX].PieceType() != Piece::Type::Duck)
@@ -648,7 +652,8 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
             {
                 unsigned int takenPieceIndex;
 
-                if (movingPieceColor == PlayerColor::White)
+                if (movingPieceColor == PlayerColor::White && whitesPerspective ||
+                    movingPieceColor == PlayerColor::Black && !whitesPerspective)
                 {
                     for (int i = 0; i < piecesLabels.size(); ++i)
                     {
@@ -698,7 +703,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
 
                                 for (const std::unique_ptr<PieceLabel>& pieceLabel : piecesLabels)
                                 {
-                                    if (sourceSquareX == pieceLabel->x && 7 - sourceSquareY == pieceLabel->y)
+                                    if (guiSourceX == pieceLabel->x && guiSourceY == pieceLabel->y)
                                     {
                                         movingPieceLabel = pieceLabel.get();
                                         break;
@@ -754,19 +759,22 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
                 SquareToBoardIndices(rookSourceSquare, rookSourceY, rookSourceX);
                 SquareToBoardIndices(rookTargetSquare, rookTargetY, rookTargetX);
 
+                auto [guiRookSourceX, guiRookSourceY] = (this->*coordsByPerspective)(rookSourceX, rookSourceY);
+                auto [guiRookTargetX, guiRookTargetY] = (this->*coordsByPerspective)(rookTargetX, rookTargetY);
+
                 for (const std::unique_ptr<PieceLabel>& pieceLabel : piecesLabels)
                 {
-                    if (rookSourceX == pieceLabel->x && 7 - rookSourceY == pieceLabel->y)
+                    if (guiRookSourceX == pieceLabel->x && guiRookSourceY == pieceLabel->y)
                     {
-                        pieceLabel->x = rookTargetX;
-                        pieceLabel->y = 7 - rookTargetY;
+                        pieceLabel->x = guiRookTargetX;
+                        pieceLabel->y = guiRookTargetY;
                         rookLabel = pieceLabel.get();
                         break;
                     }
                 }
 
                 chessboardPanel->removeWidget(rookLabel);
-                chessboardPanel->addWidget(rookLabel, 7 - rookTargetY, rookTargetX);
+                chessboardPanel->addWidget(rookLabel, guiRookTargetY, guiRookTargetX);
             }
 
         }
@@ -835,7 +843,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
 
         for (const std::unique_ptr<PieceLabel>& pieceLabel : piecesLabels)
         {
-            if (sourceSquareX == pieceLabel->x && 7 - sourceSquareY == pieceLabel->y)
+            if (guiSourceX == pieceLabel->x && guiSourceY == pieceLabel->y)
             {
                 pieceLabel->x = x;
                 pieceLabel->y = y;
@@ -849,7 +857,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         chessboardPanel->addWidget(movingPieceLabel, y, x);
         //////////////////////////////////////////////////////////////
 
-        DeselectSquare(sourceSquareX, 7 - sourceSquareY);
+        DeselectSquare(guiSourceX, guiSourceY);
         selectedSquare = Square::None;
         firstPhase = !firstPhase;
     }
@@ -868,7 +876,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         firstPhase = true;
         duckOnTheBoard = true;
 
-        auto newMove = FullMove(firstPhaseMove, selectedSquare, BoardIndicesToSquare(7 - y, x));
+        auto newMove = FullMove(firstPhaseMove, selectedSquare, BoardIndicesToSquare(engineTargetY, engineTargetX));
 
         // Delete the moves made after current time in game if there are any
         if (currentMoveIndex != movesMade.size() - 1)
@@ -913,7 +921,8 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
         return;
     }
 
-    uint8_t clickedPieceColor = (uint8_t)session->position.board.pieces[7 - y][x].PieceColor();
+    auto [engineTargetX, engineTargetY] = (this->*coordsByPerspective)(x, y);
+    uint8_t clickedPieceColor = (uint8_t)session->position.board.pieces[engineTargetY][engineTargetX].PieceColor();
 
     // No piece was selected earlier
     if (selectedSquare == Square::None)
@@ -921,13 +930,13 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
         // Color of clicked piece matches player that is to move
         if (firstPhase && clickedPieceColor == (uint8_t)session->position.playerToMove)
         {
-            selectedSquare = BoardIndicesToSquare(7 - y, x);
+            selectedSquare = BoardIndicesToSquare(engineTargetY, engineTargetX);
             SelectSquare(x, y);
         }
         // Or it's duck move and duck was clicked
         else if (!firstPhase && clickedPieceColor == (uint8_t)Piece::Color::Both)
         {
-            selectedSquare = BoardIndicesToSquare(7 - y, x);
+            selectedSquare = BoardIndicesToSquare(engineTargetY, engineTargetX);
             SelectSquare(x, y);
         }
     }
@@ -939,13 +948,18 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
             int sourceSquareX;
             int sourceSquareY;
             SquareToBoardIndices(selectedSquare, sourceSquareY, sourceSquareX);
+
+            auto guiSourceCoords = (this->*coordsByPerspective)(sourceSquareX, sourceSquareY);
+            auto guiSourceX = guiSourceCoords.first;
+            auto guiSourceY = guiSourceCoords.second;
+
             PlayerColor opponentsColor = session->position.playerToMove == PlayerColor::White ? PlayerColor::Black : PlayerColor::White;
             PlayerColor movingPieceColor = session->position.playerToMove;
 
             // Selected piece wants to take enemy piece
             if (clickedPieceColor == (uint8_t)opponentsColor)
             {
-                Square targetSquare = BoardIndicesToSquare(7 - y, x);
+                Square targetSquare = BoardIndicesToSquare(guiSourceY, guiSourceX);
                 bool validMove = false;
 
                 for (const Move& move : *currentLegalChessMoves)
@@ -987,7 +1001,7 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
 
                                     for (const std::unique_ptr<PieceLabel>& pieceLabel : piecesLabels)
                                     {
-                                        if (sourceSquareX == pieceLabel->x && 7 - sourceSquareY == pieceLabel->y)
+                                        if (guiSourceX == pieceLabel->x && guiSourceY == pieceLabel->y)
                                         {
                                             movingPieceLabel = pieceLabel.get();
                                             break;
@@ -1093,7 +1107,7 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
 
                 for (int i = 0; i < piecesLabels.size() && breakChecker < 2; ++i)
                 {
-                    if (sourceSquareX == piecesLabels[i]->x && 7 - sourceSquareY == piecesLabels[i]->y)
+                    if (guiSourceX == piecesLabels[i]->x && guiSourceY == piecesLabels[i]->y)
                     {
                         piecesLabels[i]->x = x;
                         piecesLabels[i]->y = y;
@@ -1113,7 +1127,7 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
                 chessboardPanel->addWidget(movingPieceLabel, y, x);
                 //////////////////////////////////////////////////////////////
 
-                DeselectSquare(sourceSquareX, 7 - sourceSquareY);
+                DeselectSquare(guiSourceX, guiSourceY);
                 selectedSquare = Square::None;
                 firstPhase = false;
             }
@@ -1123,9 +1137,11 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
                 int sourceSqaureX;
                 int sourceSqaureY;
                 SquareToBoardIndices(selectedSquare, sourceSqaureY, sourceSqaureX);
-                DeselectSquare(sourceSqaureX, 7 - sourceSqaureY);
+                auto [guiSourceX, guiSourceY] = (this->*coordsByPerspective)(sourceSquareX, sourceSquareY);
 
-                selectedSquare = BoardIndicesToSquare(7 - y, x);
+                DeselectSquare(guiSourceX, guiSourceY);
+
+                selectedSquare = BoardIndicesToSquare(engineTargetY, engineTargetX);
                 SelectSquare(x, y);
             }
         }
@@ -1198,8 +1214,9 @@ void MainWindow::SelectSquare(Square square)
     int y;
 
     SquareToBoardIndices(square, y, x);
+    auto [guiSquareX, guiSquareY] = (this->*coordsByPerspective)(x, y);
 
-    SelectSquare(x, 7 - y);
+    SelectSquare(guiSquareX, guiSquareY);
 }
 
 void MainWindow::DeselectSquare(unsigned int x, unsigned int y)
@@ -1220,8 +1237,9 @@ void MainWindow::DeselectSquare(Square square)
     int y;
 
     SquareToBoardIndices(square, y, x);
+    auto [guiSquareX, guiSquareY] = (this->*coordsByPerspective)(x, y);
 
-    DeselectSquare(x, 7 - y);
+    DeselectSquare(guiSquareX, guiSquareY);
 }
 
 void MainWindow::UpdateEvaluationLabel(const Evaluation evaluation)
@@ -1482,14 +1500,10 @@ void MainWindow::OnFlipBoardButtonPressed()
         rankNumber->setText(QString::fromLatin1(&newRankNumber, 1));
     }
 
-    // Flipping squares coords
-    for (int x = 0; x < 8; ++x)
+    if (selectedSquare != Square::None)
     {
-        for (int y = 0; y < 8; ++y)
-        {
-            squareFrames[x][y].x = 7 - squareFrames[x][y].x;
-            squareFrames[x][y].y = 7 - squareFrames[x][y].y;
-        }
+        DeselectSquare(selectedSquare);
+        selectedSquare = Square::None;
     }
 
     if (whitesPerspective)
@@ -1503,7 +1517,36 @@ void MainWindow::OnFlipBoardButtonPressed()
         whitesPerspective = true;
     }
 
-    UpdateChessboard();
+    firstPhase = true;
+
+    piecesLabels.clear();
+    duckOnTheBoard = false;
+
+    BitPiece currentBitPiece;
+
+    for (int y = 0; y < 8; ++y)
+    {
+        for (int x = 0; x < 8; ++x)
+        {
+            currentBitPiece = session->position.board.pieces[y][x].GetBitPiece();
+
+            if (currentBitPiece != NO_PIECE)
+            {
+                auto [labelX, labelY] = (this->*coordsByPerspective)(x, y);
+                auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, labelX, labelY));
+                insertedLabel->setAlignment(Qt::AlignCenter);
+                insertedLabel->setPixmap(piecesPixmaps.at(currentBitPiece));
+                insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+                insertedLabel->setScaledContents(true);
+                chessboardPanel->addWidget(insertedLabel.get(), labelY, labelX);
+
+                if (session->position.board.pieces[y][x].PieceType() == Piece::Type::Duck)
+                {
+                    duckOnTheBoard = true;
+                }
+            }
+        }
+    }
 }
 
 std::pair<int, int> MainWindow::whitesPerspectiveCoords(const int x, const int y)
