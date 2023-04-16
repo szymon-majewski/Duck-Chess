@@ -1,78 +1,92 @@
 #include "Position.h"
 #include "PositionEvaluator.h"
 
-extern void SquareToBoardIndices(const Square& square, int& y, int& x);
-Square BoardIndicesToSquare(const unsigned& y, const unsigned& x);
-
 PlayerColor Position::Update(const FullMove& move)
 {
-    int sourceY;
-    int sourceX;
-    int targetY;
-    int targetX;
-
-    SquareToBoardIndices(move.sourceSquare, sourceY, sourceX);
-    SquareToBoardIndices(move.targetSquare, targetY, targetX);
-
     // What piece is moving
-    Piece::Type movingPieceType = board.pieces[sourceY][sourceX].PieceType();
-    Piece::Color movingPieceColor = board.pieces[sourceY][sourceX].PieceColor();
+    Board::Color movingPieceColor = playerToMove == PlayerColor::White ? Board::Color::White : Board::Color::Black;
+    Board::Color opponentsPieceColor = (Board::Color)(1 - movingPieceColor);
+    Board::Type movingPieceType = board.FindBoardType(1ULL << move.sourceSquare, movingPieceColor);
 
     // Check if game is won by either player
     PlayerColor winnerColor = PlayerColor::None;
 
-    if (board.pieces[targetY][targetX].PieceType() == Piece::Type::King)
-    {
-        winnerColor = (PlayerColor)movingPieceColor;
-    }
+    // Emptying source sqaure
+    ClearBit(board.bitBoards[movingPieceType][movingPieceColor], move.sourceSquare);
+    ClearBit(board.bitBoards[Board::Type::All][movingPieceColor], move.sourceSquare);
 
-    // Update some position data
+    int materialMultiplier = movingPieceColor == Board::Color::White ? 1 : -1;
     enPassantTarget = Square::None;
-    if (movingPieceType == Piece::Type::Pawn || board.pieces[targetY][targetX].PieceType() != Piece::Type::None)
+
+    //Promotions
+    Move::AdditionalInfo promotionType;
+
+    if ((promotionType = (Move::AdditionalInfo)((uint16_t)move.additionalInfo & (uint16_t)Move::promotionChecker)) != Move::AdditionalInfo::None)
     {
-        plyClock = 0;
+        switch (promotionType)
+        {
+            case Move::AdditionalInfo::PromotionToQueen:
+            {
+                SetBit(board.bitBoards[Board::Type::Queens][movingPieceColor], move.targetSquare);
+                materialDisparity += materialMultiplier * (PositionEvaluator::piecesMaterial[Board::Type::Queens] - PositionEvaluator::piecesMaterial[Board::Type::Pawns]);
+                break;
+            }
+            case Move::AdditionalInfo::PromotionToKnight:
+            {
+                SetBit(board.bitBoards[Board::Type::Knights][movingPieceColor], move.targetSquare);
+                materialDisparity += materialMultiplier * (PositionEvaluator::piecesMaterial[Board::Type::Knights] - PositionEvaluator::piecesMaterial[Board::Type::Pawns]);
+                break;
+            }
+            case Move::AdditionalInfo::PromotionToRook:
+            {
+                SetBit(board.bitBoards[Board::Type::Rooks][movingPieceColor], move.targetSquare);
+                materialDisparity += materialMultiplier * (PositionEvaluator::piecesMaterial[Board::Type::Rooks] - PositionEvaluator::piecesMaterial[Board::Type::Pawns]);
+                break;
+            }
+            case Move::AdditionalInfo::PromotionToBishop:
+            {
+                SetBit(board.bitBoards[Board::Type::Bishops][movingPieceColor], move.targetSquare);
+                materialDisparity += materialMultiplier * (PositionEvaluator::piecesMaterial[Board::Type::Bishops] - PositionEvaluator::piecesMaterial[Board::Type::Pawns]);
+                break;
+            }
+        }
     }
     else
     {
-        ++plyClock;
+        SetBit(board.bitBoards[movingPieceType][movingPieceColor], move.targetSquare);
     }
 
-    // Emptying source sqaure
-    board.pieces[sourceY][sourceX].SetBitPiece(NO_PIECE);
+    SetBit(board.bitBoards[Board::Type::All][movingPieceColor], move.targetSquare);
 
-    int materialMultiplier = movingPieceColor == Piece::Color::White ? 1 : -1;
     uint16_t capturedPiece;
-
-    if (move.additionalInfo == Move::AdditionalInfo::None)
-    {
-        board.pieces[targetY][targetX].SetBitPiece((uint8_t)movingPieceType | (uint8_t)movingPieceColor);
-    }
 
     // Piece was taken
     if ((Move::AdditionalInfo)(capturedPiece = (uint16_t)move.additionalInfo & Move::captureChecker) != Move::AdditionalInfo::None)
     {
-        Piece::Type capturedPieceType;
+        plyClock = 0;
+
+        Board::Type capturedPieceType;
 
         switch ((Move::AdditionalInfo)capturedPiece)
         {
-            case Move::AdditionalInfo::CapturedPawn: { capturedPieceType = Piece::Type::Pawn; break; }
-            case Move::AdditionalInfo::CapturedBishop: { capturedPieceType = Piece::Type::Bishop; break; }
-            case Move::AdditionalInfo::CapturedKnight: { capturedPieceType = Piece::Type::Knight; break; }
-            case Move::AdditionalInfo::CapturedRook: { capturedPieceType = Piece::Type::Rook; break; }
-            case Move::AdditionalInfo::CapturedQueen: { capturedPieceType = Piece::Type::Queen; break; }
-            case Move::AdditionalInfo::CapturedKing: { capturedPieceType = Piece::Type::King; break; }
-            default: { capturedPieceType = Piece::Type::None; }
+            case Move::AdditionalInfo::CapturedPawn: { capturedPieceType = Board::Type::Pawns; break; }
+            case Move::AdditionalInfo::CapturedBishop: { capturedPieceType = Board::Type::Bishops; break; }
+            case Move::AdditionalInfo::CapturedKnight: { capturedPieceType = Board::Type::Knights; break; }
+            case Move::AdditionalInfo::CapturedRook: { capturedPieceType = Board::Type::Rooks; break; }
+            case Move::AdditionalInfo::CapturedQueen: { capturedPieceType = Board::Type::Queens; break; }
+            case Move::AdditionalInfo::CapturedKing: { capturedPieceType = Board::Type::Kings; winnerColor = playerToMove; break; }
         }
 
-        board.pieces[targetY][targetX].SetBitPiece((uint8_t)movingPieceType | (uint8_t)movingPieceColor);
+        ClearBit(board.bitBoards[capturedPieceType][opponentsPieceColor], move.targetSquare);
+        ClearBit(board.bitBoards[Board::Type::All][opponentsPieceColor], move.targetSquare);
 
         // Material update
         materialDisparity += materialMultiplier * PositionEvaluator::piecesMaterial[capturedPieceType];
 
         // Losing castling rights if the rook was taken on corner square
-        if (capturedPieceType == Piece::Type::Rook)
+        if (capturedPieceType == Board::Type::Rooks)
         {
-            if (movingPieceColor == Piece::Color::White)
+            if (movingPieceColor == Board::Color::White)
             {
                 if (move.targetSquare == Square::H8)
                 {
@@ -96,76 +110,51 @@ PlayerColor Position::Update(const FullMove& move)
             }
         }
     }
-
-    //Promotions
-    Move::AdditionalInfo promotionType;
-
-    if ((promotionType = (Move::AdditionalInfo)((uint16_t)move.additionalInfo & (uint16_t)Move::promotionChecker)) != Move::AdditionalInfo::None)
+    else if (movingPieceType == Board::Type::Pawns)
     {
-        switch (promotionType)
-        {
-            case Move::AdditionalInfo::PromotionToQueen:
-            {
-                board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Queen | (uint8_t)movingPieceColor));
-                materialDisparity += materialMultiplier * (PositionEvaluator::piecesMaterial[Piece::Type::Queen] - PositionEvaluator::piecesMaterial[Piece::Type::Pawn]);
-                break;
-            }
-            case Move::AdditionalInfo::PromotionToRook:
-            {
-                board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor));
-                materialDisparity += materialMultiplier * (PositionEvaluator::piecesMaterial[Piece::Type::Rook] - PositionEvaluator::piecesMaterial[Piece::Type::Pawn]);
-                break;
-            }
-            case Move::AdditionalInfo::PromotionToKnight:
-            {
-                board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Knight | (uint8_t)movingPieceColor));
-                materialDisparity += materialMultiplier * (PositionEvaluator::piecesMaterial[Piece::Type::Knight] - PositionEvaluator::piecesMaterial[Piece::Type::Pawn]);
-                break;
-            }
-            case Move::AdditionalInfo::PromotionToBishop:
-            {
-                board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Bishop | (uint8_t)movingPieceColor));
-                materialDisparity += materialMultiplier * (PositionEvaluator::piecesMaterial[Piece::Type::Bishop] - PositionEvaluator::piecesMaterial[Piece::Type::Pawn]);
-                break;
-            }
-        }
+        plyClock = 0;
     }
-    else if (move.additionalInfo == Move::AdditionalInfo::EnPassant)
+    else
     {
+        ++plyClock;
+    }
+
+    if (move.additionalInfo == Move::AdditionalInfo::EnPassant)
+    {
+        uint8_t takenPawnSquare;
         // Emptying taken pawn square
-        //// Figuring out if it's white or black who took
         //// White
-        if (targetY > sourceY)
+        if (movingPieceColor == Board::Color::White)
         {
-            board.pieces[targetY - 1][targetX].SetBitPiece(NO_PIECE);
+            takenPawnSquare = move.targetSquare - 8;
         }
         //// Black
         else
         {
-            board.pieces[targetY + 1][targetX].SetBitPiece(NO_PIECE);
+            takenPawnSquare = move.targetSquare + 8;
         }
 
-        board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Pawn | (uint8_t)movingPieceColor));
+        ClearBit(board.bitBoards[Board::Type::Pawns][opponentsPieceColor], takenPawnSquare);
+        ClearBit(board.bitBoards[Board::Type::All][opponentsPieceColor], takenPawnSquare);
 
         // Material update
-        materialDisparity += materialMultiplier * PositionEvaluator::piecesMaterial[Piece::Type::Pawn];
+        materialDisparity += materialMultiplier * PositionEvaluator::piecesMaterial[Board::Type::Pawns];
     }
     else if (move.additionalInfo == Move::AdditionalInfo::PawnDoubleForward)
     {
-        board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)movingPieceType | (uint8_t)movingPieceColor));
-        enPassantTarget = movingPieceColor == Piece::Color::White ? BoardIndicesToSquare(targetY - 1, targetX) : BoardIndicesToSquare(targetY + 1, targetX);
+        enPassantTarget = movingPieceColor == Board::Color::White ? (Square)(move.targetSquare - 8) : (Square)(move.targetSquare + 8);
     }
     else
     {
-        UpdateCastling(move.additionalInfo, targetY, targetX, (uint8_t)movingPieceColor);
+        UpdateCastling(move.additionalInfo, move.targetSquare, (uint8_t)movingPieceColor);
     }
 
     // Losing castling rights after king or rook moves
     if (castlingRights != CastlingRights::None)
     {
-        if (movingPieceType == Piece::Type::King)
+        if (movingPieceType == Board::Type::Kings)
         {
-            if (movingPieceColor == Piece::Color::White)
+            if (movingPieceColor == Board::Color::White)
             {
                 castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::White);
             }
@@ -174,7 +163,7 @@ PlayerColor Position::Update(const FullMove& move)
                 castlingRights = (CastlingRights)((uint8_t)castlingRights & ~(uint8_t)CastlingRights::Black);
             }
         }
-        else if (movingPieceType == Piece::Type::Rook)
+        else if (movingPieceType == Board::Type::Rooks)
         {
             // White Kingside
             if (move.sourceSquare == Square::H1)
@@ -200,148 +189,115 @@ PlayerColor Position::Update(const FullMove& move)
     }
 
     // Move the duck
-    SquareToBoardIndices(move.sourceDuckSquare, sourceY, sourceX);
-    SquareToBoardIndices(move.targetDuckSquare, targetY, targetX);
+    board.duck = (1ULL << move.targetDuckSquare);
 
-    board.pieces[sourceY][sourceX].SetBitPiece(NO_PIECE);
-    board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both));
+    // Updating other information
 
-    // Updating other information (apart from new en passant target and playerToMove - it's done earlier)
-    playerToMove = (playerToMove == PlayerColor::White ? PlayerColor::Black : PlayerColor::White);
-
-    if (movingPieceColor == Piece::Color::Black)
+    if (playerToMove == PlayerColor::White)
     {
+        playerToMove = PlayerColor::Black;
+    }
+    else
+    {
+        playerToMove = PlayerColor::White;
         ++fullMovesCount;
     }
+
+    board.UpdateEmpties();
 
     return winnerColor;
 }
 
 void Position::UndoMove(const MoveMemento::PositionData& revertedMove)
 {
-    int sourceY;
-    int sourceX;
-    int targetY;
-    int targetX;
-    int duckSourceY;
-    int duckSourceX;
-    int duckTargetY;
-    int duckTargetX;
-
-    SquareToBoardIndices(revertedMove.move.sourceSquare, sourceY, sourceX);
-    SquareToBoardIndices(revertedMove.move.targetSquare, targetY, targetX);
-    SquareToBoardIndices(revertedMove.move.sourceDuckSquare, duckSourceY, duckSourceX);
-    SquareToBoardIndices(revertedMove.move.targetDuckSquare, duckTargetY, duckTargetX);
-
     // What piece is moving
-    Piece::Type movingPieceType = board.pieces[targetY][targetX].PieceType();
-    Piece::Color movingPieceColor = board.pieces[targetY][targetX].PieceColor();
+    Board::Color movingPieceColor = playerToMove == PlayerColor::White ? Board::Color::Black : Board::Color::White;
+    Board::Color opponentsPieceColor = (Board::Color)(1 - movingPieceColor);
+    Board::Type movingPieceType = board.FindBoardType(1ULL << revertedMove.move.targetSquare, movingPieceColor);
 
-    int materialMultiplier = movingPieceColor == Piece::Color::White ? 1 : -1;
+    int materialMultiplier = movingPieceColor == Board::Color::White ? 1 : -1;
+
+    // Clearing target square
+    ClearBit(board.bitBoards[movingPieceType][movingPieceColor], revertedMove.move.targetSquare);
+    ClearBit(board.bitBoards[Board::Type::All][movingPieceColor], revertedMove.move.targetSquare);
 
     // Promotions
     if ((Move::AdditionalInfo)((uint16_t)revertedMove.move.additionalInfo & Move::promotionChecker) != Move::AdditionalInfo::None)
     {
         // Material update
-        materialDisparity -= materialMultiplier * (PositionEvaluator::piecesMaterial[movingPieceType] - PositionEvaluator::piecesMaterial[Piece::Type::Pawn]);
-
-        movingPieceType = Piece::Type::Pawn;
+        materialDisparity -= materialMultiplier * (PositionEvaluator::piecesMaterial[movingPieceType] - PositionEvaluator::piecesMaterial[Board::Type::Pawns]);
+        movingPieceType = Board::Type::Pawns;
     }
 
-    Piece::Color opponentPiecesColor = movingPieceColor == Piece::Color::White ? Piece::Color::Black : Piece::Color::White;
-    uint16_t capturedPiece;
+    SetBit(board.bitBoards[movingPieceType][movingPieceColor], revertedMove.move.sourceSquare);
+    SetBit(board.bitBoards[Board::Type::All][movingPieceColor], revertedMove.move.sourceSquare);
 
-    // Clearing target duck square
-    board.pieces[duckTargetY][duckTargetX].SetBitPiece(NO_PIECE);
+    // Move the duck
+    if (revertedMove.move.sourceDuckSquare != Square::None)
+    {
+        board.duck = (1ULL << revertedMove.move.sourceDuckSquare);
+    }
+    else
+    {
+        board.duck = 0ULL;
+    }
+
+    uint16_t capturedPiece;
+    Move::AdditionalInfo castlingInfo;
 
     // Piece was taken
     if ((Move::AdditionalInfo)(capturedPiece = (uint16_t)revertedMove.move.additionalInfo & Move::captureChecker) != Move::AdditionalInfo::None)
     {
-        Piece::Type capturedPieceType;
+        Board::Type capturedPieceType;
 
         switch ((Move::AdditionalInfo)capturedPiece)
         {
-        case Move::AdditionalInfo::CapturedPawn: { capturedPieceType = Piece::Type::Pawn; break; }
-        case Move::AdditionalInfo::CapturedBishop: { capturedPieceType = Piece::Type::Bishop; break; }
-        case Move::AdditionalInfo::CapturedKnight: { capturedPieceType = Piece::Type::Knight; break; }
-        case Move::AdditionalInfo::CapturedRook: { capturedPieceType = Piece::Type::Rook; break; }
-        case Move::AdditionalInfo::CapturedQueen: { capturedPieceType = Piece::Type::Queen; break; }
-        case Move::AdditionalInfo::CapturedKing: { capturedPieceType = Piece::Type::King; break; }
-        default: { capturedPieceType = Piece::Type::None; }
+        case Move::AdditionalInfo::CapturedPawn: { capturedPieceType = Board::Type::Pawns; break; }
+        case Move::AdditionalInfo::CapturedBishop: { capturedPieceType = Board::Type::Bishops; break; }
+        case Move::AdditionalInfo::CapturedKnight: { capturedPieceType = Board::Type::Knights; break; }
+        case Move::AdditionalInfo::CapturedRook: { capturedPieceType = Board::Type::Rooks; break; }
+        case Move::AdditionalInfo::CapturedQueen: { capturedPieceType = Board::Type::Queens; break; }
+        case Move::AdditionalInfo::CapturedKing: { capturedPieceType = Board::Type::Kings; break; }
         }
 
-        board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)capturedPieceType | (uint8_t)opponentPiecesColor));
+        //board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)capturedPieceType | (uint8_t)opponentPiecesColor));
+        SetBit(board.bitBoards[capturedPieceType][opponentsPieceColor], revertedMove.move.targetSquare);
+        SetBit(board.bitBoards[Board::Type::All][opponentsPieceColor], revertedMove.move.targetSquare);
 
         // Material update
         materialDisparity -= materialMultiplier * PositionEvaluator::piecesMaterial[capturedPieceType];
     }
-    else
+    else if ((Move::AdditionalInfo)((uint16_t)revertedMove.move.additionalInfo & (uint16_t)Move::AdditionalInfo::EnPassant) != Move::AdditionalInfo::None)
     {
-        board.pieces[targetY][targetX].SetBitPiece(NO_PIECE);
+        uint8_t takenPawnSquare;
 
-        if ((Move::AdditionalInfo)((uint16_t)revertedMove.move.additionalInfo & (uint16_t)Move::AdditionalInfo::EnPassant) != Move::AdditionalInfo::None)
+        // Current player is white, so the move was done by black
+        if (playerToMove == PlayerColor::White)
         {
-            // Current player is white, so the move was done by black
-            if (playerToMove == PlayerColor::White)
-            {
-                board.pieces[targetY + 1][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Pawn | (uint8_t)opponentPiecesColor));
-            }
-            else
-            {
-                board.pieces[targetY - 1][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Pawn | (uint8_t)opponentPiecesColor));
-            }
-
-            materialDisparity -= materialMultiplier * PositionEvaluator::piecesMaterial[Piece::Type::Pawn];
+            takenPawnSquare = revertedMove.move.targetSquare + 8;
+        }
+        else
+        {
+            takenPawnSquare = revertedMove.move.targetSquare - 8;
         }
 
-        Move::AdditionalInfo castlingInfo;
+        SetBit(board.bitBoards[Board::Type::Pawns][opponentsPieceColor], takenPawnSquare);
+        SetBit(board.bitBoards[Board::Type::All][opponentsPieceColor], takenPawnSquare);
 
-        if ((castlingInfo = (Move::AdditionalInfo)((uint16_t)revertedMove.move.additionalInfo & Move::castlingChecker)) != Move::AdditionalInfo::None)
-        {
-            // Moving rook to starting position
-            // A bit of hardcoding, but these indices are always the same
-            // Updating castling rights is commented out, because it's being recoverd from MoveMemento after refactor
-            switch (castlingInfo)
-            {
-                case Move::AdditionalInfo::WhiteKingsideCastle:
-                {
-                    board.pieces[0][5].SetBitPiece(NO_PIECE);
-                    board.pieces[0][7].SetBitPiece((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor);
-                    //castlingRights = (CastlingRights)((uint8_t)castlingRights | (uint8_t)CastlingRights::WhiteKingside);
-                    break;
-                }
-                case Move::AdditionalInfo::WhiteQueensideCastle:
-                {
-                    board.pieces[0][3].SetBitPiece(NO_PIECE);
-                    board.pieces[0][0].SetBitPiece((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor);
-                    //castlingRights = (CastlingRights)((uint8_t)castlingRights | (uint8_t)CastlingRights::WhiteQueenside);
-                    break;
-                }
-                case Move::AdditionalInfo::BlackKingsideCastle:
-                {
-                    board.pieces[7][5].SetBitPiece(NO_PIECE);
-                    board.pieces[7][7].SetBitPiece((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor);
-                    //castlingRights = (CastlingRights)((uint8_t)castlingRights | (uint8_t)CastlingRights::BlackKingside);
-                    break;
-                }
-                case Move::AdditionalInfo::BlackQueensideCastle:
-                {
-                    board.pieces[7][3].SetBitPiece(NO_PIECE);
-                    board.pieces[7][0].SetBitPiece((uint8_t)Piece::Type::Rook | (uint8_t)movingPieceColor);
-                    //castlingRights = (CastlingRights)((uint8_t)castlingRights | (uint8_t)CastlingRights::BlackQueenside);
-                    break;
-                }
-            }
-        }
+        materialDisparity -= materialMultiplier * PositionEvaluator::piecesMaterial[Board::Type::Pawns];
     }
-
-    // Restoring previous moving piece position
-    board.pieces[sourceY][sourceX].SetBitPiece((uint8_t)movingPieceType | (uint8_t)movingPieceColor);
-
-    // Restoring previous duck position
-    if (revertedMove.move.sourceDuckSquare != Square::None)
+    else if ((castlingInfo = (Move::AdditionalInfo)((uint16_t)revertedMove.move.additionalInfo & Move::castlingChecker)) != Move::AdditionalInfo::None)
     {
-        board.pieces[duckSourceY][duckSourceX].SetBitPiece((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both);
+        // Moving rook to starting position
+        auto& [rookSourceSquare, rookTargetSquare] = Move::ROOK_CASTLING_SQUARES.at(castlingInfo);
+
+        // Emptying rook square
+        ClearBit(board.bitBoards[Board::Type::Rooks][movingPieceColor], rookTargetSquare);
+        ClearBit(board.bitBoards[Board::Type::All][movingPieceColor], rookTargetSquare);
+
+        // Moving rook
+        SetBit(board.bitBoards[Board::Type::Rooks][movingPieceColor], rookSourceSquare);
+        SetBit(board.bitBoards[Board::Type::All][movingPieceColor], rookSourceSquare);
     }
 
     enPassantTarget = revertedMove.enPassantTarget;
@@ -357,73 +313,44 @@ void Position::UndoMove(const MoveMemento::PositionData& revertedMove)
     {
         playerToMove = PlayerColor::White;
     }
+
+    board.UpdateEmpties();
 }
 
 Evaluation Position::CountMaterial()
 {
     Evaluation result = 0;
+    int multiplier = 1;
 
-    for (int y = 0; y < Board::HEIGHT; ++y)
+    for (int color = 0; color < 2; ++color)
     {
-        for (int x = 0; x < Board::WIDTH; ++x)
+        for (int type = 0; type < 5; ++type) // Counting to 5 because king is 6th
         {
-            Piece piece = board.pieces[y][x];
-
-            result += PositionEvaluator::piecesMaterial[board.pieces[y][x].PieceType()] *
-                (board.pieces[y][x].PieceColor() == Piece::Color::White ? 1 : -1);
+            result += PositionEvaluator::piecesMaterial[(Board::Type)type] *
+                      CountSetBits(board.bitBoards[type][color]) *
+                      multiplier;
         }
+
+        multiplier *= -1;
     }
 
     return result;
 }
 
-void Position::UpdateCastling(const Move::AdditionalInfo& moveInfo, const int& targetY, const int& targetX, const uint8_t& playerColor)
+void Position::UpdateCastling(const Move::AdditionalInfo& moveInfo, const Square targetSquare, const uint8_t& playerColor)
 {
-    Move::AdditionalInfo castlingInfo = (Move::AdditionalInfo)((uint16_t)moveInfo & Move::castlingChecker);
-    Square rookSourceSquare;
-    Square rookTargetSquare;
+    Move::AdditionalInfo castlingInfo;
 
-    switch (castlingInfo)
+    if ((castlingInfo = (Move::AdditionalInfo)((uint16_t)moveInfo & Move::castlingChecker)) != Move::AdditionalInfo::None)
     {
-        case Move::AdditionalInfo::WhiteKingsideCastle:
-        {
-            rookSourceSquare = Square::H1;
-            rookTargetSquare = Square::F1;
-            break;
-        }
-        case Move::AdditionalInfo::WhiteQueensideCastle:
-        {
-            rookSourceSquare = Square::A1;
-            rookTargetSquare = Square::D1;
-            break;
-        }
-        case Move::AdditionalInfo::BlackKingsideCastle:
-        {
-            rookSourceSquare = Square::H8;
-            rookTargetSquare = Square::F8;
-            break;
-        }
-        case Move::AdditionalInfo::BlackQueensideCastle:
-        {
-            rookSourceSquare = Square::A8;
-            rookTargetSquare = Square::D8;
-            break;
-        }
-        default: { return; }
+        auto& [rookSourceSquare, rookTargetSquare] = Move::ROOK_CASTLING_SQUARES.at(castlingInfo);
+
+        // Emptying rook square
+        ClearBit(board.bitBoards[Board::Type::Rooks][playerColor], rookSourceSquare);
+        ClearBit(board.bitBoards[Board::Type::All][playerColor], rookSourceSquare);
+
+        // Moving rook
+        SetBit(board.bitBoards[Board::Type::Rooks][playerColor], rookTargetSquare);
+        SetBit(board.bitBoards[Board::Type::All][playerColor], rookTargetSquare);
     }
-
-    // Emptying rook square
-    int rookX;
-    int rookY;
-
-    SquareToBoardIndices(rookSourceSquare, rookY, rookX);
-    board.pieces[rookY][rookX].SetBitPiece(NO_PIECE);
-
-    SquareToBoardIndices(rookTargetSquare, rookY, rookX);
-
-    // Moving king
-    board.pieces[targetY][targetX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::King | playerColor));
-
-    // Moving rook
-    board.pieces[rookY][rookX].SetBitPiece((BitPiece)((uint8_t)Piece::Type::Rook | playerColor));
 }

@@ -4,8 +4,7 @@
 Engine::Engine() :
     Engine(STARTING_POSITION_FEN) {}
 
-Engine::Engine(std::string fen) :
-    session(Position())
+Engine::Engine(std::string fen)
 {
     searchDepth = DEFAULT_SEARCH_DEPTH;
     session.position.materialDisparity = session.position.CountMaterial();
@@ -15,6 +14,7 @@ Engine::Engine(std::string fen) :
 
 std::unique_ptr<Engine::SearchInfo> Engine::Search(Position position)
 {
+    session.Clear();
     session.position = position;
 
     auto returned = MinMaxSearch(searchDepth, NEGATIVE_INFINITY_EVALUATION, POSITIVE_INFINITY_EVALUATION, FullMove());

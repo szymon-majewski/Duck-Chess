@@ -15,8 +15,6 @@ public:
 
     PlayerColor winnerColor = PlayerColor::None;
 
-    Session(const Position& position);
-
     void MakeMove(const FullMove& move);
     void UndoMove();
     void Clear();

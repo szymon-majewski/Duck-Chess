@@ -172,9 +172,6 @@ MainWindow::MainWindow(QWidget *parent, Session* session, FenParser* fenParser, 
     session->position = fenParser->ParseFen(STARTING_POSITION_FEN);
     session->position.materialDisparity = session->position.CountMaterial();
     UpdateChessboard();
-
-    unsigned int placeholder;
-    currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
 }
 
 MainWindow::~MainWindow()
@@ -202,6 +199,10 @@ void MainWindow::FenUpdateButtonPressed()
 {
     try
     {
+        session->position = fenParser->ParseFen(fenTextEdit->toPlainText().toStdString());
+        session->position.materialDisparity = session->position.CountMaterial();
+        startingPlayer = session->position.playerToMove;
+
         for (int row = (movesMade.size() - 1) / 2; row >= 0; --row)
         {
             for (int col = 0; col < 3; ++col)
@@ -223,9 +224,6 @@ void MainWindow::FenUpdateButtonPressed()
         currentMoveIndex = -1;
 
         gameEnded = false;
-        session->position = fenParser->ParseFen(fenTextEdit->toPlainText().toStdString());
-        session->position.materialDisparity = session->position.CountMaterial();
-        startingPlayer = session->position.playerToMove;
 
         UpdateChessboard();
     }
@@ -245,37 +243,55 @@ void MainWindow::UpdateChessboard()
     if (selectedSquare != Square::None)
     {
         DeselectSquare(selectedSquare);
+        DeselectPossibleMovesSquares(selectedSquare);
         selectedSquare = Square::None;
     }
     firstPhase = true;
 
     piecesLabels.clear();
-    duckOnTheBoard = false;
 
-    BitPiece currentBitPiece;
+    BitBoard currentBitBoard;
+    int currentPieceIndex;
 
-    for (int y = 0; y < 8; ++y)
+    for (int type = 0; type < 6; ++type)
     {
-        for (int x = 0; x < 8; ++x)
+        for (int color = 0; color < 2; ++color)
         {
-            currentBitPiece = session->position.board.pieces[y][x].GetBitPiece();
+            currentBitBoard = session->position.board.bitBoards[type][color];
 
-            if (currentBitPiece != NO_PIECE)
+            while (currentBitBoard)
             {
-                auto [labelX, labelY] = (this->*coordsByPerspective)(x, y);
+                currentPieceIndex = IndexOfLSB(currentBitBoard);
+
+                auto [labelX, labelY] = (this->*coordsByPerspective)(currentPieceIndex % 8, currentPieceIndex / 8);
                 auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, labelX, labelY));
                 insertedLabel->setAlignment(Qt::AlignCenter);
-                insertedLabel->setPixmap(piecesPixmaps.at(currentBitPiece));
+                insertedLabel->setPixmap(piecesPixmaps.at(Board::BOARD_PIECES_TO_BITPIECES_MAP.at({(Board::Type)type, (Board::Color)color})));
                 insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
                 insertedLabel->setScaledContents(true);
                 chessboardPanel->addWidget(insertedLabel.get(), labelY, labelX);
 
-                if (session->position.board.pieces[y][x].PieceType() == Piece::Type::Duck)
-                {
-                    duckOnTheBoard = true;
-                }
+                RemoveLSB(currentBitBoard);
             }
         }
+    }
+
+    if (session->position.board.duck)
+    {
+        duckOnTheBoard = true;
+
+        int duckIndex = IndexOfLSB(session->position.board.duck);
+        auto [labelX, labelY] = (this->*coordsByPerspective)(duckIndex % 8, duckIndex / 8);
+        auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, labelX, labelY));
+        insertedLabel->setAlignment(Qt::AlignCenter);
+        insertedLabel->setPixmap(piecesPixmaps.at(Board::BOARD_PIECES_TO_BITPIECES_MAP.at({Board::Type::Duck, Board::Color::Both})));
+        insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+        insertedLabel->setScaledContents(true);
+        chessboardPanel->addWidget(insertedLabel.get(), labelY, labelX);
+    }
+    else
+    {
+        duckOnTheBoard = false;
     }
 }
 
@@ -394,7 +410,7 @@ void MainWindow::OnBackwardsButtonPressed()
         // King itself
         auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, guiTargetX, guiTargetY));
         insertedLabel->setAlignment(Qt::AlignCenter);
-        insertedLabel->setPixmap(piecesPixmaps.at((uint8_t)Piece::Type::King | (uint8_t)opponentsColor));
+        insertedLabel->setPixmap(piecesPixmaps.at((uint8_t)PieceType::King | (uint8_t)opponentsColor));
         insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
         insertedLabel->setScaledContents(true);
         chessboardPanel->addWidget(insertedLabel.get(), guiTargetY, guiTargetX);
@@ -630,7 +646,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         Square targetSquare = BoardIndicesToSquare(engineTargetY, engineTargetX);
         PlayerColor movingPieceColor = session->position.playerToMove;
 
-        if (session->position.board.pieces[sourceSquareY][sourceSquareX].PieceType() != Piece::Type::Duck)
+        if (firstPhase)
         {
             bool validMove = false;
 
@@ -691,7 +707,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
 
                 for (int i = 0; i < 4; ++i)
                 {
-                    Piece::Type promotionPiece = promotionPieces[i];
+                    PieceType promotionPiece = promotionPieces[i];
                     promotionButtons[i].setIcon(QIcon(piecesPixmaps.at((uint8_t)movingPieceColor | (uint8_t)promotionPiece)));
                     promotionButtons[i].setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
                     promotionButtons[i].setMinimumSize(QSize(70, 70));
@@ -719,22 +735,22 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
                                 Move::AdditionalInfo promotionType;
                                 switch (promotionPiece)
                                 {
-                                    case Piece::Type::Queen:
+                                    case PieceType::Queen:
                                     {
                                         promotionType = Move::AdditionalInfo::PromotionToQueen;
                                         break;
                                     }
-                                    case Piece::Type::Knight:
+                                    case PieceType::Knight:
                                     {
                                         promotionType = Move::AdditionalInfo::PromotionToKnight;
                                         break;
                                     }
-                                    case Piece::Type::Rook:
+                                    case PieceType::Rook:
                                     {
                                         promotionType = Move::AdditionalInfo::PromotionToRook;
                                         break;
                                     }
-                                    case Piece::Type::Bishop:
+                                    case PieceType::Bishop:
                                     {
                                         promotionType = Move::AdditionalInfo::PromotionToBishop;
                                         break;
@@ -781,7 +797,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
 
         }
         else
-        {
+         {
             auto newMove = FullMove(firstPhaseMove, selectedSquare, targetSquare);
             AddMoveToList(newMove);
             session->MakeMove(newMove);
@@ -860,6 +876,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         //////////////////////////////////////////////////////////////
 
         DeselectSquare(guiSourceX, guiSourceY);
+        DeselectPossibleMovesSquares(selectedSquare);
         selectedSquare = Square::None;
         firstPhase = !firstPhase;
     }
@@ -869,7 +886,7 @@ void MainWindow::OnEmptySquareClicked(unsigned int x, unsigned int y)
         //////////////////////////////////////////////////////////////
         auto& duckLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, x, y));
         duckLabel->setAlignment(Qt::AlignCenter);
-        duckLabel->setPixmap(piecesPixmaps.at((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both));
+        duckLabel->setPixmap(piecesPixmaps.at((uint8_t)PieceType::Duck | (uint8_t)PieceColor::Both));
         duckLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
         duckLabel->setScaledContents(true);
         chessboardPanel->addWidget(duckLabel.get(), y, x);
@@ -924,7 +941,28 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
     }
 
     auto [engineTargetX, engineTargetY] = (this->*coordsByPerspective)(x, y);
-    uint8_t clickedPieceColor = (uint8_t)session->position.board.pieces[engineTargetY][engineTargetX].PieceColor();
+
+    if (!firstPhase && BoardIndicesToSquare(engineTargetY, engineTargetX) == firstPhaseMove.targetSquare)
+    {
+        return;
+    }
+
+    uint8_t clickedPieceColor;
+
+    if (CheckBit(session->position.board.bitBoards[Board::Type::All][Board::Color::White], engineTargetY, engineTargetX))
+    {
+        clickedPieceColor = (uint8_t)PieceColor::White;
+    }
+    else if (CheckBit(session->position.board.bitBoards[Board::Type::All][Board::Color::Black], engineTargetY, engineTargetX))
+    {
+        clickedPieceColor = (uint8_t)PieceColor::Black;
+    }
+    else
+    {
+        clickedPieceColor = (uint8_t)PieceColor::Both;
+    }
+
+    //uint8_t clickedPieceColor = (uint8_t)session->position.board.pieces[engineTargetY][engineTargetX].PieceColor();
 
     // No piece was selected earlier
     if (selectedSquare == Square::None)
@@ -934,9 +972,10 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
         {
             selectedSquare = BoardIndicesToSquare(engineTargetY, engineTargetX);
             SelectSquare(x, y);
+            SelectPossibleMovesSquares(selectedSquare);
         }
         // Or it's duck move and duck was clicked
-        else if (!firstPhase && clickedPieceColor == (uint8_t)Piece::Color::Both)
+        else if (!firstPhase && clickedPieceColor == (uint8_t)PieceColor::Both)
         {
             selectedSquare = BoardIndicesToSquare(engineTargetY, engineTargetX);
             SelectSquare(x, y);
@@ -989,7 +1028,7 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
 
                     for (int i = 0; i < 4; ++i)
                     {
-                        Piece::Type promotionPiece = promotionPieces[i];
+                        PieceType promotionPiece = promotionPieces[i];
                         promotionButtons[i].setIcon(QIcon(piecesPixmaps.at((uint8_t)movingPieceColor | (uint8_t)promotionPiece)));
                         promotionButtons[i].setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
                         promotionButtons[i].setMinimumSize(QSize(70, 70));
@@ -1017,22 +1056,22 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
                                     Move::AdditionalInfo promotionType;
                                     switch (promotionPiece)
                                     {
-                                        case Piece::Type::Queen:
+                                        case PieceType::Queen:
                                         {
                                             promotionType = Move::AdditionalInfo::PromotionToQueen;
                                             break;
                                         }
-                                        case Piece::Type::Knight:
+                                        case PieceType::Knight:
                                         {
                                             promotionType = Move::AdditionalInfo::PromotionToKnight;
                                             break;
                                         }
-                                        case Piece::Type::Rook:
+                                        case PieceType::Rook:
                                         {
                                             promotionType = Move::AdditionalInfo::PromotionToRook;
                                             break;
                                         }
-                                        case Piece::Type::Bishop:
+                                        case PieceType::Bishop:
                                         {
                                             promotionType = Move::AdditionalInfo::PromotionToBishop;
                                             break;
@@ -1130,6 +1169,7 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
                 //////////////////////////////////////////////////////////////
 
                 DeselectSquare(guiSourceX, guiSourceY);
+                DeselectPossibleMovesSquares(selectedSquare);
                 selectedSquare = Square::None;
                 firstPhase = false;
             }
@@ -1142,9 +1182,11 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
                 auto [guiSourceX, guiSourceY] = (this->*coordsByPerspective)(sourceSquareX, sourceSquareY);
 
                 DeselectSquare(guiSourceX, guiSourceY);
+                DeselectPossibleMovesSquares(selectedSquare);
 
                 selectedSquare = BoardIndicesToSquare(engineTargetY, engineTargetX);
                 SelectSquare(x, y);
+                SelectPossibleMovesSquares(selectedSquare);
             }
         }
     }
@@ -1242,6 +1284,47 @@ void MainWindow::DeselectSquare(Square square)
     auto [guiSquareX, guiSquareY] = (this->*coordsByPerspective)(x, y);
 
     DeselectSquare(guiSquareX, guiSquareY);
+}
+
+void MainWindow::SelectPossibleMoveSquare(Square square)
+{
+    int x;
+    int y;
+
+    SquareToBoardIndices(square, y, x);
+    auto [guiSquareX, guiSquareY] = (this->*coordsByPerspective)(x, y);
+
+    if ((guiSquareX + guiSquareY) % 2 == 0)
+    {
+        squareFrames[guiSquareX][guiSquareY].setStyleSheet("background-color: " + POSSIBLE_MOVE_LIGHT_SQUARE.name());
+    }
+    else
+    {
+        squareFrames[guiSquareX][guiSquareY].setStyleSheet("background-color: " + POSSIBLE_MOVE_DARK_SQUARE.name());
+    }
+
+}
+
+void MainWindow::SelectPossibleMovesSquares(Square sourceSquare)
+{
+    for (const Move& move : *currentLegalChessMoves)
+    {
+        if (move.sourceSquare == sourceSquare)
+        {
+            SelectPossibleMoveSquare(move.targetSquare);
+        }
+    }
+}
+
+void MainWindow::DeselectPossibleMovesSquares(Square sourceSquare)
+{
+    for (const Move& move : *currentLegalChessMoves)
+    {
+        if (move.sourceSquare == sourceSquare)
+        {
+            DeselectSquare(move.targetSquare);
+        }
+    }
 }
 
 void MainWindow::UpdateEvaluationLabel(const Evaluation evaluation)
@@ -1405,7 +1488,7 @@ void MainWindow::OnGameModeButtonPressed()
         for (int i = 0; i < 2; ++i)
         {
             uint8_t buttonColor = (uint8_t)PlayerColor::White << i;
-            colorButtons[i].setIcon(QIcon(piecesPixmaps.at(buttonColor | (uint8_t)Piece::Type::King)));
+            colorButtons[i].setIcon(QIcon(piecesPixmaps.at(buttonColor | (uint8_t)PieceType::King)));
             colorButtons[i].setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
             colorButtons[i].setMinimumSize(QSize(70, 70));
             colorButtons[i].setMaximumSize(QSize(70, 70));
@@ -1414,7 +1497,7 @@ void MainWindow::OnGameModeButtonPressed()
             connect(&colorButtons[i], &QPushButton::clicked, this,
                     [&, buttonColor]()
                     {
-                        playerColorLabel->setPixmap(piecesPixmaps.at(buttonColor | (uint8_t)Piece::Type::King));
+                        playerColorLabel->setPixmap(piecesPixmaps.at(buttonColor | (uint8_t)PieceType::King));
                         gameModePlayerColor = (PlayerColor)buttonColor;
                         gameModeDialog.accept();
                     });
@@ -1505,6 +1588,7 @@ void MainWindow::OnFlipBoardButtonPressed()
     if (selectedSquare != Square::None)
     {
         DeselectSquare(selectedSquare);
+        DeselectPossibleMovesSquares(selectedSquare);
         selectedSquare = Square::None;
     }
 
@@ -1520,34 +1604,50 @@ void MainWindow::OnFlipBoardButtonPressed()
     }
 
     firstPhase = true;
-
     piecesLabels.clear();
-    duckOnTheBoard = false;
 
-    BitPiece currentBitPiece;
+    BitBoard currentBitBoard;
+    int currentPieceIndex;
 
-    for (int y = 0; y < 8; ++y)
+    for (int type = 0; type < 6; ++type)
     {
-        for (int x = 0; x < 8; ++x)
+        for (int color = 0; color < 2; ++color)
         {
-            currentBitPiece = session->position.board.pieces[y][x].GetBitPiece();
+            currentBitBoard = session->position.board.bitBoards[type][color];
 
-            if (currentBitPiece != NO_PIECE)
+            while (currentBitBoard)
             {
-                auto [labelX, labelY] = (this->*coordsByPerspective)(x, y);
+                currentPieceIndex = IndexOfLSB(currentBitBoard);
+
+                auto [labelX, labelY] = (this->*coordsByPerspective)(currentPieceIndex % 8, currentPieceIndex / 8);
                 auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, labelX, labelY));
                 insertedLabel->setAlignment(Qt::AlignCenter);
-                insertedLabel->setPixmap(piecesPixmaps.at(currentBitPiece));
+                insertedLabel->setPixmap(piecesPixmaps.at(Board::BOARD_PIECES_TO_BITPIECES_MAP.at({(Board::Type)type, (Board::Color)color})));
                 insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
                 insertedLabel->setScaledContents(true);
                 chessboardPanel->addWidget(insertedLabel.get(), labelY, labelX);
 
-                if (session->position.board.pieces[y][x].PieceType() == Piece::Type::Duck)
-                {
-                    duckOnTheBoard = true;
-                }
+                RemoveLSB(currentBitBoard);
             }
         }
+    }
+
+    if (session->position.board.duck)
+    {
+        duckOnTheBoard = true;
+
+        int duckIndex = IndexOfLSB(session->position.board.duck);
+        auto [labelX, labelY] = (this->*coordsByPerspective)(duckIndex % 8, duckIndex / 8);
+        auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, labelX, labelY));
+        insertedLabel->setAlignment(Qt::AlignCenter);
+        insertedLabel->setPixmap(piecesPixmaps.at(Board::BOARD_PIECES_TO_BITPIECES_MAP.at({Board::Type::Duck, Board::Color::Both})));
+        insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+        insertedLabel->setScaledContents(true);
+        chessboardPanel->addWidget(insertedLabel.get(), labelY, labelX);
+    }
+    else
+    {
+        duckOnTheBoard = false;
     }
 
     if (gameEnded)
@@ -1620,18 +1720,18 @@ void MainWindow::InitPiecesPixmaps()
 {
     piecesPixmaps =
     {
-        { (uint8_t)Piece::Type::Pawn | (uint8_t)Piece::Color::Black, QPixmap(":/rsc/img/pieces/black_pawn.png") },
-        { (uint8_t)Piece::Type::Pawn | (uint8_t)Piece::Color::White, QPixmap(":/rsc/img/pieces/white_pawn.png") },
-        { (uint8_t)Piece::Type::Knight | (uint8_t)Piece::Color::Black, QPixmap(":/rsc/img/pieces/black_knight.png") },
-        { (uint8_t)Piece::Type::Knight | (uint8_t)Piece::Color::White, QPixmap(":/rsc/img/pieces/white_knight.png") },
-        { (uint8_t)Piece::Type::Bishop | (uint8_t)Piece::Color::Black, QPixmap(":/rsc/img/pieces/black_bishop.png") },
-        { (uint8_t)Piece::Type::Bishop | (uint8_t)Piece::Color::White, QPixmap(":/rsc/img/pieces/white_bishop.png") },
-        { (uint8_t)Piece::Type::Rook | (uint8_t)Piece::Color::Black, QPixmap(":/rsc/img/pieces/black_rook.png") },
-        { (uint8_t)Piece::Type::Rook | (uint8_t)Piece::Color::White, QPixmap(":/rsc/img/pieces/white_rook.png") },
-        { (uint8_t)Piece::Type::Queen | (uint8_t)Piece::Color::Black, QPixmap(":/rsc/img/pieces/black_queen.png") },
-        { (uint8_t)Piece::Type::Queen | (uint8_t)Piece::Color::White, QPixmap(":/rsc/img/pieces/white_queen.png") },
-        { (uint8_t)Piece::Type::King | (uint8_t)Piece::Color::Black, QPixmap(":/rsc/img/pieces/black_king.png") },
-        { (uint8_t)Piece::Type::King | (uint8_t)Piece::Color::White, QPixmap(":/rsc/img/pieces/white_king.png") },
-        { (uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both, QPixmap(":/rsc/img/pieces/duck.png") }
+        { (uint8_t)PieceType::Pawn | (uint8_t)PieceColor::Black, QPixmap(":/rsc/img/pieces/black_pawn.png") },
+        { (uint8_t)PieceType::Pawn | (uint8_t)PieceColor::White, QPixmap(":/rsc/img/pieces/white_pawn.png") },
+        { (uint8_t)PieceType::Knight | (uint8_t)PieceColor::Black, QPixmap(":/rsc/img/pieces/black_knight.png") },
+        { (uint8_t)PieceType::Knight | (uint8_t)PieceColor::White, QPixmap(":/rsc/img/pieces/white_knight.png") },
+        { (uint8_t)PieceType::Bishop | (uint8_t)PieceColor::Black, QPixmap(":/rsc/img/pieces/black_bishop.png") },
+        { (uint8_t)PieceType::Bishop | (uint8_t)PieceColor::White, QPixmap(":/rsc/img/pieces/white_bishop.png") },
+        { (uint8_t)PieceType::Rook | (uint8_t)PieceColor::Black, QPixmap(":/rsc/img/pieces/black_rook.png") },
+        { (uint8_t)PieceType::Rook | (uint8_t)PieceColor::White, QPixmap(":/rsc/img/pieces/white_rook.png") },
+        { (uint8_t)PieceType::Queen | (uint8_t)PieceColor::Black, QPixmap(":/rsc/img/pieces/black_queen.png") },
+        { (uint8_t)PieceType::Queen | (uint8_t)PieceColor::White, QPixmap(":/rsc/img/pieces/white_queen.png") },
+        { (uint8_t)PieceType::King | (uint8_t)PieceColor::Black, QPixmap(":/rsc/img/pieces/black_king.png") },
+        { (uint8_t)PieceType::King | (uint8_t)PieceColor::White, QPixmap(":/rsc/img/pieces/white_king.png") },
+        { (uint8_t)PieceType::Duck | (uint8_t)PieceColor::Both, QPixmap(":/rsc/img/pieces/duck.png") }
     };
 }

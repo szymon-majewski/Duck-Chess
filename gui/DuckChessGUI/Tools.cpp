@@ -1,11 +1,10 @@
 #include <string>
-#include "Piece.h"
 #include "FullMove.h"
 #include "Board.h"
 #include "MovesGenerator.h"
 
-std::unique_ptr<std::vector<std::pair<int, int>>> GenerateSquaresWithBitPiece(const Square& startingSquare, Piece::Type pieceType,
-    BitPiece bitpiece, const Board& board, const Square moveSourceSquare);
+std::unique_ptr<std::vector<std::pair<int, int>>> GenerateSquaresWithBitPiece(const Square& startingSquare, Board::Type pieceType,
+    Board::Color pieceColor, const Board& board, const Square moveSourceSquare);
 void AddAmbiguousPartToMoveStringFormat(std::string& result, const std::vector<std::pair<int, int>>& otherPiecesCoords,
     int movingPieceY, int movingPieceX, const Square moveSourceSquare);
 
@@ -15,41 +14,40 @@ std::string SquareStringFormat(const Square& square, bool lowerCase = false)
 
     char fileLetter = lowerCase ? 'a' : 'A';
 
-    result += fileLetter + ((uint8_t)square - 1) % Board::WIDTH;
-    result += '1' + ((uint8_t)square - 1) / Board::WIDTH;
+    result += fileLetter + ((uint8_t)square) % Board::WIDTH;
+    result += '1' + ((uint8_t)square) / Board::WIDTH;
 
     return result;
 }
 
 void SquareToBoardIndices(const Square& square, int& y, int& x)
 {
-    y = ((uint8_t)square - 1) / Board::WIDTH;
-    x = ((uint8_t)square - 1) % Board::WIDTH;
+    y = ((uint8_t)square) / Board::WIDTH;
+    x = ((uint8_t)square) % Board::WIDTH;
 }
 
 Square BoardIndicesToSquare(const unsigned& y, const unsigned& x)
 {
-    return (Square)(y * Board::WIDTH + x + 1);
+    return (Square)(y * Board::WIDTH + x);
 }
 
 std::string MoveStringFormat(const FullMove& move, const Board& board)
 {
     std::string result;
     bool take = ((uint16_t)move.additionalInfo & (uint16_t)Move::captureChecker) != (uint16_t)Move::AdditionalInfo::None;
-    int movingPieceY;
-    int movingPieceX;
-    int targetSquareY;
-    int targetSquareX;
+    BitBoard movingPieceBitBoard = 1ULL << move.sourceSquare;
 
-    SquareToBoardIndices(move.sourceSquare, movingPieceY, movingPieceX);
-    SquareToBoardIndices(move.targetSquare, targetSquareY, targetSquareX);
+    Board::Color movingPieceColor =
+            (movingPieceBitBoard & board.bitBoards[Board::Type::All][Board::Color::White]) != 0ULL ?
+            Board::Color::White : Board::Color::Black;
+    Board::Type movingPieceType = board.FindBoardType(movingPieceBitBoard, movingPieceColor);
 
-    Piece::Type movingPieceType = board.pieces[movingPieceY][movingPieceX].PieceType();
-    BitPiece movingBitPiece = board.pieces[movingPieceY][movingPieceX].GetBitPiece();
+    int movingPieceY = move.sourceSquare / 8;
+    int movingPieceX = move.sourceSquare % 8;
 
     switch (movingPieceType)
     {
-        case Piece::Type::Pawn:
+        case Board::Type::Pawns:
         {
             Move::AdditionalInfo promotionType;
 
@@ -90,7 +88,7 @@ std::string MoveStringFormat(const FullMove& move, const Board& board)
 
             if (move.targetDuckSquare != Square::None)
             {
-                result += Piece::FindPieceSymbol((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both);
+                result += Board::PIECES_SYMBOLS_BITPIECES_MAP.at((uint8_t)PieceType::Duck | (uint8_t)PieceColor::Both);
                 result += SquareStringFormat(move.targetDuckSquare, true);
             }
             else
@@ -100,7 +98,7 @@ std::string MoveStringFormat(const FullMove& move, const Board& board)
 
             return result;
         }
-        case Piece::Type::King:
+        case Board::Type::Kings:
         {
             if ((Move::AdditionalInfo)((uint16_t)move.additionalInfo & Move::castlingChecker) != Move::AdditionalInfo::None)
             {
@@ -116,7 +114,7 @@ std::string MoveStringFormat(const FullMove& move, const Board& board)
 
                 if (move.targetDuckSquare != Square::None)
                 {
-                    result += Piece::FindPieceSymbol((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both);
+                    result += Board::PIECES_SYMBOLS_BITPIECES_MAP.at((uint8_t)PieceType::Duck | (uint8_t)PieceColor::Both);
                     result += SquareStringFormat(move.targetDuckSquare, true);
                 }
                 else
@@ -128,32 +126,37 @@ std::string MoveStringFormat(const FullMove& move, const Board& board)
             }
             else
             {
-                result += Piece::FindPieceSymbol((uint8_t)movingPieceType | (uint8_t)Piece::Color::White);
+                result += Board::PIECES_SYMBOLS_BITPIECES_MAP.at(Board::BOARD_PIECES_TO_BITPIECES_MAP.at({ movingPieceType, Board::Color::White }));
             }
 
             break;
         }
-        case Piece::Type::Knight:
+        case Board::Type::Knights:
         {
-            result += Piece::FindPieceSymbol((uint8_t)movingPieceType | (uint8_t)Piece::Color::White);
+            result += Board::PIECES_SYMBOLS_BITPIECES_MAP.at(Board::BOARD_PIECES_TO_BITPIECES_MAP.at({ movingPieceType, Board::Color::White }));
 
-            std::unique_ptr<std::list<Square>> knightSquares = MovesGenerator::GenerateAllSquaresKnightMovesTo(move.targetSquare);
-            std::vector<std::pair<int, int>> knightSquaresCoords((*knightSquares).size() - 1);
+            BitBoard knightSquares = MovesGenerator::KNIGHT_ATTACKS[move.targetSquare];
+            std::vector<std::pair<int, int>> knightSquaresCoords(CountSetBits(knightSquares) - 1);
             int i = 0;
 
-            for (const Square& knightSquare : *knightSquares)
+            while (knightSquares)
             {
-                if (knightSquare != move.sourceSquare)
+                int knightSquareIndex = IndexOfLSB(knightSquares);
+
+                if (knightSquareIndex != move.sourceSquare)
                 {
-                    SquareToBoardIndices(knightSquare, knightSquaresCoords[i].first, knightSquaresCoords[i].second);
+                    SquareToBoardIndices((Square)knightSquareIndex, knightSquaresCoords[i].first, knightSquaresCoords[i].second);
                     ++i;
                 }
+
+                RemoveLSB(knightSquares);
             }
 
             std::erase_if(knightSquaresCoords,
-                [&board, movingBitPiece](const std::pair<int, int> coords)
+                [&board, movingPieceType, movingPieceColor](const std::pair<int, int> coords)
                 {
-                    return board.pieces[coords.first][coords.second].GetBitPiece() != movingBitPiece;
+                    //return board.pieces[coords.first][coords.second].GetBitPiece() != movingBitPiece;
+                    return !CheckBit(board.bitBoards[movingPieceType][movingPieceColor], coords.first, coords.second);
                 });
 
             AddAmbiguousPartToMoveStringFormat(result, knightSquaresCoords, movingPieceY, movingPieceX, move.sourceSquare);
@@ -162,9 +165,9 @@ std::string MoveStringFormat(const FullMove& move, const Board& board)
         }
         default:
         {
-            result += Piece::FindPieceSymbol((uint8_t)movingPieceType | (uint8_t)Piece::Color::White);
+            result += Board::PIECES_SYMBOLS_BITPIECES_MAP.at(Board::BOARD_PIECES_TO_BITPIECES_MAP.at({ movingPieceType, Board::Color::White }));
 
-            auto otherPiecesCoords = GenerateSquaresWithBitPiece(move.targetSquare, movingPieceType, movingBitPiece, board, move.sourceSquare);
+            auto otherPiecesCoords = GenerateSquaresWithBitPiece(move.targetSquare, movingPieceType, movingPieceColor, board, move.sourceSquare);
             AddAmbiguousPartToMoveStringFormat(result, *otherPiecesCoords, movingPieceY, movingPieceX, move.sourceSquare);
 
             break;
@@ -180,7 +183,7 @@ std::string MoveStringFormat(const FullMove& move, const Board& board)
 
     if (move.targetDuckSquare != Square::None)
     {
-        result += Piece::FindPieceSymbol((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both);
+        result += Board::PIECES_SYMBOLS_BITPIECES_MAP.at((uint8_t)PieceType::Duck | (uint8_t)PieceColor::Both);
         result += SquareStringFormat(move.targetDuckSquare, true);
     }
     else
@@ -206,8 +209,8 @@ Square SquareIdToSquare(std::string squareId)
 
 // PRIVATE SECTION
 
-std::unique_ptr<std::vector<std::pair<int, int>>> GenerateSquaresWithBitPiece(const Square& startingSquare, Piece::Type pieceType,
-    BitPiece bitpiece, const Board& board, const Square originalCallingSquare)
+std::unique_ptr<std::vector<std::pair<int, int>>> GenerateSquaresWithBitPiece(const Square& startingSquare, Board::Type pieceType,
+    Board::Color pieceColor, const Board& board, const Square originalCallingSquare)
 {
     Square squareInDirection;
     unsigned lowBound = 0;
@@ -216,12 +219,12 @@ std::unique_ptr<std::vector<std::pair<int, int>>> GenerateSquaresWithBitPiece(co
     int x;
     int y;
 
-    if (pieceType == Piece::Type::Bishop)
+    if (pieceType == Board::Type::Bishops)
     {
         // Starting with d = 4 (only diagonal directions)
         lowBound = 4;
     }
-    else if (pieceType == Piece::Type::Rook)
+    else if (pieceType == Board::Type::Rooks)
     {
         // Ending with d = 4 (only horizontal and vertical directions)
         highBound = 4;
@@ -231,16 +234,17 @@ std::unique_ptr<std::vector<std::pair<int, int>>> GenerateSquaresWithBitPiece(co
     {
         squareInDirection = startingSquare;
 
-        for (unsigned s = 0; s < MovesGenerator::squaresToEdgeCount[(uint8_t)startingSquare - 1][d]; ++s)
+        for (unsigned s = 0; s < MovesGenerator::SQUARES_TO_EDGE_COUNT[(uint8_t)startingSquare][d]; ++s)
         {
             squareInDirection = (Square)((uint8_t)squareInDirection + (int8_t)MovesGenerator::DIRECTIONS[d]);
             SquareToBoardIndices(squareInDirection, y, x);
 
-            if (board.pieces[y][x].GetBitPiece() == NO_PIECE)
+            if (CheckBit(board.empties, y, x))
             {
                 continue;
             }
-            else if (board.pieces[y][x].GetBitPiece() == bitpiece && squareInDirection != originalCallingSquare)
+            //else if (board.pieces[y][x].GetBitPiece() == bitpiece && squareInDirection != originalCallingSquare)
+            else if (CheckBit(board.bitBoards[pieceType][pieceColor], y, x) && squareInDirection != originalCallingSquare)
             {
                 (*resultSquares).emplace_back(std::make_pair(y, x));
                 break;
@@ -293,8 +297,3 @@ void AddAmbiguousPartToMoveStringFormat(std::string& result, const std::vector<s
         }
     }
 }
-
-//FullMove StringToMove(const std::string& moveString, const Board& board)
-//{
-//	Piece::PIECES_SYMBOLS_MAP
-//}

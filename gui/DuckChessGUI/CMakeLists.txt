@@ -38,11 +38,10 @@ set(PROJECT_SOURCES
         Move.cpp
         FenParser.h
         FenParser.cpp
-        Piece.h
-        Piece.cpp
         MoveMemento.h
         MoveMemento.cpp
         Board.h
+        Board.cpp
         Position.h
         Position.cpp
         PositionEvaluator.h

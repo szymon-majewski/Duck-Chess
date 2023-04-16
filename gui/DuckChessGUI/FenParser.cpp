@@ -24,11 +24,7 @@ Position FenParser::ParseFen(const std::string& fen) const
 
             squaresFilled += digit;
             squaresInCurrentRowFilled += digit;
-
-            while (digit--)
-            {
-                position.board.pieces[Board::WIDTH - y - 1][x++].SetBitPiece(NO_PIECE);
-            }
+            x += digit;
         }
         else if (fen[i] == '/')
         {
@@ -44,17 +40,26 @@ Position FenParser::ParseFen(const std::string& fen) const
             }
         }
 
-        else if (isalpha(fen[i]) || fen[i] == Piece::FindPieceSymbol((BitPiece)((uint8_t)Piece::Type::Duck | (uint8_t)Piece::Color::Both)))
+        else if (isalpha(fen[i]))
         {
             try
             {
-                position.board.pieces[Board::WIDTH - y - 1][x++].SetBitPiece(Piece::PIECES_SYMBOLS_MAP.at(fen[i]));
+                SetBit(position.board.PIECES_SYMBOLS_BITBOARDS_MAP.at(fen[i]), Board::WIDTH - y - 1, x);
+                SetBit(position.board.bitBoards[Board::Type::All][islower(fen[i]) ? Board::Color::Black : Board::Color::White], Board::WIDTH - y - 1, x);
+                ++x;
+                ++squaresFilled;
+                ++squaresInCurrentRowFilled;
+                //position.board.pieces[Board::WIDTH - y - 1][x++].SetBitPiece(Piece::PIECES_SYMBOLS_MAP.at(fen[i]));
             }
             catch (const std::out_of_range e)
             {
                 throw std::invalid_argument("Provided FEN had an unrecognized symbol \"" + fen[i]);
             }
-
+        }
+        else if (fen[i] == position.board.PIECES_SYMBOLS_BITPIECES_MAP.at((BitPiece)((uint8_t)PieceType::Duck | (uint8_t)PieceColor::Both)))
+        {
+            SetBit(position.board.duck, Board::WIDTH - y - 1, x);
+            ++x;
             ++squaresFilled;
             ++squaresInCurrentRowFilled;
         }
@@ -84,6 +89,8 @@ Position FenParser::ParseFen(const std::string& fen) const
     position.fullMovesCount = stoi(tokens[4]);
 
     delete[] tokens;
+
+    position.board.UpdateEmpties();
 
     return position;
 }

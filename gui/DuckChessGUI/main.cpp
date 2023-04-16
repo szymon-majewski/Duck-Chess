@@ -2,7 +2,6 @@
 #include "FenParser.h"
 #include "Session.h"
 #include "MovesGenerator.h"
-#include "EngineWorker.h"
 
 #include <QApplication>
 
@@ -15,7 +14,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    Session session = Session(Position());
+    Session session;
     FenParser fenParser;
     MovesGenerator movesGenerator;
 

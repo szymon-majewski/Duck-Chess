@@ -19,6 +19,7 @@
 #include "EngineWorker.h"
 #include "PieceLabel.h"
 #include "SquareFrame.h"
+#include "Board.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -70,7 +71,7 @@ private:
     QLabel* lastMovePlayedScrollAreaLabel = nullptr;
     PlayerColor startingPlayer = PlayerColor::White;
     std::vector<std::unique_ptr<PieceLabel>> piecesLabels;
-    const Piece::Type promotionPieces[4] = { Piece::Type::Queen, Piece::Type::Rook, Piece::Type::Knight, Piece::Type::Bishop };
+    const PieceType promotionPieces[4] = { PieceType::Queen, PieceType::Rook, PieceType::Knight, PieceType::Bishop };
     std::pair<int, int> (MainWindow::*coordsByPerspective)(int, int);
 
     Square selectedSquare = Square::None;
@@ -86,6 +87,8 @@ private:
     const QColor DARK_SQUARE_COLOR = QColor(32, 82, 168);
     const QColor SELECTED_LIGHT_SQUARE_COLOR = QColor(79, 147, 190);
     const QColor SELECTED_DARK_SQUARE_COLOR = QColor(32, 61, 109);
+    const QColor POSSIBLE_MOVE_LIGHT_SQUARE = QColor(100, 100, 120);
+    const QColor POSSIBLE_MOVE_DARK_SQUARE = QColor(150, 150, 170);
 
     // Engine stuff
     std::unique_ptr<EngineWorker> engineWorker;
@@ -103,8 +106,11 @@ private:
     void UpdateChessboard();
     void SelectSquare(unsigned int x, unsigned int y);
     void SelectSquare(Square square);
+    void SelectPossibleMovesSquares(Square sourceSquare);
+    void SelectPossibleMoveSquare(Square square);
     void DeselectSquare(unsigned int x, unsigned int y);
     void DeselectSquare(Square square);
+    void DeselectPossibleMovesSquares(Square sourceSquare);
     void UpdateEvaluationLabel(const Evaluation evaluation);
     void UpdateTimeLabel(long long time);
     void UpdateBestMovesLabel(const std::list<FullMove>& bestMovesList);

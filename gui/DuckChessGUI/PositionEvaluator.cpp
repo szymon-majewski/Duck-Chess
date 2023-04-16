@@ -1,11 +1,11 @@
 #include "PositionEvaluator.h"
 
-std::unordered_map<Piece::Type, Evaluation> PositionEvaluator::piecesMaterial =
+std::unordered_map<Board::Type, Evaluation> PositionEvaluator::piecesMaterial =
 {
-    { Piece::Type::Pawn, 100 },
-    { Piece::Type::Knight, 550 },
-    { Piece::Type::Bishop, 250 },
-    { Piece::Type::Rook, 400 },
-    { Piece::Type::Queen, 700 },
-    { Piece::Type::None, 0 }
+    { Board::Type::Pawns, 100 },
+    { Board::Type::Knights, 550 },
+    { Board::Type::Bishops, 250 },
+    { Board::Type::Rooks, 400 },
+    { Board::Type::Queens, 700 },
+    { Board::Type::Kings, 0 }
 };

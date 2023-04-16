@@ -27,7 +27,7 @@ public:
 
 private:
 
-    void UpdateCastling(const Move::AdditionalInfo& castlingInfo, const int& targetY, const int& targetX, const uint8_t& playerColor);
+    void UpdateCastling(const Move::AdditionalInfo& castlingInfo, const Square targetSquare, const uint8_t& playerColor);
 
     friend class FenParser;
     friend class Engine;
