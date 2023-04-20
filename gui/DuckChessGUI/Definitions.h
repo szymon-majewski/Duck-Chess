@@ -142,17 +142,17 @@ inline void ClearBit(BitBoard& bitBoard, unsigned int bit)
     bitBoard &= ~(1ULL << bit);
 }
 
-inline int CountSetBits(BitBoard bitBoard)
+inline constexpr int CountSetBits(BitBoard bitBoard)
 {
     return __builtin_popcountll(bitBoard);
 }
 
-inline int IndexOfLSB(BitBoard bitBoard)
+inline constexpr int IndexOfLSB(BitBoard bitBoard)
 {
     return __builtin_ctzll(bitBoard);
 }
 
-inline void RemoveLSB(BitBoard& bitBoard)
+inline constexpr void RemoveLSB(BitBoard& bitBoard)
 {
     bitBoard &= bitBoard - 1;
 }

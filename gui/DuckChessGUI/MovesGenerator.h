@@ -16,8 +16,18 @@ public:
     std::unique_ptr<std::list<Move>> GenerateLegalChessMoves(const Position& position, unsigned int& numberOfCaptureMoves);
     std::unique_ptr<std::vector<FullMove>> GenerateLegalMoves(const Position& position);
 
-    const static unsigned DIRECTIONS_COUNT = 8;
-    const static DirectionOffsets DIRECTIONS[DIRECTIONS_COUNT];
+    constexpr static unsigned DIRECTIONS_COUNT = 8;
+    constexpr static DirectionOffsets DIRECTIONS[DIRECTIONS_COUNT] =
+    {
+        DirectionOffsets::North,
+        DirectionOffsets::South,
+        DirectionOffsets::West,
+        DirectionOffsets::East,
+        DirectionOffsets::NorthWest,
+        DirectionOffsets::NorthEast,
+        DirectionOffsets::SouthWest,
+        DirectionOffsets::SouthEast,
+    };
 
     static constexpr auto SQUARES_TO_EDGE_COUNT
     {
@@ -126,4 +136,25 @@ private:
 
     void GenerateLongRangePieceMoves(std::unique_ptr<std::list<Move>>& legalMoves, Board::Type pieceType, Board::Color movingPiecesColor, const Board& board, unsigned int& numberOfCaptureMoves);
     void GeneratePawnsMoves(std::unique_ptr<std::list<Move>>& legalPiecesMoves, const Position& position, Board::Color movingPiecesColor, unsigned int& numberOfCaptureMoves);
+
+    const static std::array<uint64_t, Board::SQUARES_COUNT> BISHOP_MAGIC_NUMBERS;
+    const static std::array<uint64_t, Board::SQUARES_COUNT> ROOK_MAGIC_NUMBERS;
+    const static std::array<uint8_t, Board::SQUARES_COUNT> BISHOP_RELEVANT_SQUARES;
+    const static std::array<uint8_t, Board::SQUARES_COUNT> ROOK_RELEVANT_SQUARES;
+    const static std::array<BitBoard, Board::SQUARES_COUNT> ROOK_ATTACKS_MASKS;
+    const static std::array<BitBoard, Board::SQUARES_COUNT> BISHOP_ATTACKS_MASKS;
+    static std::array<BitBoard, Board::SQUARES_COUNT> InitRookAttacksMasks();
+    static std::array<BitBoard, Board::SQUARES_COUNT> InitBishopAttacksMasks();
+    static BitBoard RookAttacksWithBlockers(uint8_t sourceY, uint8_t sourceX, BitBoard blockers);
+    static BitBoard BishopAttacksWithBlockers(uint8_t sourceY, uint8_t sourceX, BitBoard blockers);
+    static std::array<std::array<BitBoard, 4096>, Board::SQUARES_COUNT> InitInternalRookAttacks();
+    static std::array<std::array<BitBoard, 512>, Board::SQUARES_COUNT> InitInternalBishopAttacks();
+    const static std::array<std::array<BitBoard, 4096>, Board::SQUARES_COUNT> INTERNAL_ROOK_ATTACKS;
+    const static std::array<std::array<BitBoard, 512>, Board::SQUARES_COUNT> INTERNAL_BISHOP_ATTACKS;
+
+    const static std::array<std::array<BitBoard, 4096>, Board::SQUARES_COUNT> ROOK_ATTACKS;
+    const static std::array<std::array<BitBoard, 512>, Board::SQUARES_COUNT> BISHOP_ATTACKS;
+
+    static BitBoard GetRookAttacks(uint8_t square, BitBoard blockers);
+    static BitBoard GetBishopAttacks(uint8_t square, BitBoard blockers);
 };
