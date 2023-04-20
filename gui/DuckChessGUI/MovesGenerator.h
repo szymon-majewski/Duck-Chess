@@ -16,6 +16,21 @@ public:
     std::unique_ptr<std::list<Move>> GenerateLegalChessMoves(const Position& position, unsigned int& numberOfCaptureMoves);
     std::unique_ptr<std::vector<FullMove>> GenerateLegalMoves(const Position& position);
 
+    const static int PRIORITIES_COUNT = 7;
+    const static int PRIORITY_LAST = PRIORITIES_COUNT - 1;
+    const std::unordered_map<Move::AdditionalInfo, uint8_t> MoveInfoToListIndex
+    {
+        {Move::AdditionalInfo::CapturedKing, 0},
+        {Move::AdditionalInfo::CapturedQueen, 1},
+        {Move::AdditionalInfo::CapturedKnight, 2},
+        {Move::AdditionalInfo::CapturedRook, 3},
+        {Move::AdditionalInfo::CapturedBishop, 4},
+        {Move::AdditionalInfo::CapturedPawn, 5},
+        {Move::AdditionalInfo::None, 6}
+    };
+
+    std::unique_ptr<std::array<std::list<Move>, PRIORITIES_COUNT>> GenerateLegalChessMovesSorted(const Position& position, unsigned int& numberOfCaptureMoves);
+
     constexpr static unsigned DIRECTIONS_COUNT = 8;
     constexpr static DirectionOffsets DIRECTIONS[DIRECTIONS_COUNT] =
     {

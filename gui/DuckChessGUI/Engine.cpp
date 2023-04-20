@@ -1,5 +1,6 @@
 #include "Engine.h"
 #include "MaterialEvaluator.h"
+#include "StandardPositionEvaluator.h"
 
 Engine::Engine() :
     Engine(STARTING_POSITION_FEN) {}
@@ -9,7 +10,7 @@ Engine::Engine(std::string fen)
     searchDepth = DEFAULT_SEARCH_DEPTH;
     session.position.materialDisparity = session.position.CountMaterial();
 
-    evaluator = std::make_unique<MaterialEvaluator>();
+    evaluator = std::make_unique<StandardPositionEvaluator>();
 }
 
 std::unique_ptr<Engine::SearchInfo> Engine::Search(Position position)

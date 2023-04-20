@@ -6,5 +6,5 @@ class MaterialEvaluator : public PositionEvaluator
 {
 public:
 
-    virtual Evaluation Evaluate(const Position& game);
+    virtual Evaluation Evaluate(const Position& game) override;
 };

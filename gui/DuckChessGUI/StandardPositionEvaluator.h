@@ -11,8 +11,7 @@ public:
         KingLinedUpWithQueen
     };
 
-    static std::unordered_map <Board::Type, Evaluation> piecesMaterial;
     static std::unordered_map <TacticalFactors, Evaluation> tacticalFactorsMaterial;
 
-    virtual Evaluation Evaluate(const Position& game);
+    virtual Evaluation Evaluate(const Position& game) override;
 };
