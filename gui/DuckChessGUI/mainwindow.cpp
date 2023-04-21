@@ -201,7 +201,6 @@ void MainWindow::FenUpdateButtonPressed()
     {
         session->position = fenParser->ParseFen(fenTextEdit->toPlainText().toStdString());
         session->position.materialDisparity = session->position.CountMaterial();
-        startingPlayer = session->position.playerToMove;
 
         for (int row = (movesMade.size() - 1) / 2; row >= 0; --row)
         {
@@ -216,6 +215,27 @@ void MainWindow::FenUpdateButtonPressed()
                 }
             }
         }
+
+        if (gameEnded && startingPlayer == PlayerColor::Black)
+        {
+            int rowToDeleteIndex = currentMoveIndex / 2 + 1;
+
+
+            QLayoutItem* layoutItem = movesGridLayout->itemAtPosition(rowToDeleteIndex, 1);
+            QLayoutItem* layoutItemNumber = movesGridLayout->itemAtPosition(rowToDeleteIndex, 0);
+            if (layoutItem)
+            {
+                movesGridLayout->removeWidget(layoutItem->widget());
+                delete layoutItem->widget();
+            }
+            if (layoutItemNumber)
+            {
+                movesGridLayout->removeWidget(layoutItemNumber->widget());
+                delete layoutItemNumber->widget();
+            }
+        }
+
+        startingPlayer = session->position.playerToMove;
 
         lastMovePlayedScrollAreaLabel = nullptr;
 
@@ -377,53 +397,64 @@ void MainWindow::OnBackwardsButtonPressed()
         return;
     }
 
-    if (gameEnded)
+//    if (gameEnded)
+//    {
+//        PlayerColor opponentsColor = session->position.playerToMove == PlayerColor::White ? PlayerColor::Black : PlayerColor::White;
+//        PieceLabel* movingPieceLabel;
+//        int sourceSquareX;
+//        int sourceSquareY;
+//        int targetSquareX;
+//        int targetSquareY;
+
+//        SquareToBoardIndices(movesMade[currentMoveIndex].sourceSquare, sourceSquareY, sourceSquareX);
+//        SquareToBoardIndices(movesMade[currentMoveIndex].targetSquare, targetSquareY, targetSquareX);
+
+//        auto [guiSourceX, guiSourceY] = (this->*coordsByPerspective)(sourceSquareX, sourceSquareY);
+//        auto [guiTargetX, guiTargetY] = (this->*coordsByPerspective)(targetSquareX, targetSquareY);
+
+//        // Piece which took the king
+//        for (const std::unique_ptr<PieceLabel>& pieceLabel : piecesLabels)
+//        {
+//            if (guiTargetX == pieceLabel->x && guiTargetY == pieceLabel->y)
+//            {
+//                pieceLabel->x = guiSourceX;
+//                pieceLabel->y = guiSourceY;
+//                movingPieceLabel = pieceLabel.get();
+//                break;
+//            }
+//        }
+
+//        chessboardPanel->removeWidget(movingPieceLabel);
+//        chessboardPanel->addWidget(movingPieceLabel, guiSourceY, guiSourceX);
+
+//        // King itself
+//        auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, guiTargetX, guiTargetY));
+//        insertedLabel->setAlignment(Qt::AlignCenter);
+//        insertedLabel->setPixmap(piecesPixmaps.at((uint8_t)PieceType::King | (uint8_t)opponentsColor));
+//        insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+//        insertedLabel->setScaledContents(true);
+//        chessboardPanel->addWidget(insertedLabel.get(), guiTargetY, guiTargetX);
+
+//        emitStartEngine(session->position);
+
+//        gameEnded = false;
+//    }
+//    else
+//    {
+//        session->UndoMove();
+//        UpdateChessboard();
+//    }
+
+    if (!gameEnded)
     {
-        PlayerColor opponentsColor = session->position.playerToMove == PlayerColor::White ? PlayerColor::Black : PlayerColor::White;
-        PieceLabel* movingPieceLabel;
-        int sourceSquareX;
-        int sourceSquareY;
-        int targetSquareX;
-        int targetSquareY;
-
-        SquareToBoardIndices(movesMade[currentMoveIndex].sourceSquare, sourceSquareY, sourceSquareX);
-        SquareToBoardIndices(movesMade[currentMoveIndex].targetSquare, targetSquareY, targetSquareX);
-
-        auto [guiSourceX, guiSourceY] = (this->*coordsByPerspective)(sourceSquareX, sourceSquareY);
-        auto [guiTargetX, guiTargetY] = (this->*coordsByPerspective)(targetSquareX, targetSquareY);
-
-        // Piece which took the king
-        for (const std::unique_ptr<PieceLabel>& pieceLabel : piecesLabels)
-        {
-            if (guiTargetX == pieceLabel->x && guiTargetY == pieceLabel->y)
-            {
-                pieceLabel->x = guiSourceX;
-                pieceLabel->y = guiSourceY;
-                movingPieceLabel = pieceLabel.get();
-                break;
-            }
-        }
-
-        chessboardPanel->removeWidget(movingPieceLabel);
-        chessboardPanel->addWidget(movingPieceLabel, guiSourceY, guiSourceX);
-
-        // King itself
-        auto& insertedLabel = piecesLabels.emplace_back(std::make_unique<PieceLabel>(this, this, guiTargetX, guiTargetY));
-        insertedLabel->setAlignment(Qt::AlignCenter);
-        insertedLabel->setPixmap(piecesPixmaps.at((uint8_t)PieceType::King | (uint8_t)opponentsColor));
-        insertedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-        insertedLabel->setScaledContents(true);
-        chessboardPanel->addWidget(insertedLabel.get(), guiTargetY, guiTargetX);
-
-        emitStartEngine(session->position);
-
-        gameEnded = false;
+        session->UndoMove();
     }
     else
     {
-        session->UndoMove();
-        UpdateChessboard();
+        gameEnded = false;
     }
+
+    UpdateChessboard();
 
     --currentMoveIndex;
     firstPhase = true;
@@ -1117,8 +1148,7 @@ void MainWindow::OnPieceClicked(unsigned int x, unsigned int y)
                             }
                         }
 
-                        // Before making a move it's black turn, so we want to delete blacks' move from the list
-                        if (session->position.playerToMove == PlayerColor::White)
+                        if (session->position.playerToMove == PlayerColor::Black)
                         {
                             int rowToDeleteIndex = startingPlayer == PlayerColor::White ? currentMoveIndex / 2 : currentMoveIndex / 2 + 1;
                             QLayoutItem* layoutItem = movesGridLayout->itemAtPosition(rowToDeleteIndex, 2);
