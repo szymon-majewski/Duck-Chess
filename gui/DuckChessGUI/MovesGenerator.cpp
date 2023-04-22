@@ -225,141 +225,112 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
 
     BitBoard emptiesCopy;
 
-    for (int pieceID = 0; pieceID < PRIORITIES_COUNT; ++pieceID)
+    // Moves with captures of everything but pawns
+    for (int pieceID = 0; pieceID < 5; ++pieceID)
     {
         for (const Move& legalPieceMove : (*legalPiecesMoves)[pieceID])
         {
             emptiesCopy = position.board.empties;
 
-            switch (legalPieceMove.additionalInfo)
+            // Removing target square from potential duck squares
+            ResetBit(emptiesCopy, legalPieceMove.targetSquare);
+
+            while (emptiesCopy)
             {
-            case Move::AdditionalInfo::BlackKingsideCastle:
-            case Move::AdditionalInfo::WhiteKingsideCastle:
-            case Move::AdditionalInfo::BlackQueensideCastle:
-            case Move::AdditionalInfo::WhiteQueensideCastle:
+                int currentEmptyIndex = IndexOfLSB(emptiesCopy);
+
+                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
+                RemoveLSB(emptiesCopy);
+            }
+
+            legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
+        }
+    }
+
+    // Moves with captures of pawns
+    for (const Move& legalPieceMove : (*legalPiecesMoves)[5])
+    {
+        emptiesCopy = position.board.empties;
+
+        // Removing target square from potential duck squares
+        ResetBit(emptiesCopy, legalPieceMove.targetSquare);
+
+        if (legalPieceMove.additionalInfo == Move::AdditionalInfo::EnPassant)
+        {
+            while (emptiesCopy)
             {
-                const auto& [rookSourceSquare, rookTargetSquare] = Move::ROOK_CASTLING_SQUARES.at(legalPieceMove.additionalInfo);
+                int currentEmptyIndex = IndexOfLSB(emptiesCopy);
 
-                while (emptiesCopy)
-                {
-                    int currentEmptyIndex = IndexOfLSB(emptiesCopy);
-
-                    if (currentEmptyIndex != legalPieceMove.targetSquare && currentEmptyIndex != rookTargetSquare)
-                    {
-                        legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
-                    }
-
-                    RemoveLSB(emptiesCopy);
-                }
-
-                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
-                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, rookSourceSquare));
-
-                break;
+                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
+                RemoveLSB(emptiesCopy);
             }
-            case Move::AdditionalInfo::EnPassant:
+
+            legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
+
+            if (position.playerToMove == PlayerColor::White)
             {
-                while (emptiesCopy)
-                {
-                    int currentEmptyIndex = IndexOfLSB(emptiesCopy);
-
-                    if (currentEmptyIndex != legalPieceMove.targetSquare)
-                    {
-                        legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
-                    }
-
-                    RemoveLSB(emptiesCopy);
-                }
-
-                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
-
-                if (position.playerToMove == PlayerColor::White)
-                {
-                    legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)((uint8_t)legalPieceMove.targetSquare + (int8_t)DirectionOffsets::South)));
-                }
-                else
-                {
-                    legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)((uint8_t)legalPieceMove.targetSquare + (int8_t)DirectionOffsets::North)));
-                }
-
-                break;
+                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)((uint8_t)legalPieceMove.targetSquare + (int8_t)DirectionOffsets::South)));
             }
-            default:
+            else
             {
-                while (emptiesCopy)
-                {
-                    int currentEmptyIndex = IndexOfLSB(emptiesCopy);
-
-                    if (currentEmptyIndex != legalPieceMove.targetSquare)
-                    {
-                        legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
-                    }
-
-                    RemoveLSB(emptiesCopy);
-                }
-
-                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
-
-                break;
+                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)((uint8_t)legalPieceMove.targetSquare + (int8_t)DirectionOffsets::North)));
             }
+        }
+        else
+        {
+            while (emptiesCopy)
+            {
+                int currentEmptyIndex = IndexOfLSB(emptiesCopy);
+
+                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
+                RemoveLSB(emptiesCopy);
             }
+
+            legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
+        }
+    }
+
+    // Rest of the moves
+    for (const Move& legalPieceMove : (*legalPiecesMoves)[6])
+    {
+        emptiesCopy = position.board.empties;
+
+        // Removing target square from potential duck squares
+        ResetBit(emptiesCopy, legalPieceMove.targetSquare);
+
+        if ((uint16_t)legalPieceMove.additionalInfo & Move::castlingChecker)
+        {
+            const auto& [rookSourceSquare, rookTargetSquare] = Move::ROOK_CASTLING_SQUARES.at(legalPieceMove.additionalInfo);
+
+            // Removing rook target square from potential duck squares
+            ResetBit(emptiesCopy, rookTargetSquare);
+
+            while (emptiesCopy)
+            {
+                int currentEmptyIndex = IndexOfLSB(emptiesCopy);
+
+                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
+                RemoveLSB(emptiesCopy);
+            }
+
+            legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
+            legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, rookSourceSquare));
+        }
+        else
+        {
+            while (emptiesCopy)
+            {
+                int currentEmptyIndex = IndexOfLSB(emptiesCopy);
+
+                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
+                RemoveLSB(emptiesCopy);
+            }
+
+            legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
         }
     }
 
     return legalMoves;
-}
-
-void MovesGenerator::GenerateLongRangePieceMoves(std::unique_ptr<std::list<Move>>& legalMoves, Board::Type pieceType, Board::Color movingPiecesColor, const Board& board, unsigned int& numberOfCaptureMoves)
-{
-    Board::Color opponentsPiecesColor = (Board::Color)(1 - movingPiecesColor);
-    uint8_t squareInDirection;
-    unsigned lowBound = 0;
-    unsigned highBound = DIRECTIONS_COUNT;
-
-    if (pieceType == Board::Type::Bishops)
-    {
-        // Starting with d = 4 (only diagonal directions)
-        lowBound = 4;
-    }
-    else if (pieceType == Board::Type::Rooks)
-    {
-        // Ending with d = 4 (only horizontal and vertical directions)
-        highBound = 4;
-    }
-
-    BitBoard movingPieces = board.bitBoards[pieceType][movingPiecesColor];
-
-    while (movingPieces)
-    {
-        int currentPieceIndex = IndexOfLSB(movingPieces);
-
-        for (unsigned d = lowBound; d < highBound; ++d)
-        {
-            squareInDirection = currentPieceIndex;
-
-            for (unsigned s = 0; s < SQUARES_TO_EDGE_COUNT[currentPieceIndex][d]; ++s)
-            {
-                squareInDirection += (int8_t)DIRECTIONS[d];
-
-                if (CheckBit(board.empties, squareInDirection))
-                {
-                    legalMoves->emplace_back(Move((Square)currentPieceIndex, (Square)squareInDirection));
-                }
-                else if (CheckBit(board.bitBoards[Board::Type::All][opponentsPiecesColor], squareInDirection))
-                {
-                    legalMoves->emplace_front(Move((Square)currentPieceIndex, (Square)squareInDirection, SquarePieceTypeToMoveInfo(1ULL << squareInDirection, board, opponentsPiecesColor)));
-                    ++numberOfCaptureMoves;
-                    break;
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
-
-        RemoveLSB(movingPieces);
-    }
 }
 
 Move::AdditionalInfo MovesGenerator::SquarePieceTypeToMoveInfo(BitBoard pieceMoveToOpponentsSquare, const Board& board, Board::Color opponentsColor)
@@ -431,7 +402,6 @@ void MovesGenerator::GeneratePawnsMoves(std::unique_ptr<std::list<Move>>& legalP
         }
 
         // Takes and en passant
-
         if (!CheckBit(Files::FileA, currentPawnIndex))
         {
             forwardWestSquare = forwardSquare + DirectionOffsets::East;

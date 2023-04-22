@@ -11,6 +11,7 @@ Engine::Engine(std::string fen)
     session.position.materialDisparity = session.position.CountMaterial();
 
     evaluator = std::make_unique<StandardPositionEvaluator>();
+    //evaluator = std::make_unique<MaterialEvaluator>();
 }
 
 std::unique_ptr<Engine::SearchInfo> Engine::Search(Position position)

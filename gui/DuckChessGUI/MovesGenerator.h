@@ -89,13 +89,13 @@ public:
 
                     // Knight attacks
                     result[currentIndex] =
-                        ((currentSquare << 17) & ~((uint64_t)Ranks::Rank1 | (uint64_t)Ranks::Rank2 | (uint64_t)Files::FileA)) |   // North, north, west
-                        ((currentSquare >> 15) & ~((uint64_t)Ranks::Rank7 | (uint64_t)Ranks::Rank8 | (uint64_t)Files::FileA)) |   // South, south, west
-                        ((currentSquare << 15) & ~((uint64_t)Ranks::Rank1 | (uint64_t)Ranks::Rank2 | (uint64_t)Files::FileH)) |   // North, north, east
-                        ((currentSquare >> 17) & ~((uint64_t)Ranks::Rank7 | (uint64_t)Ranks::Rank8 | (uint64_t)Files::FileH)) |   // South, south, east
+                        ((currentSquare << 17) & ~((uint64_t)Ranks::Rank1 | (uint64_t)Ranks::Rank2 | (uint64_t)Files::FileA))  |   // North, north, west
+                        ((currentSquare >> 15) & ~((uint64_t)Ranks::Rank7 | (uint64_t)Ranks::Rank8 | (uint64_t)Files::FileA))  |   // South, south, west
+                        ((currentSquare << 15) & ~((uint64_t)Ranks::Rank1 | (uint64_t)Ranks::Rank2 | (uint64_t)Files::FileH))  |   // North, north, east
+                        ((currentSquare >> 17) & ~((uint64_t)Ranks::Rank7 | (uint64_t)Ranks::Rank8 | (uint64_t)Files::FileH))  |   // South, south, east
                         ((currentSquare << 10) & ~((uint64_t)Files::FileA | (uint64_t)Files::FileB | (uint64_t)Ranks::Rank1))  |   // West, west, north
-                        ((currentSquare >> 6) & ~((uint64_t)Files::FileA | (uint64_t)Files::FileB | (uint64_t)Ranks::Rank8)) |   // West, west, south
-                        ((currentSquare << 6) & ~((uint64_t)Files::FileG | (uint64_t)Files::FileH | (uint64_t)Ranks::Rank1)) |   // East, east, north
+                        ((currentSquare >> 6) & ~((uint64_t)Files::FileA | (uint64_t)Files::FileB | (uint64_t)Ranks::Rank8))   |   // West, west, south
+                        ((currentSquare << 6) & ~((uint64_t)Files::FileG | (uint64_t)Files::FileH | (uint64_t)Ranks::Rank1))   |   // East, east, north
                         ((currentSquare >> 10) & ~((uint64_t)Files::FileG | (uint64_t)Files::FileH | (uint64_t)Ranks::Rank8));     // East, east, south
                 }
             }
@@ -149,7 +149,6 @@ public:
 
 private:
 
-    void GenerateLongRangePieceMoves(std::unique_ptr<std::list<Move>>& legalMoves, Board::Type pieceType, Board::Color movingPiecesColor, const Board& board, unsigned int& numberOfCaptureMoves);
     void GeneratePawnsMoves(std::unique_ptr<std::list<Move>>& legalPiecesMoves, const Position& position, Board::Color movingPiecesColor, unsigned int& numberOfCaptureMoves);
 
     const static std::array<uint64_t, Board::SQUARES_COUNT> BISHOP_MAGIC_NUMBERS;

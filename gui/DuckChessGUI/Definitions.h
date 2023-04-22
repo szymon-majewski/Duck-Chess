@@ -122,6 +122,11 @@ inline void SetBit(BitBoard& bitBoard, unsigned int bit)
     bitBoard |= (1ULL << bit);
 }
 
+inline void ResetBit(BitBoard& bitBoard, unsigned int bit)
+{
+    bitBoard &= ~(1ULL << bit);
+}
+
 inline void SetBit(BitBoard& bitBoard, unsigned int y, unsigned int x)
 {
     bitBoard |= (1ULL << (y * 8 + x));

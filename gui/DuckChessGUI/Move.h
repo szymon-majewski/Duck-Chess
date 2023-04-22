@@ -28,6 +28,7 @@ public:
     };
 
     // Sorted by priority for move ordering
+    // None has to be zero - GenerateLegalMoves (maybe more)
     //enum class AdditionalInfo : uint16_t
     //{
     //	None = 0,
