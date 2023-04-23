@@ -206,12 +206,6 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
     auto legalPiecesMoves = GenerateLegalChessMovesSorted(position, numberOfCaptureMoves);
 
     auto legalMoves = std::make_unique<std::vector<FullMove>>();
-    (*legalMoves).reserve(legalPiecesMoves->size() * CountSetBits(position.board.empties) + numberOfCaptureMoves);
-
-    //for (const Move& legalPieceMove : legalPiecesMoves)
-    //{
-    //	legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
-    //}
 
     Square duckSquare;
     if (position.board.duck)
@@ -223,17 +217,26 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
         duckSquare = Square::None;
     }
 
+    // If king is capturable just ignore rest of the moves
+    if (!(*legalPiecesMoves)[0].empty())
+    {
+        legalMoves->emplace_back(FullMove((*legalPiecesMoves)[0].front(), duckSquare, (*legalPiecesMoves)[0].front().sourceSquare));
+        return legalMoves;
+    }
+
+    (*legalMoves).reserve(legalPiecesMoves->size() * CountSetBits(position.board.empties) + numberOfCaptureMoves);
+
     BitBoard emptiesCopy;
 
+    /////////////////////////////////////////////////////////////////////////////////
+
+    // Capture moves putting duck in squares adjecent to target square & source square
     // Moves with captures of everything but pawns
-    for (int pieceID = 0; pieceID < 5; ++pieceID)
+    for (int pieceID = 1; pieceID < 5; ++pieceID)
     {
         for (const Move& legalPieceMove : (*legalPiecesMoves)[pieceID])
         {
-            emptiesCopy = position.board.empties;
-
-            // Removing target square from potential duck squares
-            ResetBit(emptiesCopy, legalPieceMove.targetSquare);
+            emptiesCopy = position.board.empties & KING_ATTACKS[legalPieceMove.targetSquare];
 
             while (emptiesCopy)
             {
@@ -250,10 +253,7 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
     // Moves with captures of pawns
     for (const Move& legalPieceMove : (*legalPiecesMoves)[5])
     {
-        emptiesCopy = position.board.empties;
-
-        // Removing target square from potential duck squares
-        ResetBit(emptiesCopy, legalPieceMove.targetSquare);
+        emptiesCopy = position.board.empties & KING_ATTACKS[legalPieceMove.targetSquare];
 
         if (legalPieceMove.additionalInfo == Move::AdditionalInfo::EnPassant)
         {
@@ -264,8 +264,6 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
                 legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
                 RemoveLSB(emptiesCopy);
             }
-
-            legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
 
             if (position.playerToMove == PlayerColor::White)
             {
@@ -285,8 +283,44 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
                 legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
                 RemoveLSB(emptiesCopy);
             }
+        }
 
-            legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
+        legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////
+
+
+    // Moves with captures of everything but pawns
+    for (int pieceID = 1; pieceID < 5; ++pieceID)
+    {
+        for (const Move& legalPieceMove : (*legalPiecesMoves)[pieceID])
+        {
+            emptiesCopy = position.board.empties & ~(KING_ATTACKS[legalPieceMove.targetSquare]);
+
+            while (emptiesCopy)
+            {
+                int currentEmptyIndex = IndexOfLSB(emptiesCopy);
+
+                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
+                RemoveLSB(emptiesCopy);
+            }
+        }
+    }
+
+    // Captures of pawns
+    for (const Move& legalPieceMove : (*legalPiecesMoves)[5])
+    {
+        emptiesCopy = position.board.empties & ~(KING_ATTACKS[legalPieceMove.targetSquare]);
+        // Removing target square from potential duck squares in case of en passant
+        ResetBit(emptiesCopy, legalPieceMove.targetSquare);
+
+        while (emptiesCopy)
+        {
+            int currentEmptyIndex = IndexOfLSB(emptiesCopy);
+
+            legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
+            RemoveLSB(emptiesCopy);
         }
     }
 
@@ -305,6 +339,8 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
             // Removing rook target square from potential duck squares
             ResetBit(emptiesCopy, rookTargetSquare);
 
+            legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
+
             while (emptiesCopy)
             {
                 int currentEmptyIndex = IndexOfLSB(emptiesCopy);
@@ -313,11 +349,12 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
                 RemoveLSB(emptiesCopy);
             }
 
-            legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
             legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, rookSourceSquare));
         }
         else
         {
+            legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
+
             while (emptiesCopy)
             {
                 int currentEmptyIndex = IndexOfLSB(emptiesCopy);
@@ -325,8 +362,6 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalMoves(const 
                 legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
                 RemoveLSB(emptiesCopy);
             }
-
-            legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
         }
     }
 

@@ -121,8 +121,3 @@ std::unique_ptr<Engine::SearchInfo> Engine::MinMaxSearch(unsigned depth, Evaluat
 
     return bestSearchInfo;
 }
-
-void Engine::OrderMoves(std::unique_ptr<std::list<FullMove>>& moves)
-{
-
-}

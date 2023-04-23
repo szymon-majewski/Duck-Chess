@@ -41,5 +41,4 @@ public:
 
 private:
     std::unique_ptr<SearchInfo> MinMaxSearch(unsigned depth, Evaluation alpha, Evaluation beta, const FullMove& prevMove);
-    void OrderMoves(std::unique_ptr<std::list<FullMove>>& moves);
 };
