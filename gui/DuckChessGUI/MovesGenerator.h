@@ -15,6 +15,7 @@ class MovesGenerator
 public:
     std::unique_ptr<std::list<Move>> GenerateLegalChessMoves(const Position& position, unsigned int& numberOfCaptureMoves);
     std::unique_ptr<std::vector<FullMove>> GenerateLegalMoves(const Position& position);
+    std::unique_ptr<std::vector<FullMove>> GenerateLegalCaptures(const Position& position);
 
     const static int PRIORITIES_COUNT = 7;
     const static int PRIORITY_LAST = PRIORITIES_COUNT - 1;

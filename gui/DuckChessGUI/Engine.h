@@ -41,4 +41,5 @@ public:
 
 private:
     std::unique_ptr<SearchInfo> MinMaxSearch(unsigned depth, Evaluation alpha, Evaluation beta, const FullMove& prevMove);
+    std::unique_ptr<SearchInfo> MinMaxSearchCaptures(Evaluation alpha, Evaluation beta, const FullMove& prevMove);
 };
