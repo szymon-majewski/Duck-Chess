@@ -40,6 +40,7 @@ public:
     std::unique_ptr<SearchInfo> Search(Position position);
 
 private:
-    std::unique_ptr<SearchInfo> MinMaxSearch(unsigned depth, Evaluation alpha, Evaluation beta, const FullMove& prevMove);
-    std::unique_ptr<SearchInfo> MinMaxSearchCaptures(Evaluation alpha, Evaluation beta, const FullMove& prevMove);
+    std::unique_ptr<SearchInfo> MinMaxSearchWhite(unsigned depth, Evaluation alpha, Evaluation beta, const FullMove& prevMove);
+    std::unique_ptr<SearchInfo> MinMaxSearchBlack(unsigned depth, Evaluation alpha, Evaluation beta, const FullMove& prevMove);
+    std::unique_ptr<SearchInfo> MinMaxSearchCaptures(int depth, const FullMove& prevMove);
 };

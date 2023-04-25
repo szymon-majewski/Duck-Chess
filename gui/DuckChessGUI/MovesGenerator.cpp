@@ -1443,69 +1443,77 @@ std::unique_ptr<std::vector<FullMove>> MovesGenerator::GenerateLegalCaptures(con
         return legalMoves;
     }
 
-    (*legalMoves).reserve(legalPiecesMoves->size() * 10);
+    (*legalMoves).reserve(legalPiecesMoves->size());
 
-    BitBoard emptiesCopy;
-
-    /////////////////////////////////////////////////////////////////////////////////
-
-    // Capture moves putting duck in squares adjecent to target square & source square
-    // Moves with captures of everything but pawns
     for (int pieceID = 1; pieceID < 5; ++pieceID)
     {
         for (const Move& legalPieceMove : (*legalPiecesMoves)[pieceID])
         {
-            emptiesCopy = position.board.empties & KING_ATTACKS[legalPieceMove.targetSquare];
-
-            while (emptiesCopy)
-            {
-                int currentEmptyIndex = IndexOfLSB(emptiesCopy);
-
-                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
-                RemoveLSB(emptiesCopy);
-            }
-
             legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
         }
     }
 
-    // Moves with captures of pawns
-    for (const Move& legalPieceMove : (*legalPiecesMoves)[5])
-    {
-        emptiesCopy = position.board.empties & KING_ATTACKS[legalPieceMove.targetSquare];
 
-        if (legalPieceMove.additionalInfo == Move::AdditionalInfo::EnPassant)
-        {
-            while (emptiesCopy)
-            {
-                int currentEmptyIndex = IndexOfLSB(emptiesCopy);
+    /////////////////////////////////////////////////////////////////////////////////
+//    (*legalMoves).reserve(legalPiecesMoves->size() * 10);
 
-                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
-                RemoveLSB(emptiesCopy);
-            }
+//    BitBoard emptiesCopy;
+    // Moves with captures of everything but pawns
+//    for (int pieceID = 1; pieceID < 5; ++pieceID)
+//    {
+//        for (const Move& legalPieceMove : (*legalPiecesMoves)[pieceID])
+//        {
+//            emptiesCopy = position.board.empties & KING_ATTACKS[legalPieceMove.targetSquare];
 
-            if (position.playerToMove == PlayerColor::White)
-            {
-                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)((uint8_t)legalPieceMove.targetSquare + (int8_t)DirectionOffsets::South)));
-            }
-            else
-            {
-                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)((uint8_t)legalPieceMove.targetSquare + (int8_t)DirectionOffsets::North)));
-            }
-        }
-        else
-        {
-            while (emptiesCopy)
-            {
-                int currentEmptyIndex = IndexOfLSB(emptiesCopy);
+//            while (emptiesCopy)
+//            {
+//                int currentEmptyIndex = IndexOfLSB(emptiesCopy);
 
-                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
-                RemoveLSB(emptiesCopy);
-            }
-        }
+//                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
+//                RemoveLSB(emptiesCopy);
+//            }
 
-        legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
-    }
+//            legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
+//        }
+//    }
+
+//    // Moves with captures of pawns
+//    for (const Move& legalPieceMove : (*legalPiecesMoves)[5])
+//    {
+//        emptiesCopy = position.board.empties & KING_ATTACKS[legalPieceMove.targetSquare];
+
+//        if (legalPieceMove.additionalInfo == Move::AdditionalInfo::EnPassant)
+//        {
+//            while (emptiesCopy)
+//            {
+//                int currentEmptyIndex = IndexOfLSB(emptiesCopy);
+
+//                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
+//                RemoveLSB(emptiesCopy);
+//            }
+
+//            if (position.playerToMove == PlayerColor::White)
+//            {
+//                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)((uint8_t)legalPieceMove.targetSquare + (int8_t)DirectionOffsets::South)));
+//            }
+//            else
+//            {
+//                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)((uint8_t)legalPieceMove.targetSquare + (int8_t)DirectionOffsets::North)));
+//            }
+//        }
+//        else
+//        {
+//            while (emptiesCopy)
+//            {
+//                int currentEmptyIndex = IndexOfLSB(emptiesCopy);
+
+//                legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, (Square)currentEmptyIndex));
+//                RemoveLSB(emptiesCopy);
+//            }
+//        }
+
+//        legalMoves->emplace_back(FullMove(legalPieceMove, duckSquare, legalPieceMove.sourceSquare));
+//    }
 
     /////////////////////////////////////////////////////////////////////////////////
 

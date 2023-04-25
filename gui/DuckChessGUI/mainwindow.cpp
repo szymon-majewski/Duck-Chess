@@ -256,9 +256,6 @@ void MainWindow::FenUpdateButtonPressed()
 void MainWindow::UpdateChessboard()
 {
     emitStartEngine(session->position);
-    UpdatePositionLabels();
-    unsigned int placeholder;
-    currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
 
     if (selectedSquare != Square::None)
     {
@@ -266,6 +263,11 @@ void MainWindow::UpdateChessboard()
         DeselectPossibleMovesSquares(selectedSquare);
         selectedSquare = Square::None;
     }
+
+    UpdatePositionLabels();
+    unsigned int placeholder;
+    currentLegalChessMoves = movesGenerator->GenerateLegalChessMoves(session->position, placeholder);
+
     firstPhase = true;
 
     piecesLabels.clear();
@@ -1415,7 +1417,7 @@ void MainWindow::UpdateBestMovesLabel(const std::list<FullMove>& bestMovesList)
         {
             if (movesWritten % 2 == 0)
             {
-                newText.append("  " + QString::number(session->position.fullMovesCount + additionalMoveNumber) + '.');
+                newText.append("  " + QString::number(session->position.fullMovesCount) + '.');
                 ++additionalMoveNumber;
             }
 
@@ -1434,7 +1436,7 @@ void MainWindow::UpdateBestMovesLabel(const std::list<FullMove>& bestMovesList)
         {
             if (movesWritten % 2 == 1)
             {
-                newText.append(' ' + QString::number(session->position.fullMovesCount + movesWritten / 2) + '.');
+                newText.append(' ' + QString::number(session->position.fullMovesCount) + '.');
                 ++additionalMoveNumber;
             }
 
