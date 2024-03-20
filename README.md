@@ -9,5 +9,5 @@ Chess engine for variant "Duck chess" made with C++ and Qt.
 
 <br/>
 
-<img src="ss/ss1.png" width="100%" height="100%">
-<img src="ss/ss2.png" width="100%" height="100%">
+<img src="ss/ss1.png" width="80%" height="80%">
+<img src="ss/ss2.png" width="80%" height="80%">
