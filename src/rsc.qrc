@@ -1,0 +1,22 @@
+<RCC>
+    <qresource prefix="/rsc">
+        <file>img/ui/backward.jpg</file>
+        <file>img/ui/fast_backward.jpg</file>
+        <file>img/ui/fast_forward.jpg</file>
+        <file>img/ui/forward.jpg</file>
+        <file>img/pieces/white_pawn.png</file>
+        <file>img/pieces/black_bishop.png</file>
+        <file>img/pieces/black_king.png</file>
+        <file>img/pieces/black_knight.png</file>
+        <file>img/pieces/black_pawn.png</file>
+        <file>img/pieces/black_queen.png</file>
+        <file>img/pieces/black_rook.png</file>
+        <file>img/pieces/white_bishop.png</file>
+        <file>img/pieces/white_king.png</file>
+        <file>img/pieces/white_knight.png</file>
+        <file>img/pieces/white_queen.png</file>
+        <file>img/pieces/white_rook.png</file>
+        <file>img/pieces/duck.png</file>
+        <file>img/ui/flipBoard.jpg</file>
+    </qresource>
+</RCC>
